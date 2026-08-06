@@ -7,18 +7,24 @@
   },
   "plugins": [
     {
-      "name": "tmwks",
-      "displayName": "The Mate Wish Key Show",
-      "description": "Start a project, and save one. Two commands for people who are not developers: /tmwks:new-project makes a folder in ~/projects with save points and a private GitHub repo, and /tmwks:save writes down what changed and pushes it.",
+      "name": "mwk-genie",
+      "displayName": "MWK Genie",
+      "description": "Start a project, and save one. Two commands for people who are not developers: /mwk-genie:new-project makes a folder in ~/projects with save points and a private GitHub repo, and /mwk-genie:save writes down what changed, pushes it, and leaves a note for next time.",
       "author": {
         "name": "Mate Wish Key",
         "url": "https://matewishkey.com"
       },
-      "homepage": "https://github.com/matewishkey/putgenieinthebox",
-      "repository": "https://github.com/matewishkey/putgenieinthebox",
+      "homepage": "https://github.com/matewishkey/mwk-genie",
+      "repository": "https://github.com/matewishkey/mwk-genie",
       "license": "MIT",
-      "keywords": ["beginner", "onboarding", "projects", "git"],
-      "source": "./plugin"
+      "keywords": [
+        "beginner",
+        "onboarding",
+        "projects",
+        "git"
+      ],
+      "source": "./plugin",
+      "version": "1.0.0"
     }
   ]
 }
