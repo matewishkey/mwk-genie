@@ -13,6 +13,11 @@ I am not a developer and I have never used a terminal.
 This is step 1 of "Put the genie in the box":
 github.com/matewishkey/mwk-genie
 
+This has to be a computer I own. It will run commands on
+this machine and later I will let it get on with them
+without approving each one. Tell me now, once, if I should
+be doing this somewhere other than a work laptop.
+
 Ask me this first, and wait for my answer:
 
   Are you on Windows, macOS or Linux?
@@ -36,8 +41,9 @@ WINDOWS
 
 MACOS
   - The terminal is already there. Open it and go.
-  - Do NOT install Homebrew for this. The agent has its
-    own installer and does not need a package manager.
+  - The agent has its own installer. Do not reach for a
+    package manager to install it — Homebrew on a Mac,
+    apt on Ubuntu, either one is the wrong tool here.
 
 LINUX
   - Straight to the agent.

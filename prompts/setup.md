@@ -24,6 +24,13 @@ next one.
 The first thing I should be able to do is close the
 terminal, open a new one, type ccc, and have you start.
 Get me to that point before you ask me for anything.
+
+The ccc shortcut also stops you asking me to approve
+every single command. Before I run it the first time,
+tell me that in one sentence, and that this is why it
+does not belong on a work computer. Then check it really
+worked rather than telling me it did — the version of
+this that failed on show 001 failed silently.
 ```
 
 ## What it does, in order
@@ -36,9 +43,9 @@ and having the agent start within a couple of minutes, and it will already be be
 `CLAUDE.md` asks.
 
 **Stage two — everything that costs you something.** Your computer password once, so it can install
-without stopping at every step. A GitHub account — **this is the first point you need one**. Two
-shortcuts for starting a project and finishing one. `mise`, so tools never get installed over the
-whole machine. A status bar showing how full the agent's memory is. And on Windows, fixing that red
-Ubuntu terminal.
+without stopping at every step. A GitHub account — **this is the first point you need one**. The
+commands for starting a project, finishing one, reviewing one, and printing what you learnt. `mise`,
+so tools never get installed over the whole machine. A status bar showing how full the agent's
+memory is. And on Windows, fixing that red Ubuntu terminal.
 
 That order is deliberate: you see the thing work before you are asked for anything.

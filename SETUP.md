@@ -72,6 +72,32 @@ type `ccc`, see `command not found`, and reasonably conclude it failed.
 
 That is the moment this whole thing works. Let them do it.
 
+**Say this once, before they run it, and then never again:**
+
+> From here I will not stop and ask you before each thing I do. You still agree to the work — I
+> say what I am about to do and you say yes — but I will not make you approve it a second time,
+> command by command. That is the trade for not sitting here pressing enter for an hour. **Do not
+> set this up on a work computer.**
+
+One warning, one sentence each. Not a section, not a lecture.
+
+### 2b. Prove it actually worked
+
+**Do not move on until you have checked this.** The command can exist and still not do the thing,
+and a beginner cannot tell the difference — they see you start and assume it is fine.
+
+Once they are in the new window, check how you were launched:
+
+```
+ps -o args= -p $PPID
+```
+
+You want `--dangerously-skip-permissions` in that line. If it is not there, the function did not
+take — fix it and check again before step 3.
+
+Then tell them what you found, in one line, either way. This is the step that failed silently the
+first time it met a real person.
+
 ### 3. `CLAUDE.md` — how you work with them
 
 `~/projects/mwk-genie/templates/CLAUDE.md` is the file. Copy it to **`~/.claude/CLAUDE.md`**,
@@ -124,13 +150,18 @@ claude plugin marketplace add ~/projects/mwk-genie
 claude plugin install mwk-genie@matewishkey
 ```
 
-That gives them two commands, in every folder, from now on:
+That gives them four commands, in every folder, from now on:
 
 - **`/mwk-genie:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
   copy on GitHub, and ends by telling them the `ccc <name>` that reopens it.
 - **`/mwk-genie:save`** — says in plain English what changed, writes a note to next time in the
   project's `TODO.md`, makes a save point, pushes it, and tells them how to start a fresh
   conversation without losing any of it.
+
+- **`/mwk-genie:magic`** — steps back and looks at a project with fresh eyes: what is this actually
+  for, and where has it drifted away from that. Summoned when they want a second opinion.
+- **`/mwk-genie:learning`** — a cheat sheet of what they learnt today, across every project, built
+  from their own conversations and written as a page they can print.
 
 That note is the reason `save` is worth having over a plain save point. The `CLAUDE.md` you copied
 in step 3 tells you to read it when you open a project, so "carry on" is a complete instruction the

@@ -7,8 +7,10 @@ answer. Open this file. Change that line. Run this. And you go and do it, and ha
 something red, and now you are carrying error messages back into a chat window like a courier. That
 is not the AI doing the job. That is you doing the job, with extra steps.
 
-The other kind lives on your computer. It opens your files, it runs things, it fixes what it broke,
-and it asks you before it touches anything.
+The other kind lives on your computer. It opens your files, it runs things, and it fixes what it
+broke. You agree to the work in conversation — it says what it is about to do, you say yes — and
+then it gets on with it instead of asking you to approve every command inside it. **That is a real
+trade, and it is why none of this belongs on a work computer.**
 
 This is how you get one. **Two prompts, and you paste them.** You do not need to understand anything
 in this repo — the agent reads it, not you.
@@ -42,14 +44,16 @@ then you will already have seen the thing work.
 
 ## What you end up with
 
-- **`ccc`** — three letters, from anywhere, and the agent starts in the folder your work lives in.
-  **`ccc holiday-photos`** starts it inside that project, so you never have to know where anything is.
+- **`ccc`** — three letters, from anywhere, and the agent starts in the folder your work lives in,
+  ready to work instead of asking you to approve every command. **`ccc holiday-photos`** starts it
+  inside that project, so you never have to know where anything is.
 - **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.
-- **Two commands for the bit you do over and over** — starting a project and finishing one. Say
-  *"start me a new project"* or *"save my work"*, or type `/mwk-genie:new-project` and
-  `/mwk-genie:save` if you would rather point than talk. ([what they do](plugin/skills/))
+- **Commands for the bits you do over and over** — starting a project, finishing one, getting a
+  second opinion on one, and printing out what you learnt today. Say *"start me a new project"* or
+  *"save my work"* in normal words, or type `/mwk-genie:` and pick from the list.
+  ([what each one does](plugin/skills/))
 - **A note left behind every time you finish**, so next time you can open the project and say
   *"carry on"*. Saving writes down where you got to; starting reads it back.
 - **GitHub set up**, so every version of your work is kept and "try it and see" stops being

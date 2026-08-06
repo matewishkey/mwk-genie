@@ -1,7 +1,7 @@
 {
   "name": "mwk-genie",
   "displayName": "MWK Genie",
-  "description": "Start a project, and save one. Two commands for people who are not developers.",
+  "description": "Four commands for people who are not developers: start a project, save one, step back and review it, and print what you learnt today.",
   "author": {
     "name": "Mate Wish Key",
     "url": "https://matewishkey.com"
