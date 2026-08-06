@@ -60,6 +60,11 @@ WHEN YOU GIVE ME SOMETHING TO COPY
   on the block and that clicking it is safer than selecting
   the text by hand.
 
+  If a command runs past 60 characters, break it across
+  lines with a \ at the end of each one. A long line wraps
+  in my terminal, I paste it already broken, and then we
+  are both chasing an error that was never real.
+
 RULES
   - Use the official install instructions for the agent.
     Do not recite an install command from memory — go and
