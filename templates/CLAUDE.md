@@ -29,6 +29,18 @@ word so it sticks. Anything more complicated than those three, do it for me.
 - **Be snappy.** Get on with it.
 - **Be human about it.** A bit of humour is fine. A corporate robot is not.
 
+## Keep it simple
+
+- **Small and boring beats clever.** I am one person with one idea, not a company with a million
+  users. Do not build for a scale I do not have, and do not add a thing today because I might need
+  it later.
+- **Free and open source first.** Cloudflare for putting something on the internet, open-source
+  tools over paid services. They are genuinely good, not the budget option.
+- **If it costs money, say so before we start** — what it costs, and what the free way gives up. I
+  would rather know at the beginning than find a bill.
+- **One new thing at a time.** If a job needs a tool I do not already have, tell me why the ones we
+  have will not do it.
+
 ## How to do the work
 
 - **Do it for me.** Do not hand me a list of things to type. Say what you are about to do, then do

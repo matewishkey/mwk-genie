@@ -185,13 +185,62 @@ the same place. The slash commands are there for when they would rather point th
 does not exist in that session, and the symptom is the command simply not being there. They have
 `ccc` by now, so this restart costs them three letters.
 
-### 7. mise
+### 7. Make yourself good at the work
+
+Three small things, all one-off, none of which they will ever have to think about again.
+
+**The model.** They are going to be building things, so put the strongest one in front of them by
+default. In `~/.claude/settings.json`:
+
+```
+"model": "opus"
+```
+
+**Merge that key in — do not overwrite the file.** Step 6 already wrote to it, and clobbering it
+uninstalls the commands you just gave them. It is read at start-up, so it takes effect next time
+they run `ccc`, not this second.
+
+**Plugins.** Anthropic publishes a set, and three of them earn their place for someone building
+things rather than maintaining them:
+
+```
+claude plugin marketplace add \
+  https://github.com/anthropics/claude-code.git
+claude plugin install frontend-design@claude-code-plugins
+claude plugin install feature-dev@claude-code-plugins
+claude plugin install security-guidance@claude-code-plugins
+```
+
+- **frontend-design** — so anything with a screen comes out looking like somebody made a decision,
+  not like a template.
+- **feature-dev** — understands the shape of what is already there before adding to it.
+- **security-guidance** — warns when an edit is about to do something risky. They cannot yet spot
+  that themselves, and this is the one that is watching while they learn.
+
+Use the `https://` form above rather than the `anthropics/claude-code` shorthand — the shorthand
+clones over SSH, and they have no SSH key.
+
+**Live documentation.** Add Context7, which looks up the real, current documentation for whatever
+tool they are using:
+
+```
+claude mcp add --transport http context7 \
+  https://mcp.context7.com/mcp
+```
+
+No account and no key. Say why in one line, because it is the most useful sentence in this step:
+**this is what stops you confidently telling them a command that does not exist.** That failure is
+not hypothetical — it is what put a wrong install command on air on the first show.
+
+Then have them restart you once more so all of it loads.
+
+### 8. mise
 
 Install `mise`, and use it for every language and tool you install from now on instead of installing
 things system-wide. It keeps their machine clean and lets different projects want different versions
 without a fight.
 
-### 8. Your status bar
+### 9. Your status bar
 
 Set up your status bar so they can always see **how full your context window is**, which model they
 are talking to, and which folder they are in. Use your own supported way of doing it.
@@ -200,7 +249,7 @@ Tell them why the first one matters: you can only hold so much of a conversation
 that fills up the older parts get squeezed out. Without the bar, that just feels like you going
 stupid on them for no reason.
 
-### 9. Terminal colours — Windows only
+### 10. Terminal colours — Windows only
 
 Their Ubuntu terminal has a red background by default and it is horrible. Change the colour scheme to
 Tokyo Night dark: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from the

@@ -58,16 +58,31 @@ working, that the GitHub copy is missing, and offer to sort it now or later.
 Show the folder path, and that the first save point and the GitHub copy exist.
 "Done" on its own is not done.
 
-## 7. Tell them the two things they need to remember
+## 7. Move them into it — do not just tell them where it is
 
-Print these on their own lines, with a blank line above and below:
+**You are still standing in the wrong folder, and so are they.** You made the
+project somewhere else; this window is not in it. If you stop here and carry on
+talking, the next hour of work lands in the wrong place.
 
-    cd ~/projects/<name>
-    ccc
+So walk them through it, and wait:
 
-...from any terminal window, opens this project again. Two lines: walk into the
-folder, then start me. `cd` is the one command worth them knowing, and this is
-where they will use it every day.
+1. **Tell them to open a new terminal window.** Not this one. Say why in one
+   line — this window is standing in the old folder and cannot move.
+2. **Give them these two lines to paste**, on their own lines, with a blank line
+   above and below:
+
+        cd ~/projects/<name>
+        ccc
+
+3. **Wait for them to say it started.** Do not carry on in this window. This is
+   the same shape as the `ccc` step in setup: a thing that only exists once a
+   new window has read it.
+
+Say what the two lines do, once: the first walks into the folder, the second
+starts me there. `cd` is the one command worth them knowing and this is where
+they will use it every day.
+
+## 7b. Then, in the new window
 
     /mwk-genie:save
 
@@ -75,7 +90,11 @@ where they will use it every day.
 somewhere safe. Tell them they can also just say "save my work" — the slash
 command and the sentence do the same thing.
 
-## 8. Then get on with it
+## 8. Then get on with it — over there, not here
 
-Ask what they actually want to do first. That is the thing they came for.
-Everything above was only the folder.
+Once they are running in the new window, that session asks what they actually
+want to do. That is the thing they came for. Everything above was only the
+folder.
+
+**In this window, you are finished.** Say so plainly, so they are not left with
+two conversations open and no idea which one is real.
