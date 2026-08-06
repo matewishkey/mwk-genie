@@ -4,32 +4,63 @@
 never used a terminal.** They have just installed you and logged in, and this is the first thing
 they have asked you to do.
 
-Work through the two stages below **in order**. Say one line about what each step is for, do it, then
-show them it worked before moving on.
+Work through the three stages below **in order**. Say one line about what each step is for, do it,
+then show them it worked before moving on.
+
+---
+
+## Stage zero — get the kit onto their machine
+
+**No GitHub account, no login and no keys.** This repo is public, so it downloads anonymously. Put it
+in their projects folder — it becomes the worked example of what a project folder looks like, and it
+is what you point at later when something needs explaining.
+
+    ~/projects/putgenieinthebox
+
+Use whichever of these the machine can actually do — **check before you run one**, because a minimal
+Ubuntu or WSL image ships with neither `git` nor `curl` guaranteed:
+
+```
+git clone https://github.com/matewishkey/putgenieinthebox.git \
+  ~/projects/putgenieinthebox
+```
+
+```
+curl -L https://github.com/matewishkey/putgenieinthebox/archive/refs/heads/main.tar.gz \
+  | tar xz -C ~/projects && mv ~/projects/putgenieinthebox-main \
+  ~/projects/putgenieinthebox
+```
+
+If neither tool is there, install one — that is the one thing in stage zero that may need their
+password, and it is worth saying so out loud rather than surprising them with a prompt.
+
+**Everything from here reads the files you just downloaded**, not the internet. If you are working
+from a web copy of this document instead, get the repo down first; the templates are the point.
 
 ---
 
 ## Stage one — get them flying
 
-**Nothing in this stage needs a password, an install, or an internet connection.** It is three files
-and a folder. Do all of it before you ask them for anything, because a person who has been asked for
-their password twice before they have seen the thing work is a person who is already nervous.
+**Nothing in this stage needs a password, an install, or an internet connection.** It is two files
+and a folder, all of it local now. Do all of it before you ask them for anything, because a person
+who has been asked for their password twice before they have seen the thing work is a person who is
+already nervous.
 
 ### 1. A folder for their work
 
     ~/projects
 
-One folder per project inside it, side by side. Make it, tell them the full path, and work there
-from now on.
+Already there from stage zero. One folder per project inside it, side by side. Tell them the full
+path, and work there from now on.
 
 ### 2. The `ccc` command
 
 They should not have to remember how to start you. Add a `ccc` function to their shell so typing
 three letters opens you in the right place.
 
-`templates/ccc.sh` in this repo is the function. Append it to the right file for their shell —
-`~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is already
-defined there, so running this twice does not leave two copies.
+`~/projects/putgenieinthebox/templates/ccc.sh` is the function. Append it to the right file for their
+shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is
+already defined there, so running this twice does not leave two copies.
 
 **Then tell them to open a new terminal window and type `ccc`.** A shell only reads that file when it
 starts, so the command does not exist in the window they are sitting in. If you skip this they will
@@ -39,9 +70,9 @@ That is the moment this whole thing works. Let them do it.
 
 ### 3. `CLAUDE.md` — how you work with them
 
-`templates/CLAUDE.md` in this repo is the file. Write it to **`~/.claude/CLAUDE.md`**, which is the
-one you read at the start of every session in every folder — so the rules hold tomorrow, and in
-projects that do not exist yet.
+`~/projects/putgenieinthebox/templates/CLAUDE.md` is the file. Copy it to **`~/.claude/CLAUDE.md`**,
+which is the one you read at the start of every session in every folder — so the rules hold
+tomorrow, and in projects that do not exist yet.
 
 Tell them where it is and that it is theirs: plain English, open it and change it whenever something
 you do annoys them. Show them one line from it so they know what editing it would look like.
@@ -65,12 +96,16 @@ lock themselves out.
 
 ### 5. GitHub
 
+**This is the first step that needs an account**, and it is worth saying so — they have had a working
+setup for several minutes at this point without one, which is the honest picture.
+
 Sign them in from this computer using GitHub's official command-line tool. **They do the login in
 their own browser** — never ask them for a password, a code or a token. Set their name and email so
 save points have an author.
 
 Then say, in one sentence, what it buys them: every version of their work is kept, so "try it and
-see" stops being frightening.
+see" stops being frightening. If you downloaded this kit with `git` in stage zero, the folder in
+front of them is already a repo — use it as the example rather than describing one.
 
 ### 6. mise
 

@@ -71,11 +71,8 @@ We are finished when the agent starts on my computer and I
 am logged in — nothing else. Do not set anything up for me
 beyond that; step 2 does all of it.
 
-Then tell me to paste this into the agent on my computer:
-
-  Set me up. Read
-  https://raw.githubusercontent.com/matewishkey/putgenieinthebox/main/SETUP.md
-  and do what it says, one step at a time.
+Then tell me to paste STEP 2 into the agent on my computer.
+Step 2 is on the same page you got this from.
 
 Start by asking me which computer I am on.
 ```

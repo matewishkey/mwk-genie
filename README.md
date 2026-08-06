@@ -28,15 +28,15 @@ the cheapest plan that includes it, and the free plan does not have it.
 
 ## Step two — into the agent, once it is running
 
-When the agent is running in a terminal window on your own computer, paste this into it:
+When the agent is running in a terminal window on your own computer, paste
+[`prompts/setup.md`](prompts/setup.md) into it. That one downloads this repo and sets the machine up
+from it.
 
-```
-Set me up. Read
-https://raw.githubusercontent.com/matewishkey/putgenieinthebox/main/SETUP.md
-and do what it says, one step at a time.
-```
+**You do not need a GitHub account to download it** — this repo is public, so it comes down
+anonymously with either `git` or `curl`, about 8 KB. You need an account later, in stage two, and by
+then you will already have seen the thing work.
 
-That is the whole of step two. [`SETUP.md`](SETUP.md) is the instructions it follows.
+[`SETUP.md`](SETUP.md) is the instruction sheet the agent follows once the kit is on your machine.
 
 ---
 
@@ -52,9 +52,9 @@ That is the whole of step two. [`SETUP.md`](SETUP.md) is the instructions it fol
 - **A status bar** showing how full the agent's memory is — which matters more than it sounds, and
   `SETUP.md` says why.
 
-**`ccc` and `CLAUDE.md` come first, on purpose.** Neither needs a password, a download or admin
-rights, so you are flying inside a couple of minutes. Everything that asks something of you comes
-after you have seen it work.
+**`ccc` and `CLAUDE.md` come first, on purpose.** Neither needs a password, an account or admin
+rights, so you are flying inside a couple of minutes. Everything that asks something of you — your
+password, a GitHub account — comes after you have seen it work.
 
 ## The bits that go wrong
 
