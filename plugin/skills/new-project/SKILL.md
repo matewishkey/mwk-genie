@@ -62,10 +62,12 @@ Show the folder path, and that the first save point and the GitHub copy exist.
 
 Print these on their own lines, with a blank line above and below:
 
-    ccc <name>
+    cd ~/projects/<name>
+    ccc
 
-...from any terminal window, opens this project again. That is the whole way
-back — they never have to know where the folder is.
+...from any terminal window, opens this project again. Two lines: walk into the
+folder, then start me. `cd` is the one command worth them knowing, and this is
+where they will use it every day.
 
     /mwk-genie:save
 

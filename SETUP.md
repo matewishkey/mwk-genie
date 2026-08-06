@@ -55,16 +55,14 @@ path, and work there from now on.
 
 ### 2. The `ccc` command
 
-They should not have to remember how to start you. Add a `ccc` function to their shell so typing
-three letters opens you in the right place.
+They should not have to remember how to start you. Add `ccc` to their shell so three letters do it.
 
-`~/projects/mwk-genie/templates/ccc.sh` is the function. Append it to the right file for their
-shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is
-already defined there, so running this twice does not leave two copies.
+`~/projects/mwk-genie/templates/ccc.sh` is one line. Append it to the right file for their shell —
+`~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is already
+defined there, so running this twice does not leave two copies.
 
-`ccc` on its own opens you in `~/projects`. **`ccc <folder>` opens you inside that project** — that is
-the second half of the shortcut and it is the one they will use every day. Say it once now; step 6
-gives them a command that ends by handing them the name to type.
+**It starts you where they are standing. It does not move them.** That is deliberate: which folder
+they are in is real and they are better off knowing it than having it hidden.
 
 **Then tell them to open a new terminal window and type `ccc`.** A shell only reads that file when it
 starts, so the command does not exist in the window they are sitting in. If you skip this they will
@@ -92,11 +90,23 @@ Once they are in the new window, check how you were launched:
 ps -o args= -p $PPID
 ```
 
-You want `--dangerously-skip-permissions` in that line. If it is not there, the function did not
+You want `--dangerously-skip-permissions` in that line. If it is not there, the shortcut did not
 take — fix it and check again before step 3.
 
 Then tell them what you found, in one line, either way. This is the step that failed silently the
 first time it met a real person.
+
+### 2c. Three commands they should actually know
+
+Not a lesson. Show them these three, once, in the terminal in front of them, and let them try each:
+
+    cd projects      move into a folder
+    ls               what is in this one
+    mkdir <name>     make a new one
+
+**They are not developers, but they are not helpless either.** Knowing where they are is the
+difference between driving and being driven, and it takes about a minute. Everything else they can
+ask you for.
 
 ### 3. `CLAUDE.md` — how you work with them
 
@@ -137,10 +147,10 @@ Then say, in one sentence, what it buys them: every version of their work is kep
 see" stops being frightening. If you downloaded this kit with `git` in stage zero, the folder in
 front of them is already a repo — use it as the example rather than describing one.
 
-### 6. The two shortcuts
+### 6. The commands
 
 They can start you now, but nothing yet helps them **start a project** or **finish one**. That is
-what this step adds, and it comes straight after GitHub because both commands lean on it.
+what this step adds, and it comes straight after GitHub because those two lean on it.
 
 The kit they downloaded in stage zero is also a plugin catalogue, so this installs off their own
 disk rather than the internet:
@@ -153,7 +163,7 @@ claude plugin install mwk-genie@matewishkey
 That gives them four commands, in every folder, from now on:
 
 - **`/mwk-genie:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
-  copy on GitHub, and ends by telling them the `ccc <name>` that reopens it.
+  copy on GitHub, and ends by telling them the two lines that reopen it.
 - **`/mwk-genie:save`** — says in plain English what changed, writes a note to next time in the
   project's `TODO.md`, makes a save point, pushes it, and tells them how to start a fresh
   conversation without losing any of it.
@@ -215,7 +225,7 @@ official tokyonight project rather than from memory.
 Tell them the setup is finished, and give them the three things worth remembering — no more than
 three:
 
-- **`ccc`** brings you back, and **`ccc <folder>`** brings you back to a project.
+- **`cd projects/<name>`** then **`ccc`** brings you back to a project.
 - **"start me a new project"** and **"save my work"** are the two things that need doing often.
 - **`~/.claude/CLAUDE.md`** is where they change how you behave.
 

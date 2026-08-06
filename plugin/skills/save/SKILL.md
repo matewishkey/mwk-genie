@@ -65,7 +65,8 @@ private. Do not do it without asking.
 
 Print these on their own lines, with a blank line above and below:
 
-    ccc <folder name>
+    cd ~/projects/<folder name>
+    ccc
 
 ...opens this project again, from any terminal window. You will read `TODO.md`
 when you get there, so they can start the next session by saying "carry on".

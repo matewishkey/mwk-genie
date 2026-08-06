@@ -44,9 +44,9 @@ then you will already have seen the thing work.
 
 ## What you end up with
 
-- **`ccc`** — three letters, from anywhere, and the agent starts in the folder your work lives in,
-  ready to work instead of asking you to approve every command. **`ccc holiday-photos`** starts it
-  inside that project, so you never have to know where anything is.
+- **`ccc`** — three letters and the agent starts, ready to work instead of asking you to approve
+  every command one at a time. It starts wherever you are standing, so `cd` into the project first
+  — that one command is worth knowing, and the setup teaches it to you.
 - **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.

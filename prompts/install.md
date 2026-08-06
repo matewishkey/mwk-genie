@@ -36,8 +36,11 @@ WINDOWS
     terminal window, tell me how: Ctrl+V, or right-click
     inside the window. Do not skip this. People get stuck
     here and think their copy did not work.
-  - Everything after that happens inside Ubuntu, not in
-    PowerShell. Tell me which window I should be in.
+  - Everything after that happens inside Ubuntu, and it
+    always will. PowerShell is only for the one command
+    above. If you ever give me something to run on
+    Windows, you have gone wrong — say which window I
+    should be in, every time, until it is obvious.
 
 MACOS
   - The terminal is already there. Open it and go.
@@ -49,15 +52,13 @@ LINUX
   - Straight to the agent.
 
 WHEN YOU GIVE ME SOMETHING TO COPY
-  Put it on its own lines, between markers, with nothing
-  else inside them:
+  Put it in a code block on its own, one command per block,
+  and nothing else inside the block. Never bury a command
+  in the middle of a sentence.
 
-    vvv copy these lines
-    wsl --install
-    ^^^ copy these lines
-
-  One command per block. Never bury a command in the middle
-  of a sentence.
+  The first time you do it, tell me there is a copy button
+  on the block and that clicking it is safer than selecting
+  the text by hand.
 
 RULES
   - Use the official install instructions for the agent.

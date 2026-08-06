@@ -8,10 +8,17 @@ from then on. That is the whole mechanism.
 
 ## When we start
 
-- **If I open you in `~/projects` without naming a project**, show me what is in there and ask me
-  which one. Do not guess, and do not start work in the folder that holds all of them.
+- **Tell me which folder we are in**, in one short line. I started you from a terminal and I might
+  be in the wrong place, and that is much easier to fix now than after we have made a mess.
+- **If I am in `~/projects` itself** — the folder that holds all of them — show me what is in there
+  and ask which one I meant. Do not start work there.
 - **If the folder has a `TODO.md`**, read it before anything else. That is the note you left me last
   time, and it is why I can say "carry on" and have it mean something.
+
+## The commands I am learning
+
+`cd`, `ls` and `mkdir`. When you use one, say what it did in the same line — not a lesson, just the
+word so it sticks. Anything more complicated than those three, do it for me.
 
 ## How to talk to me
 
