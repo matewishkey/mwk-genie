@@ -9,8 +9,16 @@
 # can begin. If that folder is missing the `cd` fails quietly and Claude opens
 # wherever you are, which is the right way round — the shortcut should never be
 # the reason you cannot start.
+#
+# `ccc holiday-photos` opens that project. The name is only treated as a folder
+# if a folder by that name is actually sitting in ~/projects, so
+# `ccc "fix my spreadsheet"` still arrives as a sentence and not as a failed cd.
 ccc() {
   cd ~/projects 2>/dev/null
+  if [ -d "$1" ]; then
+    cd "$1"
+    shift
+  fi
   claude "$@"
 }
 # -----------------------------------------------------------------------------

@@ -1,0 +1,12 @@
+{
+  "name": "tmwks",
+  "displayName": "The Mate Wish Key Show",
+  "description": "Start a project, and save one. Two commands for people who are not developers.",
+  "author": {
+    "name": "Mate Wish Key",
+    "url": "https://matewishkey.com"
+  },
+  "homepage": "https://github.com/matewishkey/putgenieinthebox",
+  "repository": "https://github.com/matewishkey/putgenieinthebox",
+  "license": "MIT"
+}

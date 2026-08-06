@@ -62,6 +62,10 @@ three letters opens you in the right place.
 shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is
 already defined there, so running this twice does not leave two copies.
 
+`ccc` on its own opens you in `~/projects`. **`ccc <folder>` opens you inside that project** — that is
+the second half of the shortcut and it is the one they will use every day. Say it once now; step 6
+gives them a command that ends by handing them the name to type.
+
 **Then tell them to open a new terminal window and type `ccc`.** A shell only reads that file when it
 starts, so the command does not exist in the window they are sitting in. If you skip this they will
 type `ccc`, see `command not found`, and reasonably conclude it failed.
@@ -107,13 +111,41 @@ Then say, in one sentence, what it buys them: every version of their work is kep
 see" stops being frightening. If you downloaded this kit with `git` in stage zero, the folder in
 front of them is already a repo — use it as the example rather than describing one.
 
-### 6. mise
+### 6. The two shortcuts
+
+They can start you now, but nothing yet helps them **start a project** or **finish one**. That is
+what this step adds, and it comes straight after GitHub because both commands lean on it.
+
+The kit they downloaded in stage zero is also a plugin catalogue, so this installs off their own
+disk rather than the internet:
+
+```
+claude plugin marketplace add ~/projects/putgenieinthebox
+claude plugin install tmwks@matewishkey
+```
+
+That gives them two commands, in every folder, from now on:
+
+- **`/tmwks:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
+  copy on GitHub, and ends by telling them the `ccc <name>` that reopens it.
+- **`/tmwks:save`** — says in plain English what changed, makes a save point, pushes it, and tells
+  them how to start a fresh conversation without losing any of it.
+
+**Tell them they never have to type either one.** "Start me a new project" and "save my work" reach
+the same place. The slash commands are there for when they would rather point than talk, and
+`/tmwks:` in the box will list them.
+
+**Then have them restart you** — close the window and type `ccc`. A plugin installed mid-session
+does not exist in that session, and the symptom is the command simply not being there. They have
+`ccc` by now, so this restart costs them three letters.
+
+### 7. mise
 
 Install `mise`, and use it for every language and tool you install from now on instead of installing
 things system-wide. It keeps their machine clean and lets different projects want different versions
 without a fight.
 
-### 7. Your status bar
+### 8. Your status bar
 
 Set up your status bar so they can always see **how full your context window is**, which model they
 are talking to, and which folder they are in. Use your own supported way of doing it.
@@ -122,7 +154,7 @@ Tell them why the first one matters: you can only hold so much of a conversation
 that fills up the older parts get squeezed out. Without the bar, that just feels like you going
 stupid on them for no reason.
 
-### 8. Terminal colours — Windows only
+### 9. Terminal colours — Windows only
 
 Their Ubuntu terminal has a red background by default and it is horrible. Change the colour scheme to
 Tokyo Night dark: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from the
@@ -144,6 +176,12 @@ official tokyonight project rather than from memory.
 
 ## When you are done
 
-Tell them the setup is finished, that `ccc` is how they come back, and that `~/.claude/CLAUDE.md` is
-where they change how you behave. Then ask them what they actually wanted their computer to do —
-that is the thing they came for, and everything above was only the box.
+Tell them the setup is finished, and give them the three things worth remembering — no more than
+three:
+
+- **`ccc`** brings you back, and **`ccc <folder>`** brings you back to a project.
+- **"start me a new project"** and **"save my work"** are the two things that need doing often.
+- **`~/.claude/CLAUDE.md`** is where they change how you behave.
+
+Then ask them what they actually wanted their computer to do — that is the thing they came for, and
+everything above was only the box.

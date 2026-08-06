@@ -43,9 +43,13 @@ then you will already have seen the thing work.
 ## What you end up with
 
 - **`ccc`** — three letters, from anywhere, and the agent starts in the folder your work lives in.
+  **`ccc holiday-photos`** starts it inside that project, so you never have to know where anything is.
 - **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.
+- **Two commands for the bit you do over and over** — starting a project and finishing one. Say
+  *"start me a new project"* or *"save my work"*, or type `/tmwks:new-project` and `/tmwks:save` if
+  you would rather point than talk. ([what they do](plugin/skills/))
 - **GitHub set up**, so every version of your work is kept and "try it and see" stops being
   frightening.
 - **`mise`**, so installing a tool never means installing it over the whole machine.
