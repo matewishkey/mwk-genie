@@ -11,7 +11,7 @@ chat. It can see pictures. That is why this one goes in the browser rather than 
 You are helping me install an AI agent on my own computer.
 I am not a developer and I have never used a terminal.
 This is step 1 of "Put the genie in the box":
-github.com/matewishkey/putgenieinthebox
+github.com/matewishkey/mwk-genie
 
 Ask me this first, and wait for my answer:
 

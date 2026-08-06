@@ -15,20 +15,20 @@ then show them it worked before moving on.
 in their projects folder — it becomes the worked example of what a project folder looks like, and it
 is what you point at later when something needs explaining.
 
-    ~/projects/putgenieinthebox
+    ~/projects/mwk-genie
 
 Use whichever of these the machine can actually do — **check before you run one**, because a minimal
 Ubuntu or WSL image ships with neither `git` nor `curl` guaranteed:
 
 ```
-git clone https://github.com/matewishkey/putgenieinthebox.git \
-  ~/projects/putgenieinthebox
+git clone https://github.com/matewishkey/mwk-genie.git \
+  ~/projects/mwk-genie
 ```
 
 ```
-curl -L https://github.com/matewishkey/putgenieinthebox/archive/refs/heads/main.tar.gz \
-  | tar xz -C ~/projects && mv ~/projects/putgenieinthebox-main \
-  ~/projects/putgenieinthebox
+curl -L https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
+  | tar xz -C ~/projects && mv ~/projects/mwk-genie-main \
+  ~/projects/mwk-genie
 ```
 
 If neither tool is there, install one — that is the one thing in stage zero that may need their
@@ -58,7 +58,7 @@ path, and work there from now on.
 They should not have to remember how to start you. Add a `ccc` function to their shell so typing
 three letters opens you in the right place.
 
-`~/projects/putgenieinthebox/templates/ccc.sh` is the function. Append it to the right file for their
+`~/projects/mwk-genie/templates/ccc.sh` is the function. Append it to the right file for their
 shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is
 already defined there, so running this twice does not leave two copies.
 
@@ -74,7 +74,7 @@ That is the moment this whole thing works. Let them do it.
 
 ### 3. `CLAUDE.md` — how you work with them
 
-`~/projects/putgenieinthebox/templates/CLAUDE.md` is the file. Copy it to **`~/.claude/CLAUDE.md`**,
+`~/projects/mwk-genie/templates/CLAUDE.md` is the file. Copy it to **`~/.claude/CLAUDE.md`**,
 which is the one you read at the start of every session in every folder — so the rules hold
 tomorrow, and in projects that do not exist yet.
 
@@ -120,20 +120,25 @@ The kit they downloaded in stage zero is also a plugin catalogue, so this instal
 disk rather than the internet:
 
 ```
-claude plugin marketplace add ~/projects/putgenieinthebox
-claude plugin install tmwks@matewishkey
+claude plugin marketplace add ~/projects/mwk-genie
+claude plugin install mwk-genie@matewishkey
 ```
 
 That gives them two commands, in every folder, from now on:
 
-- **`/tmwks:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
+- **`/mwk-genie:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
   copy on GitHub, and ends by telling them the `ccc <name>` that reopens it.
-- **`/tmwks:save`** — says in plain English what changed, makes a save point, pushes it, and tells
-  them how to start a fresh conversation without losing any of it.
+- **`/mwk-genie:save`** — says in plain English what changed, writes a note to next time in the
+  project's `TODO.md`, makes a save point, pushes it, and tells them how to start a fresh
+  conversation without losing any of it.
+
+That note is the reason `save` is worth having over a plain save point. The `CLAUDE.md` you copied
+in step 3 tells you to read it when you open a project, so "carry on" is a complete instruction the
+next morning.
 
 **Tell them they never have to type either one.** "Start me a new project" and "save my work" reach
 the same place. The slash commands are there for when they would rather point than talk, and
-`/tmwks:` in the box will list them.
+`/mwk-genie:` in the box will list them.
 
 **Then have them restart you** — close the window and type `ccc`. A plugin installed mid-session
 does not exist in that session, and the symptom is the command simply not being there. They have

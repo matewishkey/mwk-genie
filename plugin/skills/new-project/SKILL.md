@@ -67,7 +67,7 @@ Print these on their own lines, with a blank line above and below:
 ...from any terminal window, opens this project again. That is the whole way
 back — they never have to know where the folder is.
 
-    /tmwks:save
+    /mwk-genie:save
 
 ...when they are finished for now. It writes down what changed and puts it
 somewhere safe. Tell them they can also just say "save my work" — the slash

@@ -48,8 +48,10 @@ then you will already have seen the thing work.
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.
 - **Two commands for the bit you do over and over** — starting a project and finishing one. Say
-  *"start me a new project"* or *"save my work"*, or type `/tmwks:new-project` and `/tmwks:save` if
-  you would rather point than talk. ([what they do](plugin/skills/))
+  *"start me a new project"* or *"save my work"*, or type `/mwk-genie:new-project` and
+  `/mwk-genie:save` if you would rather point than talk. ([what they do](plugin/skills/))
+- **A note left behind every time you finish**, so next time you can open the project and say
+  *"carry on"*. Saving writes down where you got to; starting reads it back.
 - **GitHub set up**, so every version of your work is kept and "try it and see" stops being
   frightening.
 - **`mise`**, so installing a tool never means installing it over the whole machine.

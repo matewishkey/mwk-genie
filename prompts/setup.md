@@ -10,13 +10,13 @@ have never used a terminal.
 First, download the kit. It is a public repo, so this
 needs no GitHub account and no login:
 
-  https://github.com/matewishkey/putgenieinthebox
+  https://github.com/matewishkey/mwk-genie
 
-Put it in ~/projects/putgenieinthebox — use git if this
+Put it in ~/projects/mwk-genie — use git if this
 machine has it, or curl and tar if it does not. Tell me
 which one you used and why.
 
-Then read ~/projects/putgenieinthebox/SETUP.md and do
+Then read ~/projects/mwk-genie/SETUP.md and do
 exactly what it says, in order, one step at a time.
 Wait for me to say a step worked before you start the
 next one.
