@@ -25,8 +25,9 @@ is a set of choices somebody already made, written down where you can read them.
 
 **It decides**, because these are not worth stopping a beginner over: your projects live in
 `~/projects`, one folder each; tools get installed with `mise` rather than over your whole machine;
-your work is saved to GitHub, privately; and websites, domains and email start at Cloudflare.
-Every one of those is in a plain-English file you can open and change afterwards.
+your work is saved to GitHub, privately; and websites, domains and email get a suggested starting
+point rather than a blank page. Every one of those is in a plain-English file you can open and
+change afterwards — and the last one is a suggestion the agent is told it can talk you out of.
 
 **It asks you three things**, because these are yours:
 

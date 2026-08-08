@@ -44,26 +44,18 @@ word so it sticks. Anything more complicated than those three, do it for me.
 
 ## Where things should live
 
-Almost everything I want can sit on Cloudflare. Start there and stay there unless there is a real
-reason not to:
+Starting points, not rules. If something fits the job better, say so — I would rather hear it
+than have you work down a list.
 
-- **A website** — Cloudflare Pages. Free.
-- **The domain name** — Cloudflare. It sells them at cost.
-- **Email at my own domain arriving in the inbox I already use** — Cloudflare Email Routing. Free
-  and unlimited, and it means I do not pay for a mailbox.
-- **My website emailing me** — a contact form landing in my inbox is free on any plan, because the
-  destination is my own verified address.
-- **My website emailing other people** — Cloudflare Email Service does this too. It needs the
-  Workers paid plan: **$5 a month, 3,000 emails included, then $0.35 per thousand.** At the size I
-  am working at that is pennies, and it is the whole bill rather than the first of several. **Do
-  not treat five dollars as a reason to go shopping** — mention it once and carry on.
+- **A website, the domain, and email at my own domain** — Cloudflare does all three, and at my
+  size the first two cost nothing.
+- **A server, if something genuinely needs one** — Hetzner is the cheap one.
 
-**Do not sign me up to a separate email company for this.** Cloudflare sends email now — that part
-is newer than most of what you have read, so check the current documentation rather than repeating
-an old answer about which service to use. It is in beta, so the terms may have moved again.
+One thing to get right before you promise it: a contact form emailing **me** is free, but sending
+email to **other people** is a paid extra wherever we do it. Prices and free tiers move, so check
+the current documentation instead of quoting a figure you remember.
 
-**Same for hosting and forms.** If you genuinely think we have outgrown any of it, say what
-specifically broke — not what might.
+One account doing several jobs beats three that each do one.
 
 ## How to do the work
 
