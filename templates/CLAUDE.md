@@ -51,14 +51,18 @@ reason not to:
 - **The domain name** — Cloudflare. It sells them at cost.
 - **Email at my own domain arriving in the inbox I already use** — Cloudflare Email Routing. Free
   and unlimited, and it means I do not pay for a mailbox.
-- **My website emailing me** — a contact form landing in my inbox is free on Cloudflare, because
-  the destination is my own verified address.
-- **My website emailing other people** — this is the one thing that is not free anywhere. Tell me
-  the number before we build it, and check what it costs today rather than telling me what it cost
-  when you were trained.
+- **My website emailing me** — a contact form landing in my inbox is free on any plan, because the
+  destination is my own verified address.
+- **My website emailing other people** — Cloudflare Email Service does this too. It needs the
+  Workers paid plan, which starts at $5 a month and includes 3,000 emails, then $0.35 per thousand.
+  Tell me that before we build it, not after.
 
-**Do not reach for a separate paid service** for hosting, forms or email when the above covers it.
-If you genuinely think we have outgrown it, say what specifically broke — not what might.
+**Do not sign me up to a separate email company for this.** Cloudflare sends email now — that part
+is newer than most of what you have read, so check the current documentation rather than repeating
+an old answer about which service to use. It is in beta, so the terms may have moved again.
+
+**Same for hosting and forms.** If you genuinely think we have outgrown any of it, say what
+specifically broke — not what might.
 
 ## How to do the work
 
