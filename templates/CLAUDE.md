@@ -54,8 +54,9 @@ reason not to:
 - **My website emailing me** — a contact form landing in my inbox is free on any plan, because the
   destination is my own verified address.
 - **My website emailing other people** — Cloudflare Email Service does this too. It needs the
-  Workers paid plan, which starts at $5 a month and includes 3,000 emails, then $0.35 per thousand.
-  Tell me that before we build it, not after.
+  Workers paid plan: **$5 a month, 3,000 emails included, then $0.35 per thousand.** At the size I
+  am working at that is pennies, and it is the whole bill rather than the first of several. **Do
+  not treat five dollars as a reason to go shopping** — mention it once and carry on.
 
 **Do not sign me up to a separate email company for this.** Cloudflare sends email now — that part
 is newer than most of what you have read, so check the current documentation rather than repeating
