@@ -50,7 +50,7 @@ ccc
 
 ---
 
-## The four things it does for you
+## The things it does for you
 
 You can **type** these, or just **say them in normal words**. Both work.
 
@@ -88,8 +88,21 @@ now, and stays quiet about the rest.
 
 or `/mwk-genie:learning`
 
-Builds you a page of what you now know how to do, what went wrong and what
-fixed it. It opens in your browser and you can print it.
+Adds today to a running page of what you now know how to do, what went wrong
+and what fixed it. **Same page every time**, newest at the top — so it turns
+into a record of the whole thing, not a pile of separate notes. Bookmark it
+alongside this one. You can print it.
+
+### Something in the genie itself is broken
+
+> "report this bug"
+
+or `/mwk-genie:bug`
+
+Writes the report for you out of what actually just happened — the error, what
+you were doing, which computer you are on — shows it to you, and only files it
+if you say yes. **It goes to a public place**, so your report and your GitHub
+name can be seen by anyone. It will remind you of that before it sends.
 
 ---
 
@@ -108,15 +121,36 @@ than a long one.
 
 ---
 
+## Switching to the stronger brain
+
+```
+/model opus
+```
+
+There are two. **Sonnet** is the fast one and your plan stretches much further
+on it — that is what you are on unless you changed it. **Opus** is stronger at
+genuinely hard problems and uses your allowance up faster.
+
+This switches it **for the conversation you are in**, not forever. `/model
+sonnet` puts it back. Worth reaching for when something has you both stuck;
+not worth leaving on.
+
+---
+
 ## Two things that will scare you
 
 **Typing your computer password shows nothing.** No dots, no stars, nothing
 moves. It is working. Type it and press enter. Do not type it again.
 
-**It does not ask before each command.** You agree to the work in conversation
-— it says what it is going to do, you say yes — and then it gets on with it
-instead of stopping at every step. That is the trade, and it is why this belongs
-on your own computer and not a work one.
+**It probably does not ask before each command.** During setup you picked one
+of two: getting on with the work once you have agreed to it in conversation, or
+stopping to ask before every single command. Most people pick the first, and
+that is the trade that makes this a your-own-computer thing and not a work one.
+
+To change your mind, open the file `ccc` lives in — `~/.zshrc` on a Mac,
+`~/.bashrc` on Windows or Linux — find the two lines near the bottom that both
+start with `alias ccc=`, and move the `#` to the other one. Open a new terminal
+window and it has changed. Or just ask: *"switch ccc to the other one."*
 
 ---
 

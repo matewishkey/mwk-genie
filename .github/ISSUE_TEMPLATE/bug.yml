@@ -1,0 +1,72 @@
+name: Something is broken
+description: A command, a setup step, or the agent behaving in a way the kit did not intend.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This page is public.** Please leave out anything you would not want read —
+        file paths with your name in them, keys, tokens, or the contents of your work.
+
+        If the agent is running on your machine right now, you do not have to fill
+        this in by hand. Say **"report this bug"** and it will write it from what
+        actually happened, show it to you, and file it once you say yes.
+
+  - type: textarea
+    id: doing
+    attributes:
+      label: What were you trying to do?
+      placeholder: I typed ccc in a new terminal window.
+    validations:
+      required: true
+
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened?
+      description: The error text, if there was one. Paste it rather than describing it.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: machine
+    attributes:
+      label: Which computer?
+      options:
+        - macOS
+        - Windows (Ubuntu / WSL)
+        - Linux
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: >
+        Run `claude --version` if you can. If you know which version of the kit you
+        have, add it — but leave this blank rather than guessing.
+      placeholder: claude 2.x.x, kit 1.1.0
+    validations:
+      required: false
+
+  - type: dropdown
+    id: again
+    attributes:
+      label: Does it happen every time?
+      options:
+        - Every time
+        - Happened once
+        - Sometimes
+        - Have not tried again
+    validations:
+      required: false

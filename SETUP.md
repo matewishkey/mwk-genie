@@ -42,9 +42,10 @@ from a web copy of this document instead, get the repo down first; the templates
 ## Stage one — get them flying
 
 **Nothing in this stage needs a password, an install, or an internet connection.** It is three files
-and a folder, all of it local now. Do all of it before you ask them for anything, because a person
-who has been asked for their password twice before they have seen the thing work is a person who is
-already nervous.
+and a folder, all of it local now. There is exactly one question in here — step 2 — and it costs
+them nothing to answer. Everything that costs something comes later, because a person who has been
+asked for their password twice before they have seen the thing work is a person who is already
+nervous.
 
 ### 1. A folder for their work
 
@@ -53,13 +54,30 @@ already nervous.
 Already there from stage zero. One folder per project inside it, side by side. Tell them the full
 path, and work there from now on.
 
-### 2. The `ccc` command
+### 2. The `ccc` command — and the one question in this stage
 
 They should not have to remember how to start you. Add `ccc` to their shell so three letters do it.
 
-`~/projects/mwk-genie/templates/ccc.sh` is one line. Append it to the right file for their shell —
-`~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL — and check first whether a `ccc` is already
-defined there, so running this twice does not leave two copies.
+`~/projects/mwk-genie/templates/ccc.sh` holds **two versions of that command, and they pick one.**
+Do not decide this for them. Put it to them in about this many words, then wait:
+
+> `ccc` can start me one of two ways.
+>
+> **Not asking each time** — you agree to the work in conversation, I say what I am about to do
+> and you say yes, and then I get on with it. Setting this machine up is hundreds of commands;
+> approving them one at a time means you stop reading and start pressing enter, which is worse
+> than not being asked at all. **This is the one I would pick, and it is why this does not belong
+> on a work computer.**
+>
+> **Asking before every command** — safer, and much slower.
+>
+> You can change your mind later by moving one `#` in a file I will show you. Which one?
+
+**Then append the file with their answer active.** The template ships with the not-asking version
+switched on; if they chose asking, move the `#` so the plain `alias ccc='claude'` line is the live
+one. Append to the right file for their shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL
+— and check first whether a `ccc` is already defined there, so running this twice does not leave
+two copies.
 
 **It starts you where they are standing. It does not move them.** That is deliberate: which folder
 they are in is real and they are better off knowing it than having it hidden.
@@ -70,16 +88,9 @@ type `ccc`, see `command not found`, and reasonably conclude it failed.
 
 That is the moment this whole thing works. Let them do it.
 
-**Say this once, before they run it, and then never again:**
+One question, asked once. Not a section, not a lecture, and no going back over it later.
 
-> From here I will not stop and ask you before each thing I do. You still agree to the work — I
-> say what I am about to do and you say yes — but I will not make you approve it a second time,
-> command by command. That is the trade for not sitting here pressing enter for an hour. **Do not
-> set this up on a work computer.**
-
-One warning, one sentence each. Not a section, not a lecture.
-
-### 3. Prove it actually worked
+### 3. Prove it did what they agreed to
 
 **Do not move on until you have checked this.** The command can exist and still not do the thing,
 and a beginner cannot tell the difference — they see you start and assume it is fine.
@@ -90,8 +101,10 @@ Once they are in the new window, check how you were launched:
 ps -o args= -p $PPID
 ```
 
-You want `--dangerously-skip-permissions` in that line. If it is not there, the shortcut did not
-take — fix it and check again before moving on.
+**Check it against their answer in step 2, not against a default.** If they chose not-asking,
+`--dangerously-skip-permissions` must be in that line. If they chose asking, it must not be. Either
+way the wrong result means the shortcut did not take the way they asked — fix it and check again
+before moving on.
 
 Then tell them what you found, in one line, either way. This is the step that failed silently the
 first time it met a real person.
@@ -140,13 +153,23 @@ stage slower. It is not paperwork; it is the instructions.
 
 Now the things that need a password or a download. Say what each one is for in one line first.
 
-### 7. Sudo
+### 7. Admin access
 
-Ask for their computer password **once**, so you can install things without stopping at every step.
+**Ask, and say what you are asking for.** Not "type your password" — this one is worth a sentence:
+
+> The next few things install software, and installing software needs admin access. **That means
+> my whole machine, not one folder.** I am going to use it for the GitHub command-line tool and
+> for `mise`, which is what keeps the rest of the installs tidy. May I?
+
+Ask for the password **once**, so you are not stopping at every step after that.
 
 **Warn them before they type it that nothing will appear on screen** — no dots, no stars. It is the
 single most common place people think their computer has frozen, and they type it three times and
 lock themselves out.
+
+**If they say no, that is a fine answer and nothing gets skipped.** You ask again each time you
+genuinely need it, and you say what for. Do not quietly drop a step because it needed admin — tell
+them the step needs it and let them decide again.
 
 ### 8. GitHub
 
@@ -174,7 +197,7 @@ claude plugin marketplace add ~/projects/mwk-genie
 claude plugin install mwk-genie@matewishkey
 ```
 
-That gives them four commands, in every folder, from now on:
+That gives them five commands, in every folder, from now on:
 
 - **`/mwk-genie:new-project`** — makes a folder in `~/projects`, turns on save points, puts a private
   copy on GitHub, and ends by telling them the two lines that reopen it.
@@ -184,8 +207,10 @@ That gives them four commands, in every folder, from now on:
 
 - **`/mwk-genie:magic`** — steps back and looks at a project with fresh eyes: what is this actually
   for, and where has it drifted away from that. Summoned when they want a second opinion.
-- **`/mwk-genie:learning`** — a cheat sheet of what they learnt today, across every project, built
-  from their own conversations and written as a page they can print.
+- **`/mwk-genie:learning`** — adds today to a running page of everything they have learnt, built
+  from their own conversations. Same page every time, so it grows into a record.
+- **`/mwk-genie:bug`** — when something in this kit goes wrong, writes the report for them and
+  files it, once they have read it and said yes.
 
 That note is the reason `save` is worth having over a plain save point. The `CLAUDE.md` you copied
 in step 6 tells you to read it when you open a project, so "carry on" is a complete instruction the
@@ -203,16 +228,22 @@ does not exist in that session, and the symptom is the command simply not being 
 
 Three small things, all one-off, none of which they will ever have to think about again.
 
-**The model.** In `~/.claude/settings.json`:
+**The model — their choice, and it is a real one.** Ask, in about this many words:
+
+> There are two brains I can run on. **Sonnet** is fast, and your plan stretches a lot further on
+> it — you will get more done before you hit a limit. **Opus** is the stronger one, and it eats
+> that allowance much faster. **I would start on sonnet**, because the two of us will spend most of
+> our time on things it handles easily, and you can switch to the stronger one for a single
+> conversation whenever something turns out to be hard. Which would you like?
+
+Write their answer into `~/.claude/settings.json` — `"sonnet"` or `"opus"`:
 
 ```
 "model": "sonnet"
 ```
 
-Fast, cheap and more than enough for the size of thing they are building. Tell them the one line
-that matters: **if something turns out to be genuinely hard, `/model opus` swaps it for the
-stronger one for that conversation.** Knowing the escape hatch exists is worth more than starting
-on the expensive setting.
+Either way, tell them the one line that matters: **`/model opus` and `/model sonnet` swap it for
+the conversation you are in, any time.** Knowing the switch exists is worth more than the setting.
 
 **Merge that key in — do not overwrite the file.** Step 9 already wrote to it, and clobbering it
 uninstalls the commands you just gave them. It is read at start-up, so it takes effect next time
@@ -291,13 +322,19 @@ somewhere in their home folder, tell them the path, and say the link version nee
 with `/login`.
 
 Then walk them through it once, out loud, in about a minute: the three letters, the star in the
-prompt that means unsaved, the four commands, and `/clear`. **Do not read it to them** — point at
-the four headings and let the page do the rest.
+prompt that means unsaved, the commands, and `/clear`. **Do not read it to them** — point at the
+headings and let the page do the rest.
 
 ---
 
 ## Rules for this whole setup
 
+- **This is an opinionated setup, and you say so rather than hiding it.** It picks a shell command,
+  a model, a place to put projects, and a set of tools, and most of that is not worth stopping over.
+  **Three things are theirs to decide, not yours to assume:** how `ccc` starts you (step 2), admin
+  access (step 7), and which model (step 10). Ask those three, take the answer, move on. Do not turn
+  any of it into a lecture, and do not present the kit as a clever trick — it is a set of choices
+  somebody made, written down.
 - **Use the official install instructions** for anything you install. Do not recite an install
   command from memory — go and check the real documentation first.
 - **They do every login themselves, in their own browser.** Never ask them for a password, a code or

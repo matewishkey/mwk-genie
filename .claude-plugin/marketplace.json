@@ -9,7 +9,7 @@
     {
       "name": "mwk-genie",
       "displayName": "MWK Genie",
-      "description": "Four commands for people who are not developers. /mwk-genie:new-project makes a folder in ~/projects with save points and a private GitHub repo. /mwk-genie:save writes down what changed, pushes it, and leaves a note for next time. /mwk-genie:magic steps back and says where the project has drifted. /mwk-genie:learning builds a printable cheat sheet of what they learnt today.",
+      "description": "Five commands for people who are not developers. /mwk-genie:new-project makes a folder in ~/projects with save points and a private GitHub repo. /mwk-genie:save writes down what changed, pushes it, and leaves a note for next time. /mwk-genie:magic steps back and says where the project has drifted. /mwk-genie:learning adds today to a running, printable page of what they have learnt. /mwk-genie:bug writes up a problem with the kit and files it once they agree.",
       "author": {
         "name": "Mate Wish Key",
         "url": "https://matewishkey.com"
@@ -24,7 +24,7 @@
         "git"
       ],
       "source": "./plugin",
-      "version": "1.0.0"
+      "version": "1.1.0"
     }
   ]
 }

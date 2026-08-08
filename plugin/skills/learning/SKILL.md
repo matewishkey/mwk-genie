@@ -1,13 +1,18 @@
 ---
 name: learning
-description: Build a cheat sheet of what they learnt today, across every project, from their own conversations — what they now know how to do, what went wrong and what fixed it, and the handful of things worth remembering. Written as a web page they can read and print. Use when they ask what they learnt, want a summary of the day, or want something to keep.
+description: Add today to their running record of what they have learnt, across every project, from their own conversations — what they now know how to do, what went wrong and what fixed it, and the handful of things worth remembering. One page that grows, at one address they can bookmark and print. Use when they ask what they learnt, want a summary of the day, or want something to keep.
 ---
 
-Make them a cheat sheet of **today**, out of what actually happened, across
-**every** project — not just the one they are sitting in.
+Add **today** to their record, out of what actually happened, across **every**
+project — not just the one they are sitting in.
 
 The point is not a diary. It is the page they pin up: *this is what I now know
 how to do, and here is what to type.*
+
+**It is one page, and it grows.** Not a file per day — the same page, at the
+same address, with today added to the top. That is what makes it worth keeping:
+they can see how far they have come, and last month's fix is still there when
+it happens again.
 
 ## 1. Find today's conversations
 
@@ -35,21 +40,25 @@ end.** You are looking for a small number of things:
 
 Skip tool output, file contents and anything that only made sense in the moment.
 
-## 3. Write the cheat sheet
+## 3. Add today to the page
 
-A single self-contained HTML file — **it is a web page because a web page
-prints**, which is what they asked for, and because a wall of terminal text is
-not something anyone reads twice.
+The record is a single self-contained HTML file — **a web page because a web
+page prints**, and because a wall of terminal text is not something anyone
+reads twice.
 
-Write it to:
+    ~/projects/what-we-learnt/log.html
 
-    ~/projects/what-we-learnt/<YYYY-MM-DD>.html
+**Read it first if it exists.** Today goes in as a new dated entry at the
+**top**, above everything already there. **Never rewrite, tidy or re-summarise
+a past entry** — old entries are the record, and a record you edit is not one.
+If the file does not exist yet, create it with today as the only entry.
 
-**One folder, not a loose file per day.** `~/projects` is one folder per thing
-they are doing, and a year of cheat sheets sitting in it would bury the actual
-projects — which is the exact confusion that folder exists to prevent.
+One folder, one file. `~/projects` is one folder per thing they are doing, and
+a year of loose cheat sheets in there would bury the actual projects — which is
+the exact confusion that folder exists to prevent.
 
-Sections, in this order, and drop any that would be empty:
+Each entry is dated and has these sections, in this order, dropping any that
+would be empty:
 
 1. **What you can do now that you could not this morning.** The headline. One
    line each.
@@ -69,13 +78,39 @@ Rules for the page itself:
   and no giant headers eating the first page. They will press Ctrl+P.
 - **Plain English throughout.** If a word needs explaining, explain it in the
   same sentence, once.
-- **Never invent a lesson.** If today was thin, the page is short. A short
-  honest page is worth something; a padded one is worth nothing and they will
-  not open the next one.
+- **Never invent a lesson.** If today was thin, today's entry is two lines. A
+  short honest entry is worth something; a padded one is worth nothing and they
+  will stop opening it.
+- **Keep the first line of the file** exactly as described in step 4 — it is
+  how you find the published page again next time.
 
-## 4. Hand it over
+## 4. Publish it to the same address, every time
 
-Tell them the file path, and try to open it in their browser with whatever the
-machine has — `open` on a Mac, `xdg-open` on Linux, `explorer.exe` on Windows
-WSL. **If none of them works, do not make it a problem:** tell them to
-double-click the file. Print is Ctrl+P once it is open.
+The file on disk is the record. **The published page is its mirror, and it has
+one address that never changes** — that is the whole point, because an address
+that changes is not something anyone bookmarks.
+
+**Publish `log.html` as an artifact.** To land on the same page as last time:
+
+- **Read the first line of `log.html`.** When you publish, write the URL back
+  into the file as the very first line, exactly like this, so next time you can
+  find it without hunting:
+
+      <!-- artifact: https://... -->
+
+- **If that line is there**, publish with that URL so it updates in place.
+- **If it is not** (first run, or the line was lost), list their existing
+  artifacts and look for this one by title before making a new one. Only
+  publish fresh if it genuinely is not there — a second copy splits the record
+  in two and neither half is complete.
+- **Keep the title identical between runs.** It is how the page is recognised.
+
+Then give them the link, and **on the first run tell them to bookmark it** next
+to their how-to page. On later runs just say it has been updated — they know
+where it lives.
+
+**If publishing is not available in this session, do not improvise a
+workaround.** The file on disk is still the complete record, and nothing has
+been lost: tell them the path, say they can double-click it, and say the link
+version needs them signed in with `/login`. Next time it publishes, everything
+written in the meantime goes up with it.

@@ -8,14 +8,38 @@ something red, and now you are carrying error messages back into a chat window l
 is not the AI doing the job. That is you doing the job, with extra steps.
 
 The other kind lives on your computer. It opens your files, it runs things, and it fixes what it
-broke. You agree to the work in conversation — it says what it is about to do, you say yes — and
-then it gets on with it instead of asking you to approve every command inside it. **That is a real
-trade, and it is why none of this belongs on a work computer.**
+broke. You can have it agree the work with you in conversation — it says what it is about to do,
+you say yes — and then get on with it instead of asking you to approve every command inside that.
+**That is a real trade, you get asked which way you want it, and it is why none of this belongs on
+a work computer.**
 
 This is how you get one. **Two prompts, and you paste them.** You do not need to understand anything
 in this repo — the agent reads it, not you.
 
 ---
+
+## What it decides for you, and what it asks
+
+This is an **opinionated setup**. It is not a neutral installer and it is not a clever trick — it
+is a set of choices somebody already made, written down where you can read them.
+
+**It decides**, because these are not worth stopping a beginner over: your projects live in
+`~/projects`, one folder each; tools get installed with `mise` rather than over your whole machine;
+your work is saved to GitHub, privately; and websites, domains and email start at Cloudflare.
+Every one of those is in a plain-English file you can open and change afterwards.
+
+**It asks you three things**, because these are yours:
+
+- **How `ccc` starts the agent** — getting on with the work, or stopping to ask before every single
+  command. Faster or safer. Either is a fine answer, and you can switch later by moving one `#`.
+- **Admin access** — your computer password, once, so installing things does not stop at every
+  step. That means your whole machine, not one folder. Saying no is fine; it just asks each time.
+- **Which model** — the fast one that stretches your plan further, or the stronger one that does
+  not.
+
+**Two of those are the parts that can bite.** An agent running without per-command approval can
+delete things, and admin access is admin access. That is the honest description, and it is why the
+setup puts your work under GitHub before you start playing.
 
 ## Step one — into the AI in your browser
 
@@ -44,9 +68,11 @@ then you will already have seen the thing work.
 
 ## What you end up with
 
-- **`ccc`** — three letters and the agent starts, ready to work instead of asking you to approve
-  every command one at a time. It starts wherever you are standing, so `cd` into the project first
-  — that one command is worth knowing, and the setup teaches it to you.
+- **`ccc`** — three letters and the agent starts. You choose during setup whether it runs with
+  `--dangerously-skip-permissions`, which is the flag that stops it asking you to approve every
+  command one at a time. That flag is the reason this is a your-own-computer thing. It starts
+  wherever you are standing, so `cd` into the project first — that one command is worth knowing,
+  and the setup teaches it to you.
 - **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.
@@ -55,9 +81,9 @@ then you will already have seen the thing work.
 - **A how-to page you can bookmark**, with the handful of commands on it, so none of this lives only
   in a terminal window you are about to close.
 - **Commands for the bits you do over and over** — starting a project, finishing one, getting a
-  second opinion on one, and printing out what you learnt today. Say *"start me a new project"* or
-  *"save my work"* in normal words, or type `/mwk-genie:` and pick from the list.
-  ([what each one does](plugin/skills/))
+  second opinion on one, adding today to a running page of what you have learnt, and reporting a
+  bug in this kit. Say *"start me a new project"* or *"save my work"* in normal words, or type
+  `/mwk-genie:` and pick from the list. ([what each one does](plugin/skills/))
 - **A note left behind every time you finish**, so next time you can open the project and say
   *"carry on"*. Saving writes down where you got to; starting reads it back.
 - **GitHub set up**, so every version of your work is kept and "try it and see" stops being
@@ -85,6 +111,10 @@ password, a GitHub account — comes after you have seen it work.
 - **Not using Claude?** Any agent that runs in a terminal and can read files works the same way —
   Codex CLI, Gemini CLI, others. Change the name in the prompts. For the status bar, ask it for its
   own equivalent.
+- **Something in this kit itself broken?** Say *"report this bug"*. It writes the report from what
+  actually just happened, shows it to you, and files it here once you say yes — the repo is public,
+  so the report is too. You can also [open one
+  yourself](https://github.com/matewishkey/mwk-genie/issues/new/choose).
 
 ## Why "in the box"
 

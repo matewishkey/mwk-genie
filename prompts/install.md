@@ -14,9 +14,13 @@ This is step 1 of "Put the genie in the box":
 github.com/matewishkey/mwk-genie
 
 This has to be a computer I own. It will run commands on
-this machine and later I will let it get on with them
-without approving each one. Tell me now, once, if I should
-be doing this somewhere other than a work laptop.
+this machine, and step 2 offers to let it get on with
+them without approving each one. Tell me now, once, if I
+should be doing this somewhere other than a work laptop.
+
+Step 2 is an opinionated setup: it makes some choices for
+me and asks me about three of them. Do not set any of
+that up here — just say it exists so it is not a surprise.
 
 Ask me this first, and wait for my answer:
 

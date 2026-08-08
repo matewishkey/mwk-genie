@@ -31,6 +31,12 @@ So `SETUP.md` runs in stages and **the stage boundaries are load-bearing, not de
 person abandons this is being asked for their password twice before they have seen anything work.
 Anything you add goes in stage two unless it genuinely needs nothing.
 
+**Stage one does contain exactly one question** — which `ccc` they want (step 2) — and that is not
+a violation of the rule. A question costs them nothing; a password costs them something. Do not
+"tidy" it away: shipping `--dangerously-skip-permissions` without asking is the thing that made the
+site's copy wrong once already. Three things are the person's to decide, and all three are asked
+once and never revisited: `ccc` (step 2), admin access (step 7), the model (step 10).
+
 macOS deliberately does **not** install Homebrew. The agent has its own installer and never needed a
 package manager to run — that came out on 2026-08-05 and should not come back.
 
@@ -62,20 +68,38 @@ Three names have to agree or the command in `SETUP.md` is a lie:
 - `SETUP.md` step 9 → `claude plugin install <plugin>@<marketplace>`
 
 **`claude plugin validate .` checks the manifests. It does not check that `SETUP.md` quotes them
-correctly** — that one is on you, and it broke once already when the repo was renamed.
+correctly** — that one broke once already when the repo was renamed. **`test/check.sh` now does
+check it**, along with the version match and whether every skill is actually documented.
 
-**Test it by installing it, not by reading it:**
+**Test it by installing it, not by reading it** — `test/rehearse.sh` phase C does exactly that in a
+clean container, with real Claude Code, and leaves this box alone. Reach for the manual recipe only
+when you are debugging the rehearsal itself:
 
 ```
-claude plugin marketplace add ~/projects/mwk-genie
-claude plugin install mwk-genie@matewishkey
-claude plugin details mwk-genie@matewishkey     # skills resolve? token cost?
-claude plugin uninstall mwk-genie@matewishkey   # this box is a test rig, not a user
-claude plugin marketplace remove matewishkey
+HOME=$(mktemp -d) claude plugin marketplace add ~/projects/mwk-genie   # isolate; do not
+HOME=$(mktemp -d) claude plugin install mwk-genie@matewishkey          # pollute real config
 ```
+
+Verified facts worth not re-deriving: **plugin install needs no login**, `marketplace add <path>`
+reads the working tree rather than fetching the remote, and installing writes
+`extraKnownMarketplaces` + `enabledPlugins` into `~/.claude/settings.json` — which is what step 10's
+"merge, do not overwrite" warning is protecting.
 
 A plugin installed mid-session does not exist in that session — `SETUP.md` tells the user to restart,
 and that instruction is why the step works at all.
+
+## Test it before you push
+
+```
+bash test/check.sh      # seconds, no Docker
+bash test/rehearse.sh   # minutes, Docker, a clean ubuntu:24.04 with no git and no curl
+```
+
+`test/README.md` says what each covers; `test/MANUAL.md` is the short list of what needs a browser,
+a login, or a human. **Do not run git commands against the container's copy of the kit** — your
+changes are uncommitted, so a stray `stash` reverts it to published `main` and the run silently
+tests the wrong thing. That happened while writing the scripts; phase A now asserts the version to
+catch it.
 
 ## It was renamed, and the next rename will be the same job
 
@@ -87,22 +111,26 @@ A rename here is **not** just the remote. Sweep, in this order:
 `git remote set-url`, the local directory name (`~/projects/<repo>` must equal the repo name), the
 clone and tarball URLs in `SETUP.md`, the install path `~/projects/<repo>` in `SETUP.md` and
 `prompts/setup.md`, `homepage`/`repository` in both manifests, the plugin name if it carries the repo
-name, and `REPO` in **the other repo's** `src/data/genie-prompts.ts`.
+name, the URLs in `test/check.sh` and `test/rehearse.sh`, the `gh issue create -R` target in
+`plugin/skills/bug/SKILL.md` and `.github/ISSUE_TEMPLATE/`, and `REPO` in **the other repo's**
+`src/data/genie-prompts.ts`.
 
-`grep -rn "<old-name>" --exclude-dir=.git .` is the check, in both repos.
+`grep -rn "<old-name>" --exclude-dir=.git .` is the check, in both repos — and `bash test/check.sh`
+catches the `SETUP.md` half automatically.
 
 ## Verify identifiers, always
 
-Every URL in this repo is handed to a stranger whose agent will act on it. `curl -o /dev/null -w
-'%{http_code}'` each one after any change that touches a path — the raw `SETUP.md` URL, the clone
-URL, the tarball URL. A 404 here is not a broken link, it is a beginner's first five minutes.
+Every URL in this repo is handed to a stranger whose agent will act on it. A 404 here is not a
+broken link, it is a beginner's first five minutes. **`test/check.sh` curls every one of them** —
+run that rather than spot-checking by hand, and add any new URL to it in the same commit.
 
 `templates/ccc.sh` and `templates/prompt.sh` are shell that lands in somebody's `~/.zshrc` or
-`~/.bashrc`. Run `bash -n` and `zsh -n` on **both**. A syntax error there breaks every new terminal
-they open, on a machine they do not know how to fix. `prompt.sh` branches on `$ZSH_VERSION` and sets
-a different variable per shell, so passing the syntax check is not the same as working — source it
-in each shell and check `__mwk_git` prints ` (branch)`, ` (branch*)` when dirty, and nothing outside
-a repo.
+`~/.bashrc`. A syntax error there breaks every new terminal they open, on a machine they do not know
+how to fix — and passing a syntax check is not the same as working: `prompt.sh` branches on
+`$ZSH_VERSION` and sets a different variable per shell, and `ccc.sh` ships two alias lines of which
+exactly one must be live. `check.sh` sources both files in both shells and asserts the behaviour;
+`rehearse.sh` goes further and runs `ccc` in a genuinely fresh interactive shell against a stub
+`claude`, which is the show-001 failure reproduced on purpose.
 
 ## Cross-repo
 

@@ -1,7 +1,7 @@
 {
   "name": "mwk-genie",
   "displayName": "MWK Genie",
-  "description": "Four commands for people who are not developers: start a project, save one, step back and review it, and print what you learnt today.",
+  "description": "Five commands for people who are not developers: start a project, save one, step back and review it, keep a running page of what you have learnt, and report a bug in the kit.",
   "author": {
     "name": "Mate Wish Key",
     "url": "https://matewishkey.com"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/matewishkey/mwk-genie",
   "repository": "https://github.com/matewishkey/mwk-genie",
   "license": "MIT",
-  "version": "1.0.0"
+  "version": "1.1.0"
 }
