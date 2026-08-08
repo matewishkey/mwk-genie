@@ -13,6 +13,7 @@
 # The `*` is the useful one. It is the answer to "have I saved?" without asking.
 
 __mwk_git() {
+  local br
   br=$(git branch --show-current 2>/dev/null) || return
   [ -n "$br" ] || return
   if [ -n "$(git status --porcelain 2>/dev/null)" ]; then

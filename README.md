@@ -59,7 +59,7 @@ When the agent is running in a terminal window on your own computer, paste
 from it.
 
 **You do not need a GitHub account to download it** — this repo is public, so it comes down
-anonymously with either `git` or `curl`, about 8 KB. You need an account later, in stage two, and by
+anonymously with either `git` or `curl`. You need an account later, in stage two, and by
 then you will already have seen the thing work.
 
 [`SETUP.md`](SETUP.md) is the instruction sheet the agent follows once the kit is on your machine.

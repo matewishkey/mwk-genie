@@ -27,17 +27,17 @@ Your prompt — the bit before you type — tells you:
 ```
 
 - `~/projects/holiday-photos` — the folder you are in.
-- `(main)` — this folder is on GitHub.
+- `(main)` — this folder is keeping saved versions of your work.
 - `*` — **you have work that is not saved yet.** When the star is gone,
   everything is safe.
 
-Three commands move you around. They are the only ones worth learning:
+Three commands are the only ones worth learning:
 
 | Type this | It does |
 |---|---|
-| `cd projects` | go into a folder |
-| `cd ..` | go back up one |
+| `cd projects` | go into a folder (`cd ..` goes back up one) |
 | `ls` | show what is in this folder |
+| `mkdir notes` | make a new folder called `notes` |
 
 So to open a project you already have:
 

@@ -58,6 +58,9 @@ Links, all checked by `test/check.sh`: `matewishkey.com/show`, `youtube.com/@mat
 invitations is an invitation; five is a funnel, and the tone of everything else here is the reason
 people trust it. If you are adding a third, you are probably wrong.
 
+(The README's *footer* does mention the show, in prose, with no `/show` link. That predates the rule
+and sits inside it — it is a colophon, not a call to action. Leave it alone.)
+
 ## The cross-repo coupling — editing a prompt here changes the live website
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
@@ -129,9 +132,10 @@ A rename here is **not** just the remote. Sweep, in this order:
 `git remote set-url`, the local directory name (`~/projects/<repo>` must equal the repo name), the
 clone and tarball URLs in `SETUP.md`, the install path `~/projects/<repo>` in `SETUP.md` and
 `prompts/setup.md`, `homepage`/`repository` in both manifests, the plugin name if it carries the repo
-name, the URLs in `test/check.sh` and `test/rehearse.sh`, the `gh issue create -R` target in
-`plugin/skills/bug/SKILL.md` and `.github/ISSUE_TEMPLATE/`, and `REPO` in **the other repo's**
-`src/data/genie-prompts.ts`.
+name, the URLs in `test/check.sh` and `test/rehearse.sh`, the `gh issue create -R` target and the
+`issues/new/choose` link in `plugin/skills/bug/SKILL.md`, the same link in `README.md`, **the repo
+URL inside the published fence of `prompts/install.md`** — that one ships straight to the live site —
+and `REPO` in **the other repo's** `src/data/genie-prompts.ts`.
 
 `grep -rn "<old-name>" --exclude-dir=.git .` is the check, in both repos — and `bash test/check.sh`
 catches the `SETUP.md` half automatically.

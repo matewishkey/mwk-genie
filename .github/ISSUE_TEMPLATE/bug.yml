@@ -55,7 +55,7 @@ body:
       description: >
         Run `claude --version` if you can. If you know which version of the kit you
         have, add it — but leave this blank rather than guessing.
-      placeholder: claude 2.x.x, kit 1.1.0
+      placeholder: claude 2.x.x
     validations:
       required: false
 

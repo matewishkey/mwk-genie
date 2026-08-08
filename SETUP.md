@@ -204,7 +204,6 @@ That gives them five commands, in every folder, from now on:
 - **`/mwk-genie:save`** — says in plain English what changed, writes a note to next time in the
   project's `TODO.md`, makes a save point, pushes it, and tells them how to start a fresh
   conversation without losing any of it.
-
 - **`/mwk-genie:magic`** — steps back and looks at a project with fresh eyes: what is this actually
   for, and where has it drifted away from that. Summoned when they want a second opinion.
 - **`/mwk-genie:learning`** — adds today to a running page of everything they have learnt, built
@@ -353,7 +352,7 @@ headings and let the page do the rest.
 Tell them the setup is finished, and give them the three things worth remembering — no more than
 three:
 
-- **`cd projects/<name>`** then **`ccc`** brings you back to a project.
+- **`cd ~/projects/<name>`** then **`ccc`** brings you back to a project.
 - **"start me a new project"** and **"save my work"** are the two things that need doing often.
 - **`~/.claude/CLAUDE.md`** is where they change how you behave.
 

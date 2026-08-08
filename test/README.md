@@ -28,8 +28,10 @@ the plugin.
   a repo.
 - The pasted prompt in `prompts/setup.md` fits 60 columns. The website's build asserts this and
   **fails** rather than publishing a wide line, so a long line here breaks somebody else's build.
-- Every URL returns 200 — the repo, raw `SETUP.md`, the tarball, the live page, Context7 — and
-  the three Anthropic plugins named in `SETUP.md` still exist in that catalogue.
+- Every URL handed to a stranger returns 200 — the repo, raw `SETUP.md`, the tarball, the site
+  and the genie page, the show links (`/show`, YouTube, Twitch), the two places we send bug
+  reports, `claude.com/pricing`, the Claude Code installer, and Context7 — plus a check that the
+  three Anthropic plugins named in `SETUP.md` still exist in that catalogue.
 
 ## `rehearse.sh` — does it work on a machine that is not this one
 
@@ -45,7 +47,7 @@ begin with, because that is the machine `SETUP.md` warns about.
   It is what failed on show 001. Also swaps the `#` and checks the other variant, and checks the
   prompt's star on a throwaway project.
 - **C — stage two, with real Claude Code**, installed by its own installer, no package manager.
-  Adds the marketplace, installs the plugin, and confirms the version and all five skills. Then
+  Adds the marketplace, installs the plugin, and confirms the version and every skill. Then
   merges `"model"` into the `settings.json` the plugin just wrote and confirms the plugin
   survives — which is what step 10's warning is about.
 

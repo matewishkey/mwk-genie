@@ -38,7 +38,7 @@ failed silently.
 
 ## What it does, in order
 
-**Stage zero — the download.** No account, no login, no keys. About 8 KB.
+**Stage zero — the download.** No account, no login, no keys.
 
 **Stage one — the part that makes it yours.** A `~/projects` folder, the `ccc` command, and
 `~/.claude/CLAUDE.md`. **Nothing here needs a password or an install.** There is one question in it

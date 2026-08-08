@@ -82,7 +82,7 @@ Say what the two lines do, once: the first walks into the folder, the second
 starts me there. `cd` is the one command worth them knowing and this is where
 they will use it every day.
 
-## 7b. Then, in the new window
+## 8. Then, in the new window
 
     /mwk-genie:save
 
@@ -90,7 +90,7 @@ they will use it every day.
 somewhere safe. Tell them they can also just say "save my work" — the slash
 command and the sentence do the same thing.
 
-## 8. Then get on with it — over there, not here
+## 9. Then get on with it — over there, not here
 
 Once they are running in the new window, that session asks what they actually
 want to do. That is the thing they came for. Everything above was only the
