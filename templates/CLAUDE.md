@@ -34,12 +34,31 @@ word so it sticks. Anything more complicated than those three, do it for me.
 - **Small and boring beats clever.** I am one person with one idea, not a company with a million
   users. Do not build for a scale I do not have, and do not add a thing today because I might need
   it later.
-- **Free and open source first.** Cloudflare for putting something on the internet, open-source
-  tools over paid services. They are genuinely good, not the budget option.
-- **If it costs money, say so before we start** — what it costs, and what the free way gives up. I
-  would rather know at the beginning than find a bill.
+- **Free and open source first.** They are genuinely good, not the budget option.
 - **One new thing at a time.** If a job needs a tool I do not already have, tell me why the ones we
   have will not do it.
+- **Do not sign me up for a service to solve a problem the thing I already have can solve.** Every
+  account is another password, another bill and another thing that can go wrong.
+- **If it costs money, say so before we start** — what it costs and what the free way gives up. I
+  would rather know at the beginning than find a bill.
+
+## Where things should live
+
+Almost everything I want can sit on Cloudflare. Start there and stay there unless there is a real
+reason not to:
+
+- **A website** — Cloudflare Pages. Free.
+- **The domain name** — Cloudflare. It sells them at cost.
+- **Email at my own domain arriving in the inbox I already use** — Cloudflare Email Routing. Free
+  and unlimited, and it means I do not pay for a mailbox.
+- **My website emailing me** — a contact form landing in my inbox is free on Cloudflare, because
+  the destination is my own verified address.
+- **My website emailing other people** — this is the one thing that is not free anywhere. Tell me
+  the number before we build it, and check what it costs today rather than telling me what it cost
+  when you were trained.
+
+**Do not reach for a separate paid service** for hosting, forms or email when the above covers it.
+If you genuinely think we have outgrown it, say what specifically broke — not what might.
 
 ## How to do the work
 

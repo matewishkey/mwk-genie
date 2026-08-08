@@ -20,10 +20,12 @@ really ccc, so he can just do it"*.
 So `SETUP.md` runs in stages and **the stage boundaries are load-bearing, not decoration**:
 
 - **Stage zero** — download the kit. No account, no login, no keys.
-- **Stage one** — `~/projects`, `ccc`, `~/.claude/CLAUDE.md`. **Nothing here may need a password, an
-  install, or a package manager.** They type three letters and it works.
-- **Stage two** — everything that costs them something: sudo, GitHub, the plugin, mise, status bar,
-  Windows terminal colours.
+- **Stage one** — `~/projects`, `ccc`, the prove-it check, `cd`/`ls`/`mkdir`, the shell prompt,
+  `~/.claude/CLAUDE.md`. **Nothing here may need a password, an install, or a package manager.**
+  They type three letters and it works.
+- **Stage two** — everything that costs them something: sudo, GitHub, the plugin, the toolbox
+  (model, Anthropic plugins, Context7), mise, status bar, Windows terminal colours, and the
+  bookmarkable how-to artifact last.
 
 **Moving a step up into stage one is a regression** even when it is technically fine. The reason a
 person abandons this is being asked for their password twice before they have seen anything work.
@@ -57,7 +59,7 @@ Three names have to agree or the command in `SETUP.md` is a lie:
 
 - `.claude-plugin/marketplace.json` → `name` (the marketplace) and `plugins[0].name`
 - `plugin/.claude-plugin/plugin.json` → `name`, and the two `version` fields must match
-- `SETUP.md` step 6 → `claude plugin install <plugin>@<marketplace>`
+- `SETUP.md` step 9 → `claude plugin install <plugin>@<marketplace>`
 
 **`claude plugin validate .` checks the manifests. It does not check that `SETUP.md` quotes them
 correctly** — that one is on you, and it broke once already when the repo was renamed.
@@ -95,9 +97,12 @@ Every URL in this repo is handed to a stranger whose agent will act on it. `curl
 '%{http_code}'` each one after any change that touches a path — the raw `SETUP.md` URL, the clone
 URL, the tarball URL. A 404 here is not a broken link, it is a beginner's first five minutes.
 
-`templates/ccc.sh` is shell that lands in somebody's `~/.zshrc` or `~/.bashrc`. Run `bash -n` and
-`zsh -n` on it. A syntax error there breaks every new terminal they open, on a machine they do not
-know how to fix.
+`templates/ccc.sh` and `templates/prompt.sh` are shell that lands in somebody's `~/.zshrc` or
+`~/.bashrc`. Run `bash -n` and `zsh -n` on **both**. A syntax error there breaks every new terminal
+they open, on a machine they do not know how to fix. `prompt.sh` branches on `$ZSH_VERSION` and sets
+a different variable per shell, so passing the syntax check is not the same as working — source it
+in each shell and check `__mwk_git` prints ` (branch)`, ` (branch*)` when dirty, and nothing outside
+a repo.
 
 ## Cross-repo
 

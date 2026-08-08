@@ -50,6 +50,10 @@ then you will already have seen the thing work.
 - **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
   can open and change. ([the one it starts with](templates/CLAUDE.md))
 - **A `~/projects` folder**, one folder per thing you are doing.
+- **A prompt that tells you where you are** — the folder, and a `*` when there is work you have not
+  saved. That star is the answer to "have I saved?" without having to ask.
+- **A how-to page you can bookmark**, with the handful of commands on it, so none of this lives only
+  in a terminal window you are about to close.
 - **Commands for the bits you do over and over** — starting a project, finishing one, getting a
   second opinion on one, and printing out what you learnt today. Say *"start me a new project"* or
   *"save my work"* in normal words, or type `/mwk-genie:` and pick from the list.

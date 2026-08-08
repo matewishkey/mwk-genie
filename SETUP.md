@@ -41,7 +41,7 @@ from a web copy of this document instead, get the repo down first; the templates
 
 ## Stage one — get them flying
 
-**Nothing in this stage needs a password, an install, or an internet connection.** It is two files
+**Nothing in this stage needs a password, an install, or an internet connection.** It is three files
 and a folder, all of it local now. Do all of it before you ask them for anything, because a person
 who has been asked for their password twice before they have seen the thing work is a person who is
 already nervous.
@@ -79,7 +79,7 @@ That is the moment this whole thing works. Let them do it.
 
 One warning, one sentence each. Not a section, not a lecture.
 
-### 2b. Prove it actually worked
+### 3. Prove it actually worked
 
 **Do not move on until you have checked this.** The command can exist and still not do the thing,
 and a beginner cannot tell the difference — they see you start and assume it is fine.
@@ -91,12 +91,12 @@ ps -o args= -p $PPID
 ```
 
 You want `--dangerously-skip-permissions` in that line. If it is not there, the shortcut did not
-take — fix it and check again before step 3.
+take — fix it and check again before moving on.
 
 Then tell them what you found, in one line, either way. This is the step that failed silently the
 first time it met a real person.
 
-### 2c. Three commands they should actually know
+### 4. Three commands they should actually know
 
 Not a lesson. Show them these three, once, in the terminal in front of them, and let them try each:
 
@@ -108,7 +108,21 @@ Not a lesson. Show them these three, once, in the terminal in front of them, and
 difference between driving and being driven, and it takes about a minute. Everything else they can
 ask you for.
 
-### 3. `CLAUDE.md` — how you work with them
+### 5. A prompt that tells them where they are
+
+The default prompt opens with their username and their computer's name. Neither ever changes, so
+neither is ever worth reading, and they push the only useful part off to the right.
+
+`~/projects/mwk-genie/templates/prompt.sh` replaces it with the folder they are in, the branch once
+a project is on GitHub, and a `*` when there is work they have not saved. Append it to the same
+file you appended `ccc` to.
+
+    ~/projects/holiday-photos (main*) $
+
+**Point at the `*` and say what it means.** It is the answer to "have I saved?" without having to
+ask, and it is the thing that makes `save` feel like it is for something.
+
+### 6. `CLAUDE.md` — how you work with them
 
 `~/projects/mwk-genie/templates/CLAUDE.md` is the file. Copy it to **`~/.claude/CLAUDE.md`**,
 which is the one you read at the start of every session in every folder — so the rules hold
@@ -126,7 +140,7 @@ stage slower. It is not paperwork; it is the instructions.
 
 Now the things that need a password or a download. Say what each one is for in one line first.
 
-### 4. Sudo
+### 7. Sudo
 
 Ask for their computer password **once**, so you can install things without stopping at every step.
 
@@ -134,7 +148,7 @@ Ask for their computer password **once**, so you can install things without stop
 single most common place people think their computer has frozen, and they type it three times and
 lock themselves out.
 
-### 5. GitHub
+### 8. GitHub
 
 **This is the first step that needs an account**, and it is worth saying so — they have had a working
 setup for several minutes at this point without one, which is the honest picture.
@@ -147,7 +161,7 @@ Then say, in one sentence, what it buys them: every version of their work is kep
 see" stops being frightening. If you downloaded this kit with `git` in stage zero, the folder in
 front of them is already a repo — use it as the example rather than describing one.
 
-### 6. The commands
+### 9. The commands
 
 They can start you now, but nothing yet helps them **start a project** or **finish one**. That is
 what this step adds, and it comes straight after GitHub because those two lean on it.
@@ -174,7 +188,7 @@ That gives them four commands, in every folder, from now on:
   from their own conversations and written as a page they can print.
 
 That note is the reason `save` is worth having over a plain save point. The `CLAUDE.md` you copied
-in step 3 tells you to read it when you open a project, so "carry on" is a complete instruction the
+in step 6 tells you to read it when you open a project, so "carry on" is a complete instruction the
 next morning.
 
 **Tell them they never have to type either one.** "Start me a new project" and "save my work" reach
@@ -185,18 +199,22 @@ the same place. The slash commands are there for when they would rather point th
 does not exist in that session, and the symptom is the command simply not being there. They have
 `ccc` by now, so this restart costs them three letters.
 
-### 7. Make yourself good at the work
+### 10. Make yourself good at the work
 
 Three small things, all one-off, none of which they will ever have to think about again.
 
-**The model.** They are going to be building things, so put the strongest one in front of them by
-default. In `~/.claude/settings.json`:
+**The model.** In `~/.claude/settings.json`:
 
 ```
-"model": "opus"
+"model": "sonnet"
 ```
 
-**Merge that key in — do not overwrite the file.** Step 6 already wrote to it, and clobbering it
+Fast, cheap and more than enough for the size of thing they are building. Tell them the one line
+that matters: **if something turns out to be genuinely hard, `/model opus` swaps it for the
+stronger one for that conversation.** Knowing the escape hatch exists is worth more than starting
+on the expensive setting.
+
+**Merge that key in — do not overwrite the file.** Step 9 already wrote to it, and clobbering it
 uninstalls the commands you just gave them. It is read at start-up, so it takes effect next time
 they run `ccc`, not this second.
 
@@ -234,13 +252,13 @@ not hypothetical — it is what put a wrong install command on air on the first 
 
 Then have them restart you once more so all of it loads.
 
-### 8. mise
+### 11. mise
 
 Install `mise`, and use it for every language and tool you install from now on instead of installing
 things system-wide. It keeps their machine clean and lets different projects want different versions
 without a fight.
 
-### 9. Your status bar
+### 12. Your status bar
 
 Set up your status bar so they can always see **how full your context window is**, which model they
 are talking to, and which folder they are in. Use your own supported way of doing it.
@@ -249,11 +267,32 @@ Tell them why the first one matters: you can only hold so much of a conversation
 that fills up the older parts get squeezed out. Without the bar, that just feels like you going
 stupid on them for no reason.
 
-### 10. Terminal colours — Windows only
+### 13. Terminal colours — Windows only
 
 Their Ubuntu terminal has a red background by default and it is horrible. Change the colour scheme to
 Tokyo Night dark: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from the
 official tokyonight project rather than from memory.
+
+### 14. The page they bookmark
+
+Everything above is now on their machine and none of it is anywhere they can look it up. Fix that
+last, when it is all true.
+
+`~/projects/mwk-genie/templates/howto.md` is the page. **Publish it as an artifact** — your own
+feature for turning session output into a page on claude.ai with its own address. Then give them
+the link and tell them to bookmark it.
+
+That is the right medium and not a gimmick: it is a real URL, it survives closing the terminal, it
+opens on their phone, and if they later ask you to change something on it you can republish to the
+same address.
+
+**If publishing is not available in this session, do not improvise a workaround** — write the file
+somewhere in their home folder, tell them the path, and say the link version needs them signed in
+with `/login`.
+
+Then walk them through it once, out loud, in about a minute: the three letters, the star in the
+prompt that means unsaved, the four commands, and `/clear`. **Do not read it to them** — point at
+the four headings and let the page do the rest.
 
 ---
 
@@ -262,11 +301,11 @@ official tokyonight project rather than from memory.
 - **Use the official install instructions** for anything you install. Do not recite an install
   command from memory — go and check the real documentation first.
 - **They do every login themselves, in their own browser.** Never ask them for a password, a code or
-  a token. Their computer password in step 4 is the one exception, and it is typed into their own
+  a token. Their computer password in step 7 is the one exception, and it is typed into their own
   terminal, not to you.
 - **Before each command, say what it changes** and whether it needs admin rights.
 - **Anything they have to paste goes on its own line, and breaks at 60 characters with a `\`.** This
-  holds from the first command, not from step 3 when you copy their `CLAUDE.md` — a wrapped line
+  holds from the first command, not from step 6 when you copy their `CLAUDE.md` — a wrapped line
   pastes broken and they cannot tell that from a real error.
 - **One thing at a time.** Wait for them to say a step worked before starting the next one.
 - **If they are stuck, remind them they can take a screenshot and paste it in.** You can see
