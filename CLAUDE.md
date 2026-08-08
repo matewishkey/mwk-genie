@@ -40,6 +40,24 @@ once and never revisited: `ccc` (step 2), admin access (step 7), the model (step
 macOS deliberately does **not** install Homebrew. The agent has its own installer and never needed a
 package manager to run — that came out on 2026-08-05 and should not come back.
 
+## The show is the point, and it is mentioned in exactly two places
+
+This kit is **pre-show homework** — the site says so outright on the genie page ("You do this once,
+before the show"). The concept is come on the show and build the thing together; the box is only the
+box. So the kit ends by pointing at it, in two places and no others (mate's call, 2026-08-08):
+
+- **`templates/howto.md`** — the closing section. That page is the one artefact they keep and open
+  on their phone, which makes it the only high-value spot.
+- **`SETUP.md`'s closing** — right after asking what they actually wanted their computer to do,
+  because that answer *is* a show.
+
+Links, all checked by `test/check.sh`: `matewishkey.com/show`, `youtube.com/@matewishkey`,
+`twitch.tv/matewishkey`.
+
+**Deliberately not in the README front matter and not in the generated learning page.** Two
+invitations is an invitation; five is a funnel, and the tone of everything else here is the reason
+people trust it. If you are adding a third, you are probably wrong.
+
 ## The cross-repo coupling — editing a prompt here changes the live website
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT

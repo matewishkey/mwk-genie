@@ -16,6 +16,8 @@ or the two published pages change.
       not changed.** This is the whole point of the command and the only part that cannot be
       automated — a second copy at a new address is the failure, and it looks like success.
 - [ ] **Step 14's how-to page publishes** and the link survives closing the terminal.
+- [ ] **The show links work on the published page** — `check.sh` proves the URLs are alive, not that
+      they render as clickable links once `howto.md` is an artifact. Open it and click all three.
 
 ## Needs a human reading it
 

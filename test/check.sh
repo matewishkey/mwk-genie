@@ -202,6 +202,10 @@ check_url "https://github.com/matewishkey/mwk-genie"
 check_url "https://raw.githubusercontent.com/matewishkey/mwk-genie/main/SETUP.md"
 check_url "https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz"
 check_url "https://matewishkey.com/wishes/put-the-genie-in-the-box"
+# The point of the whole kit: the bookmark page and the end of setup send them here.
+check_url "https://matewishkey.com/show"
+check_url "https://www.youtube.com/@matewishkey"
+check_url "https://www.twitch.tv/matewishkey"
 
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST \
   https://mcp.context7.com/mcp \

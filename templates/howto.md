@@ -178,3 +178,28 @@ will do it for you.
 - **Take a screenshot and paste that in.** It can see pictures.
 - **Ask what a command does** before you say yes. That question is never
   annoying and never a waste of time.
+
+---
+
+## Where this came from, and what it is for
+
+**Mate Wish Key** — a show about sitting down with a complete stranger for a
+few hours and building the thing they wished their computer did.
+
+Everything you just set up is the box. **The point is doing it together.**
+
+### [Come on the show →](https://matewishkey.com/show)
+
+You, me and the agent. You bring the thing you wish your computer did, we make
+it, and we talk about you and me while it happens. About three hours.
+
+**You do not need to be any good at this.** That is the whole premise — the
+question the show is asking is whether a stranger can learn to build things in
+an afternoon. You are already further along than the last person who started.
+
+Want to watch one first? Fair enough:
+
+| | |
+|---|---|
+| **[YouTube](https://www.youtube.com/@matewishkey)** | whole shows, start to finish |
+| **[Twitch](https://www.twitch.tv/matewishkey)** | live, while it is actually happening |
