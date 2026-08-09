@@ -65,8 +65,8 @@ and sits inside it — it is a colophon, not a call to action. Leave it alone.)
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
 BUILD TIME** (`src/data/genie-prompts.ts`) and renders them on
-`matewishkey.com/wishes/put-the-genie-in-the-box`. This repo is the source of truth; the site keeps
-no copy. Two consequences:
+`matewishkey.com/wishes/put-the-genie-in-the-box`. This repo is the source of truth for those two
+files. Two consequences:
 
 - **A prompt edit here is a content change to a live public page.** It ships on that site's next
   deploy. There is nothing to sync and nothing to remember, which is the point — but it also means a
@@ -79,6 +79,15 @@ line wraps into soup, in the window of the person least able to tell a display a
 something they broke. The site's build asserts it and **fails** rather than publishing a wide one, so
 a too-long line here breaks somebody else's build. `prompts/install.md` goes into a browser chat and
 is deliberately not width-checked.
+
+**There is a THIRD coupling and it is the dangerous one, because it is a hand-typed copy rather
+than a fetch.** `src/content/howtos/put-the-genie-in-the-box.mdx` quotes **the opening of
+`templates/CLAUDE.md`** — the first three paragraphs, re-wrapped narrower, inside a
+` ```markdown ` fence — and then describes the headings that follow it. Nothing fetches it and
+nothing checks it, so **editing the top of `templates/CLAUDE.md` silently makes a live public page
+wrong.** The two prompts cannot drift; this can. Checked accurate 2026-08-09; filed as an issue on
+that repo. If you change those opening paragraphs or rename an early heading, say so in the commit
+and file it across.
 
 ## The plugin
 
