@@ -74,8 +74,18 @@ Rules for the page itself:
 - **Everything inline.** No links to stylesheets, no fonts, no scripts from the
   internet. It has to work on a laptop on bad hotel wifi, which is a real place
   this gets opened.
+- **A copy button on every command.** Section 3 is a list of things to type,
+  and a thing to type is worth nothing if they have to select it by hand in a
+  browser and get the leading spaces with it. One button per command block,
+  labelled `Copy`, that says `Copied` for a moment afterwards so they know it
+  worked. Use `navigator.clipboard.writeText` with a `document.execCommand`
+  fallback, and copy the **plain text** of the command — not the HTML around
+  it. An inline `<script>` is fine and is not what "nothing from the internet"
+  above is about.
 - **A print stylesheet** — `@media print` — with a white background, black text
-  and no giant headers eating the first page. They will press Ctrl+P.
+  and no giant headers eating the first page. They will press Ctrl+P. **Hide
+  the copy buttons in print** (`@media print { .copy { display: none } }`) — a
+  button on paper is a smudge.
 - **Plain English throughout.** If a word needs explaining, explain it in the
   same sentence, once.
 - **Never invent a lesson.** If today was thin, today's entry is two lines. A

@@ -17,7 +17,7 @@ the plugin.
 - `claude plugin validate`, and the bit **validate does not do**: that `SETUP.md` quotes the
   marketplace and plugin names correctly. That broke once, at the rename.
 - Both manifests agree on the version, and on the plugin's name.
-- Every skill has matching frontmatter, is named in `SETUP.md`, in `howto.md`, and in the
+- Every skill has matching frontmatter, is named in `SETUP.md`, in `howto.html`, and in the
   marketplace description — so a new command cannot ship undocumented.
 - The written-out command count (`five commands`) matches how many skills exist.
 - `bash -n` **and** `zsh -n` on both shell templates, then **sourcing them in both shells** —

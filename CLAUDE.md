@@ -46,7 +46,7 @@ This kit is **pre-show homework** — the site says so outright on the genie pag
 before the show"). The concept is come on the show and build the thing together; the box is only the
 box. So the kit ends by pointing at it, in two places and no others (mate's call, 2026-08-08):
 
-- **`templates/howto.md`** — the closing section. That page is the one artefact they keep and open
+- **`templates/howto.html`** — the closing section. That page is the one artefact they keep and open
   on their phone, which makes it the only high-value spot.
 - **`SETUP.md`'s closing** — right after asking what they actually wanted their computer to do,
   because that answer *is* a show.
@@ -61,11 +61,38 @@ people trust it. If you are adding a third, you are probably wrong.
 (The README's *footer* does mention the show, in prose, with no `/show` link. That predates the rule
 and sits inside it — it is a colophon, not a call to action. Leave it alone.)
 
+## The bookmark page is the only branded thing, and it fetches the brand
+
+`templates/howto.html` is the page they keep. It is **the one file in this kit that carries Mate
+Wish Key's branding** (mate's call, 2026-08-09) — everything else is deliberately plain, because a
+setup sheet covered in someone's logo reads as marketing and the tone is why people trust this.
+
+It does not hardcode the brand and hope. **`SETUP.md`'s last step tells the publishing agent to
+read <https://matewishkey.com/design> first and correct any token that has moved** — that page
+renders the site's real values live, so the page cannot drift away from the site. That instruction
+is the anti-drift mechanism; deleting it turns the file into another hand-copied brand asset going
+quietly stale, which is exactly the failure logged against `matewishkey-web#29`.
+
+Three rules out of that design kit, all enforced by `test/check.sh`:
+
+- **Red is spent once** — the block, top-left. "The block reads as loud because of how much page is
+  around it, so spending the red twice spends the effect." The copy buttons are deliberately
+  neutral, and the check fails if one turns red.
+- **Red is never body text.** At body size the only red allowed is `--red-deep`, for links.
+- **The block is the real logo file**, inlined verbatim from `matewishkey.com/favicon.svg`. Do not
+  hand-build a red square with a mark in it — `check.sh` diffs the path data against the live file.
+
+**It was markdown until 2026-08-09** and became HTML for one reason: copy buttons. Every command on
+it is something a beginner has to type, and selecting text by hand in a browser is where they pick
+up a leading space and get an error they cannot read. The learning page (`log.html`) got the same
+buttons and **none** of the branding.
+
 ## The cross-repo coupling — editing a prompt here changes the live website
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
 BUILD TIME** (`src/data/genie-prompts.ts`) and renders them on
-`matewishkey.com/wishes/put-the-genie-in-the-box`. This repo is the source of truth for those two
+`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path still 301s, but a
+redirect is not a home). This repo is the source of truth for those two
 files. Two consequences:
 
 - **A prompt edit here is a content change to a live public page.** It ships on that site's next

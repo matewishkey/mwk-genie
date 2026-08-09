@@ -308,9 +308,20 @@ official tokyonight project rather than from memory.
 Everything above is now on their machine and none of it is anywhere they can look it up. Fix that
 last, when it is all true.
 
-`~/projects/mwk-genie/templates/howto.md` is the page. **Publish it as an artifact** — your own
+`~/projects/mwk-genie/templates/howto.html` is the page. **Publish it as an artifact** — your own
 feature for turning session output into a page on claude.ai with its own address. Then give them
 the link and tell them to bookmark it.
+
+**Before you publish it, go and read <https://matewishkey.com/design>.** It renders the real
+tokens live, and this is the one page in the kit that carries the show's branding — so it has to
+match the site rather than a copy of it made months ago. Compare the colour values in the file's
+`:root` block against that page and **correct anything that has moved**. If the page is
+unreachable, publish the file as it stands and say so; stale brand colours are a blemish, a
+missing page is a failure.
+
+Three rules from that page are worth keeping if you touch the styling: **red is spent once** (the
+block, top-left — the copy buttons are deliberately not red), **red is never body text**, and
+**the block is the real logo file**, not a red square you rebuilt.
 
 That is the right medium and not a gimmick: it is a real URL, it survives closing the terminal, it
 opens on their phone, and if they later ask you to change something on it you can republish to the

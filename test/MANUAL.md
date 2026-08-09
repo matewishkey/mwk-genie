@@ -17,7 +17,7 @@ or the two published pages change.
       automated — a second copy at a new address is the failure, and it looks like success.
 - [ ] **Step 14's how-to page publishes** and the link survives closing the terminal.
 - [ ] **The show links work on the published page** — `check.sh` proves the URLs are alive, not that
-      they render as clickable links once `howto.md` is an artifact. Open it and click all three.
+      they render as clickable links once `howto.html` is an artifact. Open it and click all three.
 
 ## Needs a human reading it
 
@@ -40,5 +40,5 @@ or the two published pages change.
       installer and never needed a package manager.
 - [ ] **The live site still matches.** `prompts/install.md` and `prompts/setup.md` are fetched
       and published by `matewishkey.com` at build time. After a deploy, open
-      `matewishkey.com/wishes/put-the-genie-in-the-box` and check the two boxes show what this
+      `matewishkey.com/how-to/put-the-genie-in-the-box/` and check the two boxes show what this
       repo now says.

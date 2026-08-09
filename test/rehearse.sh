@@ -115,7 +115,7 @@ case "$out" in
     bad "fresh shell: ccc did not run at all (got: ${out:-nothing})" ;;
 esac
 
-# The swap we tell them about in howto.md has to actually work.
+# The swap we tell them about in howto.html has to actually work.
 u "sed -i \"s|^alias ccc=|# alias ccc=|; s|^# alias ccc='claude'$|alias ccc='claude'|\" ~/.bashrc" >/dev/null
 out=$(u 'bash -ic ccc' | tr -d '\r')
 case "$out" in

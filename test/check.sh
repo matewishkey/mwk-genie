@@ -80,7 +80,7 @@ done
 for d in plugin/skills/*/; do
   name=$(basename "$d")
   missing=""
-  for f in SETUP.md templates/howto.md .claude-plugin/marketplace.json; do
+  for f in SETUP.md templates/howto.html .claude-plugin/marketplace.json; do
     grep -qF -- "/mwk-genie:$name" "$f" || missing="$missing $f"
   done
   [ -z "$missing" ] \
@@ -107,6 +107,74 @@ $hits"
 done
 [ "$count_drift" = 0 ] && ok "the written-out count matches ($n_skills commands)"
 
+# --- the bookmark page -------------------------------------------------------
+# templates/howto.html is the one artefact they keep, the only branded thing in
+# the kit, and the only page here with a script on it. All three are reasons it
+# gets checked rather than trusted.
+head_ "The bookmark page"
+
+# One python pass prints its own results and a machine-readable tally on the
+# last line, so the counts fold into this script's.
+tally=$(python3 - <<'PY_END'
+import re, pathlib
+h = pathlib.Path('templates/howto.html').read_text(encoding='utf-8')
+res = []
+def check(cond, msg): res.append((bool(cond), msg))
+
+# Every command block needs exactly one copy button. A block without one is a
+# line they must select by hand -- the thing this page exists to avoid. A
+# button with no <pre> beside it throws on click.
+blocks = re.findall(r'<div class="cmd">(.*?)</div>', h, re.S)
+paired = [b for b in blocks if '<pre>' in b and 'class="copy"' in b]
+check(blocks and len(paired) == len(blocks),
+      f"every command block has a copy button ({len(paired)}/{len(blocks)})")
+check(all(re.search(r'<pre>\s*\S', b) for b in blocks), "no command block is empty")
+
+# The API is unavailable in more contexts than people expect, and a button that
+# silently does nothing is worse than no button on a page written for a beginner.
+check('navigator.clipboard' in h and 'execCommand' in h,
+      "copy has a clipboard API path and an execCommand fallback")
+
+# An artifact runs under a strict CSP: anything from another host is missing.
+loaded = [u for u in re.findall(r'(?:src|href)="(https?://[^"]+)"', h)
+          if re.match(r'.*\.(css|js|woff2?|png|jpg|svg)$', u)]
+check(not loaded, "nothing is loaded from another host" + (f" (found {loaded})" if loaded else ""))
+
+# Red is spent once. The design kit is explicit that a second red spend costs
+# the first its effect, and a copy button is the obvious place to slip.
+m = re.search(r'\.copy \{(.*?)\}', h, re.S)
+check(m and 'var(--red' not in m.group(1), "the copy buttons are not red")
+
+# A missing token means a colour got hardcoded and will not track the site.
+for tok in ('--red', '--red-field', '--red-deep', '--paper', '--ink', '--mute', '--faint'):
+    check(f'{tok}:' in h, f"token {tok} is defined")
+
+check('prefers-color-scheme: dark' in h and '[data-theme="dark"]' in h,
+      "dark theme covers prefers-color-scheme and an explicit data-theme")
+
+for good, msg in res:
+    print(("  \033[32m\u2713\033[0m " if good else "  \033[31m\u2717\033[0m ") + msg)
+print(sum(1 for g, _ in res if g), sum(1 for g, _ in res if not g))
+PY_END
+)
+printf '%s\n' "$tally" | sed '$d'
+pass=$((pass + $(printf '%s' "$tally" | tail -1 | cut -d' ' -f1)))
+fail=$((fail + $(printf '%s' "$tally" | tail -1 | cut -d' ' -f2)))
+
+# The block must be the real logo file. Hand-building a red square is how the
+# site ended up with three logos and no rule between them; this catches a drift
+# back, and also catches the site redrawing the mark without us noticing.
+live_svg=$(curl -sL --max-time 20 https://matewishkey.com/favicon.svg 2>/dev/null)
+if [ -n "$live_svg" ]; then
+  live_d=$(printf '%s' "$live_svg" | grep -o 'd="[^"]*"' | sort | tr -d '\n')
+  page_d=$(grep -o 'd="[^"]*"' templates/howto.html | sort | tr -d '\n')
+  { [ -n "$live_d" ] && [ "$live_d" = "$page_d" ]; } \
+    && ok "the block is the real favicon.svg, unmodified" \
+    || bad "the block does not match matewishkey.com/favicon.svg"
+else
+  ok "skipped the block check (could not reach matewishkey.com)"
+fi
+
 # --- the shell templates -----------------------------------------------------
 # These land in a stranger's ~/.zshrc or ~/.bashrc. A syntax error here breaks
 # every terminal they open, on a machine they do not know how to fix. And
@@ -120,7 +188,7 @@ for f in templates/ccc.sh templates/prompt.sh; do
 done
 
 # ccc.sh ships two alias lines; exactly one must be live, and swapping the `#`
-# must give the other. That swap is the instruction we print in howto.md.
+# must give the other. That swap is the instruction we print in howto.html.
 live=$(grep -c '^alias ccc=' templates/ccc.sh)
 comm=$(grep -c '^# alias ccc=' templates/ccc.sh)
 [ "$live" = 1 ] && [ "$comm" = 1 ] \
@@ -202,7 +270,12 @@ check_url "https://github.com/matewishkey/mwk-genie"
 check_url "https://raw.githubusercontent.com/matewishkey/mwk-genie/main/SETUP.md"
 check_url "https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz"
 check_url "https://matewishkey.com"
-check_url "https://matewishkey.com/wishes/put-the-genie-in-the-box"
+# The canonical path. /wishes/... still 301s here, but a redirect is not a home:
+# it holds until somebody re-uses the old path, exactly like the repo rename.
+check_url "https://matewishkey.com/how-to/put-the-genie-in-the-box/"
+# The branded how-to page reads its colours off these two.
+check_url "https://matewishkey.com/design"
+check_url "https://matewishkey.com/media"
 # The point of the whole kit: the bookmark page and the end of setup send them here.
 check_url "https://matewishkey.com/show"
 check_url "https://www.youtube.com/@matewishkey"
