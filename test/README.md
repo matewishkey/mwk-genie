@@ -28,10 +28,24 @@ the plugin.
   a repo.
 - The pasted prompt in `prompts/setup.md` fits 60 columns. The website's build asserts this and
   **fails** rather than publishing a wide line, so a long line here breaks somebody else's build.
-- Every URL handed to a stranger returns 200 — the repo, raw `SETUP.md`, the tarball, the site
-  and the genie page, the show links (`/show`, YouTube, Twitch), the two places we send bug
-  reports, `claude.com/pricing`, the Claude Code installer, and Context7 — plus a check that the
-  three Anthropic plugins named in `SETUP.md` still exist in that catalogue.
+- **The bookmark page** (`templates/howto.html`) — every command block has a copy button and no
+  block is empty, the copy has both a clipboard-API path and an `execCommand` fallback, nothing
+  is loaded from another host (an artifact's CSP would drop it), the design tokens are all
+  defined, dark theme covers both `prefers-color-scheme` and an explicit `data-theme`, **the copy
+  buttons are not red** (the design kit spends red once, on the block), and **the inlined block
+  is byte-identical to the live `favicon.svg`** — so a hand-built red square, or the site
+  redrawing the mark, both surface here.
+- Every URL handed to a stranger returns 200 **and is the address that answers, not one that
+  forwards** — the repo, raw `SETUP.md`, the tarball, the site and the genie page, the show links
+  (`/show/`, YouTube, Twitch), the design and media kits, the two places we send bug reports,
+  `claude.com/pricing`, the Claude Code installer, and Context7 — plus a check that the three
+  Anthropic plugins named in `SETUP.md` still exist in that catalogue.
+
+  **A 301 is a failure here.** It works until somebody re-uses the old path, which is exactly how
+  the repo rename and `/wishes/put-the-genie-in-the-box` both went. Three URLs redirect by design
+  — the GitHub tarball to codeload, the issue form to a login wall when signed out, and
+  `claude.ai/install.sh` to `downloads.claude.ai` — and are marked `redirects-ok`, because a
+  stable name in front of a CDN is the whole point of that name.
 
 ## `rehearse.sh` — does it work on a machine that is not this one
 
