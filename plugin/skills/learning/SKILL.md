@@ -92,7 +92,8 @@ Rules for the page itself:
   short honest entry is worth something; a padded one is worth nothing and they
   will stop opening it.
 - **Keep the first line of the file** exactly as described in step 4 — it is
-  how you find the published page again next time.
+  half of how you find the published page again next time, and rewriting the
+  file without it is how the record ends up at two addresses.
 
 ## 4. Publish it to the same address, every time
 
@@ -100,24 +101,59 @@ The file on disk is the record. **The published page is its mirror, and it has
 one address that never changes** — that is the whole point, because an address
 that changes is not something anyone bookmarks.
 
-**Publish `log.html` as an artifact.** To land on the same page as last time:
+**There is exactly one page. You update it. You never make a second one.**
 
-- **Read the first line of `log.html`.** When you publish, write the URL back
-  into the file as the very first line, exactly like this, so next time you can
-  find it without hunting:
+That sounds obvious and it is the easiest thing in this skill to get wrong,
+because getting it wrong looks like getting it right: a run that cannot find
+the first page publishes a fresh one, hands over a working link, and reports
+success. Nothing errors. The record is now split across two addresses, neither
+half is complete, and nobody finds out for weeks.
 
-      <!-- artifact: https://... -->
+### Where the address is kept
 
-- **If that line is there**, publish with that URL so it updates in place.
-- **If it is not** (first run, or the line was lost), list their existing
-  artifacts and look for this one by title before making a new one. Only
-  publish fresh if it genuinely is not there — a second copy splits the record
-  in two and neither half is complete.
-- **Keep the title identical between runs.** It is how the page is recognised.
+**In two places, because one file is one accident.**
 
-Then give them the link, and **on the first run tell them to bookmark it** next
-to their how-to page. On later runs just say it has been updated — they know
-where it lives.
+1. **The first line of `log.html`**, exactly like this:
+
+       <!-- artifact: https://... -->
+
+   It travels with the record, so the file and its address cannot be separated.
+
+2. **A copy at `~/.claude/mwk-genie-learning.txt`** — the URL on one line, and
+   nothing else. This one survives the project folder being deleted, renamed,
+   or moved, which the first line cannot.
+
+**Write both every time you publish**, even when nothing changed. They are
+cheap, and the whole design rests on at least one of them being there.
+
+### Finding it again, in order
+
+1. Read `~/.claude/mwk-genie-learning.txt`.
+2. Read the first line of `log.html`.
+3. **List their artifacts and match this page by its exact title.** Keep the
+   title identical between runs — it is the last way home when both files are
+   gone.
+
+Take the first address any of those gives you and **update that page**. If two
+of them disagree, prefer the sidecar file, say so in one line, and repair the
+other.
+
+### If all three come up empty
+
+**Stop. Do not publish.** Ask them:
+
+> I keep your learning page at one address so it is always the same bookmark.
+> I cannot find it — is this the first time you have run this, or has the page
+> gone missing?
+
+**First time → publish, and tell them to bookmark it.** Anything else → they
+almost certainly still have the link in a bookmark or an old message, and one
+question costs a moment where a duplicate page costs the record. Only publish
+fresh once they have said it is genuinely gone.
+
+This is the one place in this skill where asking beats getting on with it.
+
+On later runs just say it has been updated — they know where it lives.
 
 **If publishing is not available in this session, do not improvise a
 workaround.** The file on disk is still the complete record, and nothing has

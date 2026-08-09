@@ -15,6 +15,17 @@ or the two published pages change.
       a `/clear`. **Today's entry goes on top, yesterday's is still underneath, and the URL has
       not changed.** This is the whole point of the command and the only part that cannot be
       automated — a second copy at a new address is the failure, and it looks like success.
+- [ ] **Both copies of the address get written.** After a run, check the first line of
+      `~/projects/what-we-learnt/log.html` is `<!-- artifact: https://... -->` **and** that
+      `~/.claude/mwk-genie-learning.txt` holds the same URL. Two places on purpose: one survives
+      the file being rewritten, the other survives the folder being deleted.
+- [ ] **It asks rather than duplicating when the address is gone.** Delete both — the first line
+      and the sidecar — and run it again. **It must stop and ask** whether this is the first run
+      or the page went missing. If it silently publishes a new page, that is the bug this whole
+      design exists to prevent, and it will not announce itself.
+- [ ] **It still finds the page with only the title.** Delete both again, answer the question by
+      saying the page exists, and check it recovers the right artifact by title rather than
+      making a new one.
 - [ ] **Step 14's how-to page publishes** and the link survives closing the terminal.
 - [ ] **The show links work on the published page** — `check.sh` proves the URLs are alive, not that
       they render as clickable links once `howto.html` is an artifact. Open it and click all three.

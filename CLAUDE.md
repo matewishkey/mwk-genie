@@ -61,6 +61,39 @@ people trust it. If you are adding a third, you are probably wrong.
 (The README's *footer* does mention the show, in prose, with no `/show` link. That predates the rule
 and sits inside it — it is a colophon, not a call to action. Leave it alone.)
 
+## The learning page is ONE page, and losing its address is the whole risk
+
+`/mwk-genie:learning` updates a single artifact forever. **A second page is the
+failure mode, and it looks exactly like success** — the run publishes, hands over a working link,
+and reports done, while the record quietly splits across two addresses.
+
+So the address is kept **twice**: the `<!-- artifact: ... -->` first line of `log.html` (travels
+with the record) and `~/.claude/mwk-genie-learning.txt` (survives the folder being deleted or
+renamed). Matching the artifact by its exact title is the third way home, which is why the title
+must not drift.
+
+**If all three come up empty the skill asks rather than publishing** (mate's call, 2026-08-09).
+That is deliberate and it is the one place in that skill where asking beats getting on with it: a
+question costs a moment, a duplicate page costs the record. Do not "tidy" it into an automatic
+create.
+
+`test/check.sh` and `rehearse.sh` cannot see any of this — it needs a signed-in session and a
+second day. `test/MANUAL.md` is where it lives, and it is the most valuable line on that list.
+
+## No disclaimer link, and this is settled
+
+The site has `/disclaimer/`, and the kit deliberately does **not** link it (mate's call,
+2026-08-09): *"using claude is already a thing... we should not do anything."*
+
+The reasoning is worth keeping because the question will come back the next time somebody reads
+`--dangerously-skip-permissions` and gets nervous. Anyone running this has already chosen to
+install an AI agent on their own machine; a disclaimer link at the end does not inform that
+decision, it just makes the kit read as though it is worried about itself. The honest warnings are
+already where they matter — in the two things that will scare you, in step 7's "your whole
+machine, not one folder", and in the `ccc` question itself.
+
+Adding it is not a small safe improvement. It changes the tone of the one page they keep.
+
 ## The bookmark page is the only branded thing, and it fetches the brand
 
 `templates/howto.html` is the page they keep. It is **the one file in this kit that carries Mate
