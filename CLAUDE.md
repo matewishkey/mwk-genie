@@ -206,8 +206,11 @@ name, the URLs in `test/check.sh` and `test/rehearse.sh`, the `gh issue create -
 URL inside the published fence of `prompts/install.md`** — that one ships straight to the live site —
 and `REPO` in **the other repo's** `src/data/genie-prompts.ts`.
 
-`grep -rn "<old-name>" --exclude-dir=.git .` is the check, in both repos — and `bash test/check.sh`
-catches the `SETUP.md` half automatically.
+`grep -rn "<old-name>" --exclude-dir=.git .` is the check, in both repos. **`bash test/check.sh`
+now catches the `SETUP.md` half automatically** — it derives the slug from `git remote` and asserts
+the clone URL, the tarball URL, the marketplace path and the plugin-install line all match it. It
+does **not** check the other repo, the manifests' `homepage`/`repository`, or the links in the
+plugin's bug skill — those are still yours to sweep.
 
 ## Verify identifiers, always
 

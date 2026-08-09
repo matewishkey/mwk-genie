@@ -29,12 +29,15 @@ the plugin.
 - The pasted prompt in `prompts/setup.md` fits 60 columns. The website's build asserts this and
   **fails** rather than publishing a wide line, so a long line here breaks somebody else's build.
 - **The bookmark page** (`templates/howto.html`) — every command block has a copy button and no
-  block is empty, the copy has both a clipboard-API path and an `execCommand` fallback, nothing
-  is loaded from another host (an artifact's CSP would drop it), the design tokens are all
+  block is empty, the copy has both a clipboard-API path and an `execCommand` fallback, no stylesheet, script,
+  font or image is loaded from another host (an artifact's CSP would drop it — the check matches
+  by file extension, so it would not catch an extensionless `src` or a `fetch()`), the design tokens are all
   defined, dark theme covers both `prefers-color-scheme` and an explicit `data-theme`, **the copy
-  buttons are not red** (the design kit spends red once, on the block), and **the inlined block
-  is byte-identical to the live `favicon.svg`** — so a hand-built red square, or the site
-  redrawing the mark, both surface here.
+  buttons are not red** (the design kit spends red once, on the block), and **the inlined block's
+  path data matches the live `favicon.svg`** — so a hand-built red square, or the site redrawing
+  the mark, both surface here. (It compares the `d="…"` attributes, not the whole file, so a
+  colour or `viewBox` change would slip through. If the site is unreachable this check **skips**,
+  and a skip is reported separately from the passes — it is not a pass.)
 - Every URL handed to a stranger returns 200 **and is the address that answers, not one that
   forwards** — the repo, raw `SETUP.md`, the tarball, the site and the genie page, the show links
   (`/show/`, YouTube, Twitch), the design and media kits, the two places we send bug reports,

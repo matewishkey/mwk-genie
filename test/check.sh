@@ -8,14 +8,17 @@
 #
 #   bash test/check.sh
 #
-# Exits non-zero on the first category that fails, after running them all.
+# Runs every category, then exits non-zero if anything failed.
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-pass=0 fail=0
+pass=0 fail=0 skipped=0
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; pass=$((pass + 1)); }
 bad()  { printf '  \033[31m✗\033[0m %s\n' "$1"; fail=$((fail + 1)); }
+# Counted separately on purpose: a check that never ran is not a check that
+# passed, and a green tally that includes skips is a lie about coverage.
+skip() { printf '  \033[33m–\033[0m %s\n' "$1"; skipped=$((skipped + 1)); }
 head_() { printf '\n\033[1m%s\033[0m\n' "$1"; }
 
 # --- the plugin manifests ----------------------------------------------------
@@ -52,6 +55,22 @@ if grep -qF "claude plugin marketplace add ~/projects/${PWD##*/}" SETUP.md; then
   ok "SETUP.md adds the marketplace from ~/projects/${PWD##*/}"
 else
   bad "SETUP.md marketplace path does not match this directory name (${PWD##*/})"
+fi
+
+# A rename breaks the two download URLs in SETUP.md, and those are the first
+# thing a stranger runs. Derive the slug from the remote rather than trusting a
+# hardcoded copy, so this tracks the rename instead of needing one.
+slug=$(git config --get remote.origin.url \
+  | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')
+if [ -n "$slug" ]; then
+  miss=""
+  grep -qF "github.com/$slug.git" SETUP.md || miss="$miss clone-url"
+  grep -qF "github.com/$slug/archive" SETUP.md || miss="$miss tarball-url"
+  [ -z "$miss" ] \
+    && ok "SETUP.md downloads from $slug (matches the remote)" \
+    || bad "SETUP.md download URLs do not match the remote ($slug):$miss"
+else
+  skip "the download-URL check (no git remote)"
 fi
 
 # --- the skills --------------------------------------------------------------
@@ -172,7 +191,7 @@ if [ -n "$live_svg" ]; then
     && ok "the block is the real favicon.svg, unmodified" \
     || bad "the block does not match matewishkey.com/favicon.svg"
 else
-  ok "skipped the block check (could not reach matewishkey.com)"
+  skip "the block check (could not reach matewishkey.com)"
 fi
 
 # --- the shell templates -----------------------------------------------------
@@ -317,5 +336,13 @@ for p in frontend-design feature-dev security-guidance; do
 done
 
 # --- done --------------------------------------------------------------------
-printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"
+# Skips are reported, never folded into the pass count — the checks that skip
+# are the ones that need the network, so a run with skips has not verified the
+# things most likely to have drifted.
+if [ "$skipped" -gt 0 ]; then
+  printf '\n\033[1m%d passed, %d failed, %d skipped\033[0m\n' "$pass" "$fail" "$skipped"
+  printf '\033[33mSkipped checks did not run — they are not passes.\033[0m\n'
+else
+  printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"
+fi
 [ "$fail" -eq 0 ] || exit 1
