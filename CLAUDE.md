@@ -51,7 +51,7 @@ box. So the kit ends by pointing at it, in two places and no others (mate's call
 - **`SETUP.md`'s closing** — right after asking what they actually wanted their computer to do,
   because that answer *is* a show.
 
-Links, all checked by `test/check.sh`: `matewishkey.com/show`, `youtube.com/@matewishkey`,
+Links, all checked by `test/check.sh`: `matewishkey.com/show/`, `youtube.com/@matewishkey`,
 `twitch.tv/matewishkey`.
 
 **Deliberately not in the README front matter and not in the generated learning page.** Two
@@ -68,7 +68,7 @@ Wish Key's branding** (mate's call, 2026-08-09) — everything else is deliberat
 setup sheet covered in someone's logo reads as marketing and the tone is why people trust this.
 
 It does not hardcode the brand and hope. **`SETUP.md`'s last step tells the publishing agent to
-read <https://matewishkey.com/design> first and correct any token that has moved** — that page
+read <https://matewishkey.com/design/> first and correct any token that has moved** — that page
 renders the site's real values live, so the page cannot drift away from the site. That instruction
 is the anti-drift mechanism; deleting it turns the file into another hand-copied brand asset going
 quietly stale, which is exactly the failure logged against `matewishkey-web#29`.

@@ -262,30 +262,41 @@ PY
 # A 404 here is not a broken link, it is a beginner's first five minutes.
 head_ "URLs"
 
+# 200 is not enough. A URL that 301s still "works" — right up until somebody
+# re-uses the old path, which is how /wishes/... and the repo rename both went.
+# So the URL we ship has to be the one that answers, not one that forwards.
+# Pass "redirects-ok" for a URL that legitimately does (a shortener, a CDN).
 check_url() {
-  code=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 20 "$1" 2>/dev/null)
-  [ "$code" = "200" ] && ok "$code  $1" || bad "$code  $1"
+  read -r code final < <(curl -sL -o /dev/null \
+    -w '%{http_code} %{url_effective}' --max-time 20 "$1" 2>/dev/null)
+  if [ "$code" != "200" ]; then
+    bad "$code  $1"
+  elif [ "${2:-}" != "redirects-ok" ] && [ "$final" != "$1" ]; then
+    bad "$code  $1 -> redirects to $final (ship the final one)"
+  else
+    ok "$code  $1"
+  fi
 }
 check_url "https://github.com/matewishkey/mwk-genie"
 check_url "https://raw.githubusercontent.com/matewishkey/mwk-genie/main/SETUP.md"
-check_url "https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz"
-check_url "https://matewishkey.com"
+check_url "https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz" redirects-ok  # -> codeload CDN
+check_url "https://matewishkey.com/"
 # The canonical path. /wishes/... still 301s here, but a redirect is not a home:
 # it holds until somebody re-uses the old path, exactly like the repo rename.
 check_url "https://matewishkey.com/how-to/put-the-genie-in-the-box/"
 # The branded how-to page reads its colours off these two.
-check_url "https://matewishkey.com/design"
-check_url "https://matewishkey.com/media"
+check_url "https://matewishkey.com/design/"
+check_url "https://matewishkey.com/media/"
 # The point of the whole kit: the bookmark page and the end of setup send them here.
-check_url "https://matewishkey.com/show"
+check_url "https://matewishkey.com/show/"
 check_url "https://www.youtube.com/@matewishkey"
 check_url "https://www.twitch.tv/matewishkey"
 # Where we send them when something is wrong or costs money.
-check_url "https://github.com/matewishkey/mwk-genie/issues/new/choose"
+check_url "https://github.com/matewishkey/mwk-genie/issues/new/choose" redirects-ok  # -> login when signed out
 check_url "https://github.com/anthropics/claude-code/issues"
 check_url "https://claude.com/pricing"
 # The installer everything downstream assumes exists.
-check_url "https://claude.ai/install.sh"
+check_url "https://claude.ai/install.sh" redirects-ok  # -> downloads.claude.ai; the stable name is the point
 
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST \
   https://mcp.context7.com/mcp \
