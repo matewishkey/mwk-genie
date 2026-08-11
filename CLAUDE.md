@@ -46,8 +46,10 @@ as the way to stretch the allowance rather than the starting point.
 2026-08-11, and the halves are not interchangeable:
 
 - **Never `brew install` Claude Code.** It has its own installer, it has never needed a package
-  manager to run, and that was the 2026-08-05 call. `test/rehearse.sh` asserts it — in a container
-  with no brew, no apt and no npm — and that assertion stays.
+  manager to run, and that was the 2026-08-05 call. `test/rehearse.sh` asserts it: the agent goes in
+  with `curl … claude.ai/install.sh | bash` and the run then proves `~/.local/bin/claude` exists.
+  (The container is `ubuntu:24.04` and does use `apt-get` — for `curl` and `git` in stage zero, which
+  is a different question. The claim is about how the *agent* installs, not about the image.)
 - **Homebrew, Xcode Command Line Tools and iTerm2 belong to `prompts/install.md`**, the browser
   prompt, before Claude Code is installed at all.
 
@@ -101,9 +103,16 @@ The fleet's macOS box is reachable as `matevisky@192.168.172.22` (macOS 26.5.2, 
 | Real profile keys | `Guid`, `Name`, `Scrollback Lines`, `Unlimited Scrollback`, `Normal Font` | same |
 | Dynamic Profiles folder | `~/Library/Application Support/iTerm2/DynamicProfiles` | exists on that box |
 
-Two things that box also settles: it is **arm64**, and it has **no Homebrew at all** while iTerm2
-sits in `/Applications` — installed directly. So the Apple Silicon PATH problem step one now guards
-against is the default case, not an edge case, and the direct download is a real route people take.
+That box is **arm64**, which is worth knowing: the Apple Silicon PATH problem step one guards
+against is the default case on any Mac bought in the last few years, not an edge case.
+
+**It says nothing about how people install things, and an earlier version of this note claimed it
+did.** That claim — "no Homebrew, iTerm2 installed directly" — was wrong. The box has Homebrew
+6.0.15 and iTerm2 came from the cask. The check that produced it ran `bash -lc "command -v brew"`
+over SSH; the login shell there is **zsh**, brew's `shellenv` lives in `~/.zprofile`, and bash never
+reads it. **So the measurement was the PATH bug, performed by the person documenting the PATH bug.**
+Keep that in mind before believing any single-command probe over SSH: a non-interactive remote shell
+is not the shell the person uses, and "not found" from it means nothing.
 
 **Everything not in that table is still a guess.** `SETUP.md` step 13 names exactly these and tells
 the agent to find anything else the same way.
@@ -321,8 +330,17 @@ plugin's bug skill — those are still yours to sweep.
 ## Verify identifiers, always
 
 Every URL in this repo is handed to a stranger whose agent will act on it. A 404 here is not a
-broken link, it is a beginner's first five minutes. **`test/check.sh` curls every one of them** —
-run that rather than spot-checking by hand, and add any new URL to it in the same commit.
+broken link, it is a beginner's first five minutes.
+
+**`test/check.sh` extracts the URLs out of the files that ship and curls what it finds** — nothing
+to add by hand, and a link you break in `SETUP.md` or on the bookmark page fails the run. It also
+fails on a URL that only *redirects* to a working page, because a redirect holds exactly until
+somebody claims the freed-up path.
+
+**It used to be a hand-kept list, and this file used to claim it "curls every one of them".** That
+was false for as long as it was written: the list checked the URLs somebody remembered to add, which
+is not the same set as the URLs a stranger is handed. Breaking a real link in two shipped files left
+the suite fully green. If you narrow the extraction, narrow this sentence with it.
 
 `templates/ccc.sh` and `templates/prompt.sh` are shell that lands in somebody's `~/.zshrc` or
 `~/.bashrc`. A syntax error there breaks every new terminal they open, on a machine they do not know

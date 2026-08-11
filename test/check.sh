@@ -51,26 +51,41 @@ else
   bad "SETUP.md does not contain: claude plugin install ${pl_name}@${mp_name}"
 fi
 
-if grep -qF "claude plugin marketplace add ~/projects/${PWD##*/}" SETUP.md; then
-  ok "SETUP.md adds the marketplace from ~/projects/${PWD##*/}"
-else
-  bad "SETUP.md marketplace path does not match this directory name (${PWD##*/})"
-fi
-
-# A rename breaks the two download URLs in SETUP.md, and those are the first
-# thing a stranger runs. Derive the slug from the remote rather than trusting a
-# hardcoded copy, so this tracks the rename instead of needing one.
+# A rename breaks the download URLs and the install path, and those are the
+# first things a stranger runs. Derive the slug from the remote rather than
+# trusting a hardcoded copy, so this tracks the rename instead of needing one.
 slug=$(git config --get remote.origin.url \
   | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')
-if [ -n "$slug" ]; then
-  miss=""
-  grep -qF "github.com/$slug.git" SETUP.md || miss="$miss clone-url"
-  grep -qF "github.com/$slug/archive" SETUP.md || miss="$miss tarball-url"
-  [ -z "$miss" ] \
-    && ok "SETUP.md downloads from $slug (matches the remote)" \
-    || bad "SETUP.md download URLs do not match the remote ($slug):$miss"
+repo=${slug##*/}
+
+# NEVER use ${PWD##*/} here. The directory is not the repo -- a second clone, a
+# worktree or a CI checkout is legitimately named something else, and using the
+# folder name made this fail on a file that was perfectly correct. Worse, it
+# then fired on every mutation test and masked the checks it ran alongside.
+if [ -z "$slug" ]; then
+  skip "the rename sweep (no git remote)"
 else
-  skip "the download-URL check (no git remote)"
+  if grep -qF "claude plugin marketplace add ~/projects/$repo" SETUP.md; then
+    ok "SETUP.md adds the marketplace from ~/projects/$repo"
+  else
+    bad "SETUP.md marketplace path does not match the remote's repo name ($repo)"
+  fi
+
+  # The two prompts ship to matewishkey.com and carry the repo URL themselves,
+  # so a rename swept only through SETUP.md leaves the live site pointing at a
+  # name somebody else can now claim.
+  miss=""
+  grep -qF "github.com/$slug.git" SETUP.md   || miss="$miss SETUP.md:clone-url"
+  grep -qF "github.com/$slug/archive" SETUP.md || miss="$miss SETUP.md:tarball-url"
+  for f in prompts/install.md prompts/setup.md README.md; do
+    if grep -qE 'github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+' "$f"; then
+      grep -qF "github.com/$slug" "$f" || miss="$miss $f"
+    fi
+  done
+  grep -qF "~/projects/$repo" prompts/setup.md || miss="$miss prompts/setup.md:install-path"
+  [ -z "$miss" ] \
+    && ok "every shipped file points at $slug (matches the remote)" \
+    || bad "these still point somewhere else after a rename:$miss"
 fi
 
 # --- the skills --------------------------------------------------------------
@@ -99,8 +114,11 @@ done
 for d in plugin/skills/*/; do
   name=$(basename "$d")
   missing=""
+  # Word boundary, not a substring: without it, renaming `save` to `save-work`
+  # on the bookmark page still matched, and the page would hand a beginner a
+  # copy button for a command that does not exist.
   for f in SETUP.md templates/howto.html .claude-plugin/marketplace.json; do
-    grep -qF -- "/mwk-genie:$name" "$f" || missing="$missing $f"
+    grep -qE -- "/mwk-genie:$name([^a-zA-Z0-9-]|$)" "$f" || missing="$missing $f"
   done
   [ -z "$missing" ] \
     && ok "/mwk-genie:$name is documented everywhere" \
@@ -150,6 +168,20 @@ for want in 'mwk-genie-learning.txt' '<!-- artifact:' 'Stop. Do not publish'; do
     || bad "learning: lost '$want' -- one of the three ways home is gone"
 done
 
+# 4. The words existing is not the procedure existing. Deleting the ordered
+#    recovery list while leaving the vocabulary scattered around the file used
+#    to pass all of the above -- which is the record splitting in two, silently.
+for want in \
+  '1. Read `~/.claude/mwk-genie-learning.txt`.' \
+  '2. Read the first line of `log.html`.' \
+  '3. **List their artifacts and match by that exact title.**' \
+  '**Write both every time you publish**'
+do
+  grep -qF -- "$want" "$L" \
+    && ok "learning: recovery step present -- ${want:0:38}" \
+    || bad "learning: the recovery procedure lost a step: '$want'"
+done
+
 # --- the bookmark page -------------------------------------------------------
 # templates/howto.html is the one artefact they keep, the only branded thing in
 # the kit, and the only page here with a script on it. All three are reasons it
@@ -178,15 +210,26 @@ check(all(re.search(r'<pre>\s*\S', b) for b in blocks), "no command block is emp
 check('navigator.clipboard' in h and 'execCommand' in h,
       "copy has a clipboard API path and an execCommand fallback")
 
-# An artifact runs under a strict CSP: anything from another host is missing.
-loaded = [u for u in re.findall(r'(?:src|href)="(https?://[^"]+)"', h)
-          if re.match(r'.*\.(css|js|woff2?|png|jpg|svg)$', u)]
-check(not loaded, "nothing is loaded from another host" + (f" (found {loaded})" if loaded else ""))
+# An artifact runs under a strict CSP: anything from another host is missing,
+# and the copy buttons -- the reason this page is HTML -- die with it.
+# Flag EVERY absolute src=, plus any href= that is actually a fetch (stylesheet,
+# preload, icon). The old version only matched URLs ENDING in a known
+# extension, so "…/x.js?v=2" sailed through.
+loaded = re.findall(r'<[^>]*\bsrc="(https?://[^"]+)"', h)
+loaded += [u for tag, u in re.findall(r'<link([^>]*)href="(https?://[^"]+)"', h)
+           if re.search(r'rel="(stylesheet|preload|prefetch|icon|apple-touch-icon)"', tag)]
+check(not loaded, "nothing is fetched from another host" + (f" (found {loaded})" if loaded else ""))
 
 # Red is spent once. The design kit is explicit that a second red spend costs
 # the first its effect, and a copy button is the obvious place to slip.
-m = re.search(r'\.copy \{(.*?)\}', h, re.S)
-check(m and 'var(--red' not in m.group(1), "the copy buttons are not red")
+# EVERY .copy rule, not just the first: a red :hover or :active slipped straight
+# past the old single-rule version of this check.
+copy_rules = re.findall(r'\.copy[^{]*\{[^}]*\}', h, re.S)
+offenders = [r.split('{')[0].strip() for r in copy_rules
+             if re.search(r'var\(--red(?!-deep)', r) or re.search(r'#(e2342b|c9251d)', r, re.I)]
+check(copy_rules and not offenders,
+      "no copy-button rule spends the red"
+      + (f" (offending: {', '.join(offenders)})" if offenders else ""))
 
 # A missing token means a colour got hardcoded and will not track the site.
 for tok in ('--red', '--red-field', '--red-deep', '--paper', '--ink', '--mute', '--faint'):
@@ -309,13 +352,19 @@ case "$got" in
 esac
 rm -f "$rc"
 
-# And if an agent ignores the markers and appends blindly anyway, the check
-# SETUP.md mandates has to notice. This is the last line of defence.
-blind=$(mktemp); cat templates/ccc.sh templates/ccc.sh > "$blind"
-[ "$(grep -c '^alias ccc=' "$blind")" = 2 ] \
-  && ok "a blind double-append is caught by SETUP.md's grep -c guard" \
-  || bad "a blind double-append would slip past the grep -c guard in SETUP.md"
-rm -f "$blind"
+# The template half is only half the defence. SETUP.md has to actually TELL the
+# agent to replace between the markers and to verify the result -- and deleting
+# either instruction used to leave every check above green, because they all
+# read the template or a re-implementation of the instruction rather than the
+# instruction itself.
+for want in \
+  'replace what is between them' \
+  'grep -c "^alias ccc=" <the file>'
+do
+  grep -qF -- "$want" SETUP.md \
+    && ok "SETUP.md still instructs: ${want:0:34}..." \
+    || bad "SETUP.md lost its double-install instruction: '$want'"
+done
 
 # Both templates are fenced by markers so SETUP.md can replace rather than
 # append. Without them there is nothing to replace and the bug above returns.
@@ -461,30 +510,64 @@ check_url() {
     ok "$code  $1"
   fi
 }
-check_url "https://github.com/matewishkey/mwk-genie"
-check_url "https://raw.githubusercontent.com/matewishkey/mwk-genie/main/SETUP.md"
-check_url "https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz" redirects-ok  # -> codeload CDN
-check_url "https://matewishkey.com/"
-# The canonical path. /wishes/... still 301s here, but a redirect is not a home:
-# it holds until somebody re-uses the old path, exactly like the repo rename.
-check_url "https://matewishkey.com/how-to/put-the-genie-in-the-box/"
-# The branded how-to page reads its colours off these two.
-check_url "https://matewishkey.com/design/"
-check_url "https://matewishkey.com/media/"
-# The point of the whole kit: the bookmark page and the end of setup send them here.
-check_url "https://matewishkey.com/show/"
-check_url "https://www.youtube.com/@matewishkey"
-check_url "https://www.twitch.tv/matewishkey"
-# Where we send them when something is wrong or costs money.
-check_url "https://github.com/matewishkey/mwk-genie/issues/new/choose" redirects-ok  # -> login when signed out
-check_url "https://github.com/anthropics/claude-code/issues"
-check_url "https://claude.com/pricing"
-# The installer everything downstream assumes exists.
+# The list is EXTRACTED from the files that ship, never hand-kept. A hand-kept
+# list checks the URLs somebody remembered to add, which is not the same set as
+# the URLs a stranger is handed -- breaking a real link in SETUP.md and on the
+# bookmark page used to leave this whole section green.
+SHIPPED="SETUP.md README.md prompts/install.md prompts/setup.md templates/howto.html templates/CLAUDE.md"
+for d in plugin/skills/*/; do SHIPPED="$SHIPPED $d/SKILL.md"; done
+# The issue forms are handed to a stranger too -- config.yml's contact links are
+# the first thing somebody sees when they go to report a problem.
+for f in .github/ISSUE_TEMPLATE/*.yml; do [ -f "$f" ] && SHIPPED="$SHIPPED $f"; done
+
+# Some URLs legitimately forward. Anything matching this is checked for 200 but
+# not for landing where it started.
+redirects_ok() {
+  case "$1" in
+    # A clone URL keeps its .git; GitHub answers on the stripped form.
+    *.git) return 0 ;;
+    *"/archive/refs/heads/"*|*"/issues/new/choose"|https://claude.ai/install.sh) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Not fetchable, and not a link anybody follows:
+#   - an XML namespace (the svg xmlns), which is an identifier not an address
+#   - the context7 MCP endpoint, which answers POST and 405s a GET; it gets its
+#     own real handshake check further down
+#   - anything with "..." in it, which is prose showing a shape
+skip_url() {
+  case "$1" in
+    *w3.org/*|*/xmlns/*) return 0 ;;
+    https://mcp.context7.com/mcp) return 0 ;;
+    *...*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+urls=$(grep -rhoE 'https?://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+' $SHIPPED 2>/dev/null \
+       | sed 's/[.,)>"'"'"']*$//' \
+       | grep -E '^https?://[A-Za-z0-9-]+\.[A-Za-z]' \
+       | grep -vE '^https?://(localhost|127\.|example\.)' \
+       | sort -u)
+
+n_urls=$(printf '%s\n' "$urls" | grep -c . || true)
+if [ "$n_urls" -lt 8 ]; then
+  bad "only found $n_urls URLs in the shipped files -- the extraction is broken, not the kit"
+else
+  ok "extracted $n_urls distinct URLs from the files that ship"
+  while IFS= read -r u; do
+    [ -n "$u" ] || continue
+    skip_url "$u" && continue
+    if redirects_ok "$u"; then check_url "$u" redirects-ok; else check_url "$u"; fi
+  done <<EOF
+$urls
+EOF
+fi
+# Not written in any shipped file -- SETUP.md deliberately says "use the official
+# install instructions" rather than reciting a URL -- but rehearse.sh installs
+# from it and the whole kit assumes it exists, so it gets checked anyway.
 check_url "https://claude.ai/install.sh" redirects-ok  # -> downloads.claude.ai; the stable name is the point
-# macOS step one installs iTerm2 with Homebrew. Brew is for iTerm2 only -- the
-# agent still installs itself, which rehearse.sh phase C asserts in a container.
-check_url "https://brew.sh/"
-check_url "https://iterm2.com/"
 
 # The cask name is quoted in prompts/install.md. Homebrew's own API is the
 # authority on whether that token still exists -- guessing it is how a beginner

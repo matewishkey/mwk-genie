@@ -32,13 +32,17 @@ curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz
 ```
 
 **On a Mac, check that `git --version` answers rather than that the file exists.** Every Mac has a
-`/usr/bin/git` whether git is installed or not — it is a stub that pops up a graphical dialog you
-cannot see or dismiss, and then fails. `curl` is always real there, so the second block is the safe
-one on a Mac that has never had developer tools.
+`/usr/bin/git` whether git is installed or not — it is a shim that asks to install Apple's
+developer tools and then fails, which is a dialog and a long download nobody asked for. `curl` is
+always real there, so the tarball block is the kinder one on a Mac that has never had developer
+tools.
 
-The two blocks are written to leave exactly the same result and to survive being run twice, so a
-retry after an interrupted download is safe rather than something that quietly nests a second copy
-of the kit inside the first.
+**The tarball block is safe to run twice** — a retry after an interrupted download overwrites in
+place rather than quietly nesting a second copy of the kit inside the first. **The git block is
+not**: a second run stops with `destination path already exists`, which is loud and harmless, but
+it means "just run it again" is not the fix. Delete the folder and retry, or use the tarball. The
+two are not identical either: only the git one leaves the folder tracking its own history, which is
+why the prompt shows a branch there and not in the other.
 
 If neither tool is there, install one — that is the one thing in stage zero that may need their
 password, and it is worth saying so out loud rather than surprising them with a prompt. On Ubuntu or
@@ -52,7 +56,7 @@ from a web copy of this document instead, get the repo down first; the templates
 
 ## Stage one — get them flying
 
-**Nothing in this stage needs a password, an install, or an internet connection.** It is three files
+**Nothing in this stage needs a password or an install.** It is three files
 and a folder, all of it local now. There is exactly one question in here — step 2 — and it costs
 them nothing to answer. Everything that costs something comes later, because a person who has been
 asked for their password twice before they have seen the thing work is a person who is already
@@ -153,9 +157,11 @@ the end of a long line. A narrow window would report it missing when it is there
 `grep -c "^alias ccc=" <the file>` must be `1`, `grep "^alias ccc=" <the file>` must match their
 answer, and `command -v claude` must find it.
 
-**If `ccc` fails, do not let them reach for `sudo`.** `sudo ccc` cannot work — the not-asking version
-refuses to run with root privileges and says so in a way that reads like the kit is broken. It is a
-reasonable thing to try after step 7 tells them installing needs admin, and it is a dead end.
+**If `ccc` fails, do not let them reach for `sudo`.** `sudo` does not see shell shortcuts, so
+`sudo ccc` gives them `sudo: ccc: command not found` — which reads exactly like the kit never
+installed it. (`sudo claude` fails differently and just as uselessly: it refuses to run with root
+privileges.) Neither is a fix for anything. It is a reasonable thing to try after step 7 tells them
+installing needs admin, and it is a dead end both ways: fix the startup file instead.
 
 Then tell them what you found, in one line, either way. This is the step that failed silently the
 first time it met a real person.
@@ -178,9 +184,11 @@ has nowhere to drag them to. From the folder they are in:
 
     explorer.exe .
 
-That opens it in the normal Windows file window, and the address for a bookmark is
-`\\wsl$\Ubuntu\home\<their username>\projects`. **Tell them to keep their work there and not to drag
-it onto the C: drive** — it is much slower from Ubuntu's side, and it is not where you will look.
+That opens it in the normal Windows file window, and whatever address it shows in the bar is the one
+worth bookmarking. Do not predict that address for them — Windows 11 and Windows 10 display it
+differently — just tell them it begins `\\wsl` and is not on the C: drive. **Tell them to keep their
+work there and not to drag it onto C:** — it is much slower from Ubuntu's side, and it is not where
+you will look.
 
 ### 5. A prompt that tells them where they are
 
@@ -373,8 +381,9 @@ stupid on them for no reason.
 ### 13. The terminal they are sitting in
 
 They have looked at this window for the whole setup and it is the one thing here that was never
-chosen. Both platforms get the same colours; macOS also gets a check that they are in the right
-application.
+chosen. macOS and Windows get the same colours; macOS also gets a check that they are in the right
+application. **On Linux, the Ctrl+J paragraph below is the whole step** — they picked their own
+terminal or their distribution picked a sensible one, so leave it alone unless they ask.
 
 **First, and on every platform: tell them how to type a second line.** They will want one within a
 day — a longer question, a bit of text with a paragraph in it — and the key everybody tries is
@@ -392,13 +401,20 @@ exist, so the usual answer is that they are already somewhere good:
 
     echo $TERM_PROGRAM
 
-**Only `Apple_Terminal` is worth acting on.** iTerm2 reports `iTerm.app`; Ghostty, Kitty, WezTerm
-and Warp report their own names and all handle Shift+Enter natively — so anything that is not
-`Apple_Terminal` needs nothing from you. Say so in a line and move on rather than talking someone
-out of a terminal that is already fine. (Both strings were read off the applications themselves on
-macOS 26 — they are not from memory.)
+**Only `Apple_Terminal` is worth acting on.** iTerm2 reports `iTerm.app`; Ghostty, WezTerm and Warp
+report their own names, and Kitty reports nothing at all — none of them is `Apple_Terminal`, and
+all of them handle Shift+Enter natively. So anything else needs nothing from you: say so in a line
+and move on rather than talking someone out of a terminal that is already fine. (The two strings
+that matter were read off the applications themselves on macOS 26, not from memory.)
 
-If it *is* `Apple_Terminal`, offer iTerm2 and let them choose. Name what it buys and what it costs,
+**If it *is* `Apple_Terminal`, work out why before you offer anything.** Step one skips iTerm2 on
+purpose for three groups — macOS 11 or older, a Mac they are not an admin on, and anyone who simply
+said no — and every one of them lands here. For all three the answer is Ctrl+J and nothing else.
+**Re-offering them a long download they were already told they did not need, at the tired end of
+the setup, is worse than saying nothing.** Ask, and if one of those applies, say so in a line and
+move on.
+
+Only if none of them applies, offer iTerm2 and let them choose. Name what it buys and what it costs,
 in that order, and take no for an answer — they have Ctrl+J either way:
 
 - Install it — `brew install --cask iterm2`, and Homebrew from <https://brew.sh/> first if it is not
@@ -408,9 +424,10 @@ in that order, and take no for an answer — they have Ctrl+J either way:
   a program in the window they are closing. Tell them what you have just done and what is left, so
   the next you can pick it up. This is the one place in the setup where you hand over to yourself.
 - **If they would rather not install anything, that is a fine answer and you drop it.** Do not offer
-  `/terminal-setup` here: it does not set up Shift+Enter for Apple's Terminal, and running it there
-  changes other things instead. Apple's Terminal sends the same character for Enter and Shift+Enter,
-  so there is nothing any program can bind. Ctrl+J is the answer, and it already works.
+  `/terminal-setup` here. It cannot bind Shift+Enter in Apple's Terminal — that terminal cannot tell
+  Shift+Enter apart from Enter — so what it actually does there is set up Option+Enter instead and
+  silence the bell. That is a second key to remember and a changed setting they did not ask for,
+  when Ctrl+J already works and is the same key everywhere else.
 
 **Windows.** The Ubuntu window's colours were never chosen for them, which is reason enough. The
 setting lives on the Windows side of the fence, not in Ubuntu where you are: it is
@@ -497,7 +514,9 @@ headings and let the page do the rest.
   **Three things are theirs to decide, not yours to assume:** how `ccc` starts you (step 2), admin
   access (step 7), and which model (step 10). Ask those three, take the answer, move on. Do not turn
   any of it into a lecture, and do not present the kit as a clever trick — it is a set of choices
-  somebody made, written down.
+  somebody made, written down. (Step 13 also *offers* iTerm2 to the few people still in Apple's
+  Terminal. That is an offer you drop the moment they hesitate, not a fourth decision to walk them
+  through, and it is why the count here is still three.)
 - **Use the official install instructions** for anything you install. Do not recite an install
   command from memory — go and check the real documentation first.
 - **They do every login themselves, in their own browser.** Never ask them for a password, a code or

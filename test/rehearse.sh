@@ -175,7 +175,7 @@ head_ "C. Stage two — the plugin, with real Claude Code"
 
 u 'rm -f ~/.local/bin/claude' >/dev/null   # the stub has done its job
 printf '  … installing Claude Code the way SETUP.md assumes: its own installer,\n'
-printf '    no Homebrew, no apt, no npm\n'
+printf '    no Homebrew, no npm, no package manager of any kind\n'
 u 'curl -fsSL https://claude.ai/install.sh | bash' >/dev/null
 
 if [ "$(u 'test -x ~/.local/bin/claude && echo yes')" = yes ]; then
@@ -223,10 +223,24 @@ esac
 n_skills=$(find plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
 details=$(u "$C claude plugin details mwk-genie@matewishkey")
 missing=""
-for d in plugin/skills/*/; do
-  s=$(basename "$d")
-  case "$details" in *"$s"*) ;; *) missing="$missing $s" ;; esac
-done
+# Read the INVENTORY LINE, not the whole output. `plugin details` also prints
+# the marketplace description, which names every command in prose -- so the old
+# bare substring match against $details passed with the skills directory
+# emptied out entirely. The line looks like:
+#     Skills (5)  bug, learning, magic, new-project, save
+inv_line=$(printf '%s\n' "$details" | grep -E '^[[:space:]]*Skills \([0-9]+\)')
+inv_n=$(printf '%s' "$inv_line" | sed -E 's/.*Skills \(([0-9]+)\).*/\1/')
+inv_list=$(printf '%s' "$inv_line" | sed -E 's/.*Skills \([0-9]+\)[[:space:]]*//')
+
+if [ -z "$inv_line" ]; then
+  missing=" (no 'Skills (N)' inventory line in plugin details)"
+else
+  [ "$inv_n" = "$n_skills" ] || missing=" (inventory says $inv_n, disk has $n_skills)"
+  for d in plugin/skills/*/; do
+    s=$(basename "$d")
+    case ",${inv_list// /}," in *",$s,"*) ;; *) missing="$missing $s" ;; esac
+  done
+fi
 [ -z "$missing" ] \
   && ok "all $n_skills skills resolve in the installed plugin" \
   || bad "installed plugin is missing skills:$missing"

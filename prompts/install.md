@@ -68,22 +68,23 @@ WINDOWS
     should be in, every time, until it is obvious.
 
 MACOS
-  - Ask which version of macOS I am on before anything
-    else, and tell me what it means:
-      macOS 14 or newer, the normal case, carry on.
-      macOS 12 or 13, Homebrew still works but prints a
-        scary paragraph about being unsupported. Warn me
-        it is expected and not my fault.
-      Older than 12, skip Homebrew and iTerm2 entirely.
-        Go straight to the agent. I lose nothing that
-        matters, because Ctrl+J does the same job.
+  - Ask which version of macOS I am on first. I find it
+    under the Apple menu, About This Mac. Older than 12:
+    skip Homebrew and iTerm2, go straight to the agent,
+    and tell me Ctrl+J does the job they were there for.
+    12 or 13: Homebrew works but prints a paragraph about
+    being unsupported, so tell me that is expected.
   - Open Terminal to start. Tell me how: press Cmd+Space,
-    type Terminal, press Return. We move to a better one
-    in a minute and stay there.
+    type Terminal, press Return. We may move to a better
+    one in a minute.
   - Installing Homebrew needs an account that is allowed
     to install software. If somebody else set this Mac up
     for me, I may not have one, and Homebrew stops rather
-    than asking. Say so before we start, not after.
+    than asking. Say so before we start, not after. If I
+    do not have one, skip Homebrew and iTerm2 and go
+    straight to the agent: its own installer goes in my
+    home folder and needs no admin at all, and Ctrl+J
+    does the job iTerm2 was there for.
   - Install Homebrew, the usual way to install developer
     tools on a Mac. Take the command from brew.sh, not
     from memory.
@@ -92,16 +93,16 @@ MACOS
     developer tools on it, Homebrew installs Apple's
     Command Line Tools first, which is a big download. And
     that part may open a separate Apple window and then
-    sit there waiting for me to press a key when it
-    finishes, so a terminal that looks frozen probably is
-    not. Then let it run.
+    wait for me to press a key when it finishes, so a
+    terminal that looks frozen is just waiting. Then let
+    it run.
   - When it finishes it prints a "Next steps" block. Have
     me run the lines in it before anything else, then have
     me run `brew --version` and tell you what came back.
-    On most Macs sold since 2020, brew does not work in
-    the window that just installed it until those lines
-    are run, and the next command would fail with
-    "command not found" for no reason I could guess.
+    On an Apple Silicon Mac, brew does not work in the
+    window that just installed it until those lines are
+    run, and the next command would fail with "command
+    not found" for no reason I could guess.
   - Then install a better terminal:
     brew install --cask iterm2
   - Now have me quit Terminal, open iTerm2 the same way

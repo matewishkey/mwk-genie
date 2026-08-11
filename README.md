@@ -35,8 +35,8 @@ change afterwards — and the last one is a suggestion the agent is told it can 
   command. Faster or safer. Either is a fine answer, and you can switch later by moving one `#`.
 - **Admin access** — your computer password, once, so installing things does not stop at every
   step. That means your whole machine, not one folder. Saying no is fine; it just asks each time.
-- **Which model** — the fast one that stretches your plan further, or the stronger one that does
-  not.
+- **Which model** — the stronger one, which is what the setup suggests, or the faster one your plan
+  stretches much further on. One line swaps it either way, any time.
 
 **Two of those are the parts that can bite.** An agent running without per-command approval can
 delete things, and admin access is admin access. That is the honest description, and it is why the
@@ -130,7 +130,7 @@ halves: getting it in there, and knowing where the sides are.
 
 ---
 
-From **[Mate Wish Key](https://matewishkey.com)** — a show about what people wish their computer did.
+From **[Mate Wish Key](https://matewishkey.com/)** — a show about what people wish their computer did.
 You come on with something you wish yours did, the agent does the work on your machine while we talk
 it through, and the wish ends up on the site.
 

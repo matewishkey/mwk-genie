@@ -179,11 +179,11 @@
   will.</p>
 
   <h2>Typing a second line</h2>
-  <p>The moment you want to write more than one line, press:</p>
-  <div class="cmd"><pre>Ctrl+J</pre><button class="copy" type="button">Copy</button></div>
-  <p>That starts a new line instead of sending. It works in every terminal. Shift+Enter does the
-  same in most of them, but not in Apple's Terminal, so <code>Ctrl+J</code> is the one worth
-  remembering.</p>
+  <p>The moment you want to write more than one line, hold <strong>Ctrl</strong> and press
+  <strong>J</strong>. That starts a new line instead of sending.</p>
+  <p>It works in every terminal. Shift+Enter does the same in most of them, but not in Apple's
+  Terminal, so <code>Ctrl+J</code> is the one worth remembering. This is a key to press, not
+  something to copy.</p>
 
   <h2>Knowing where you are</h2>
   <p>Your prompt — the bit before you type — tells you:</p>
@@ -208,10 +208,11 @@
   <p>Your projects live inside Ubuntu, so they are not on your <code>C:</code> drive and File
   Explorer will not find them by looking. From the folder you are standing in, type:</p>
   <div class="cmd"><pre>explorer.exe .</pre><button class="copy" type="button">Copy</button></div>
-  <p>That opens it as a normal Windows window, and you can drag files in. Worth bookmarking the
-  address it shows, which starts <code>\\wsl$\Ubuntu\</code>. <strong>Keep your work there rather
-  than moving it onto <code>C:</code></strong> — it is much slower from Ubuntu's side, and it is
-  not where the agent will look for it.</p>
+  <p>That opens it as a normal Windows window, and you can drag files in. Worth bookmarking
+  whatever address it shows in the bar — it begins <code>\\wsl</code> and it is not on your
+  <code>C:</code> drive. <strong>Keep your work there rather than moving it onto
+  <code>C:</code></strong> — it is much slower from Ubuntu's side, and it is not where the agent
+  will look for it.</p>
 
   <h2>The things it does for you</h2>
   <p>You can <strong>type</strong> these, or just <strong>say them in normal words</strong>.
@@ -271,6 +272,9 @@
   <div class="warn">
     <p><strong>Typing your computer password shows nothing.</strong> No dots, no stars, nothing
     moves. It is working. Type it and press enter. Do not type it again.</p>
+    <p><strong>On Windows it is not your Windows password.</strong> It is the Ubuntu one you made
+    the first time you opened Ubuntu. Since the screen shows nothing either way, a wrong one looks
+    exactly like a right one.</p>
     <p><strong>It probably does not ask before each command.</strong> During setup you picked one
     of two: getting on with the work once you have agreed to it in conversation, or stopping to
     ask before every single command. Most people pick the first, and that is the trade that makes
@@ -322,7 +326,7 @@
   </table>
 
   <footer>
-    <p><strong>Mate Wish Key</strong> — <a href="https://matewishkey.com">matewishkey.com</a></p>
+    <p><strong>Mate Wish Key</strong> — <a href="https://matewishkey.com/">matewishkey.com</a></p>
     <p>Set up by <a href="https://github.com/matewishkey/mwk-genie">Put the genie in the box</a>.
     Colours and the block are from the
     <a href="https://matewishkey.com/design/">design kit</a>; the logo files are in the
