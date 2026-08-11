@@ -45,16 +45,40 @@ or the two published pages change.
 
 ## Only worth doing before a release
 
-- [ ] **Windows.** Everything above, once, in WSL — the Ubuntu-in-Windows path is the one nobody
-      runs by accident, and step 13 (terminal colours) only exists there.
+- [ ] **Windows.** Everything above, once, in WSL. This is still the only coverage the Windows path
+      has, and "everything above, once" is not enough on its own — a tester who already knows to
+      open Ubuntu will open Ubuntu, and miss the thing a beginner hits first. So specifically:
+- [ ] **Windows, open the terminal the way a beginner would.** Start menu or taskbar, not the Ubuntu
+      entry, and check the setup notices. The default is PowerShell, where `ccc` will never exist
+      and the error mentions a cmdlet. Every "restart me" step has to survive this, not just step 2.
+- [ ] **Windows, the password.** At step 7, try the *Windows* sign-in password first, deliberately.
+      The setup should have already told you it wants the Ubuntu one — if you find that out by
+      failing three times, the warning is in the wrong place.
+- [ ] **Windows, the colours actually landed.** Step 13 writes Windows Terminal's `settings.json`
+      from inside WSL, across the `/mnt/c` boundary. Confirm the change is really in the file and
+      really visible, not just reported. If Windows Terminal is not installed, confirm it says so
+      and leaves it alone rather than improvising.
+- [ ] **Windows, finding the files.** Run `explorer.exe .` from a project folder and check the
+      window opens on the right place. That is the only route a Windows user has to their own work.
 - [ ] **macOS.** Homebrew is expected now, for one thing only. Confirm `brew list --cask` shows
       **iTerm2 and nothing else**, and that Claude Code came from its own installer rather than a
       formula (`brew list | grep -i claude` should find nothing).
+- [ ] **macOS, write down what `$TERM_PROGRAM` actually says.** Run `echo $TERM_PROGRAM` in iTerm2
+      and in Apple's Terminal and record both, verbatim. Step 13 branches on `Apple_Terminal`; that
+      value is corroborated by Claude Code's own binary but has never been read off a Mac. **This
+      is the highest-value line on this list** — if it is wrong, step 13 either does nothing or
+      talks people out of a terminal that was already fine.
+- [ ] **macOS, Ctrl+J really works in Apple's Terminal.** Press it and check it starts a new line
+      rather than sending. This is the claim the whole "you can decline the install" branch rests
+      on, and it is now the answer we give first, on every platform.
+- [ ] **macOS, brew is usable straight after installing it.** On an Apple Silicon Mac, follow step
+      one exactly and confirm `brew --version` answers *before* the iTerm2 line runs. The installer
+      prints a "Next steps" block that has to be run first, and skipping it is a `command not
+      found` on a beginner's first command.
 - [ ] **macOS, the terminal handoff.** Step one should leave them in iTerm2 before the agent is ever
-      installed, so `echo $TERM_PROGRAM` says `iTerm.app` all the way through setup and step 13 has
-      nothing to repair. **Then test the other path on purpose:** run the setup from Apple's
-      Terminal and check step 13 notices, explains itself, and hands over cleanly to a restarted
-      agent rather than dying silently.
+      installed, so step 13 has nothing to repair. **Then test the other path on purpose:** run the
+      setup from Apple's Terminal and check step 13 notices, offers rather than insists, and hands
+      over cleanly to a restarted agent rather than dying silently.
 - [ ] **macOS, the settings actually took.** Whatever step 13 changed in iTerm2, quit the app and
       reopen it. iTerm2 can write its preferences back on exit; a change that does not survive that
       was never made.

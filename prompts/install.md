@@ -33,13 +33,34 @@ WINDOWS
   - We set up WSL, which gives me a real Ubuntu Linux
     terminal inside Windows. Say what that is in one
     sentence before we do it.
+  - This kit is built on WSL. There is a way to install
+    the agent straight onto Windows, and it looks easier.
+    Do not take it. Everything after step 2 assumes
+    Ubuntu, and on Windows it would quietly stop working.
+  - Check first that this machine can do it: Windows 11,
+    or Windows 10 build 19041 or newer. If the install
+    fails with 0x80370102, virtualization is switched off
+    in the BIOS and that is the fix, not something I did.
   - Open PowerShell as Administrator, run `wsl --install`,
-    restart the computer, then pick an Ubuntu username and
-    password.
+    then restart the computer.
+  - After the restart nothing opens by itself. Tell me to
+    open Ubuntu from the Start menu. That is where it asks
+    me to make a username and password, and it is the
+    step people get stuck on because they are waiting for
+    something to happen.
+  - Warn me before I type that one: the username must be
+    lowercase with no spaces, and nothing at all appears
+    on screen while I type the password. No dots, no
+    stars. It is not frozen.
+  - That Ubuntu password is its own thing. It is not my
+    Windows password and it never will be. I will need it
+    later, so tell me to remember it now.
   - The first time I have to paste something into a
     terminal window, tell me how: Ctrl+V, or right-click
     inside the window. Do not skip this. People get stuck
-    here and think their copy did not work.
+    here and think their copy did not work. If it asks
+    whether I really want to paste several lines, that is
+    normal and the answer is yes.
   - Everything after that happens inside Ubuntu, and it
     always will. PowerShell is only for the one command
     above. If you ever give me something to run on
@@ -47,23 +68,53 @@ WINDOWS
     should be in, every time, until it is obvious.
 
 MACOS
-  - Open Terminal to start. We move to a better one in a
-    minute and stay there.
+  - Ask which version of macOS I am on before anything
+    else, and tell me what it means:
+      macOS 14 or newer, the normal case, carry on.
+      macOS 12 or 13, Homebrew still works but prints a
+        scary paragraph about being unsupported. Warn me
+        it is expected and not my fault.
+      Older than 12, skip Homebrew and iTerm2 entirely.
+        Go straight to the agent. I lose nothing that
+        matters, because Ctrl+J does the same job.
+  - Open Terminal to start. Tell me how: press Cmd+Space,
+    type Terminal, press Return. We move to a better one
+    in a minute and stay there.
+  - Installing Homebrew needs an account that is allowed
+    to install software. If somebody else set this Mac up
+    for me, I may not have one, and Homebrew stops rather
+    than asking. Say so before we start, not after.
   - Install Homebrew, the usual way to install developer
     tools on a Mac. Take the command from brew.sh, not
     from memory.
-  - Tell me two things before I start it, not after. It
-    asks for my password. And if this Mac has never had
+  - Tell me three things before I start it, not after. It
+    asks for my password. If this Mac has never had
     developer tools on it, Homebrew installs Apple's
-    Command Line Tools first, which is a big download
-    and can take a while. Then let it run.
+    Command Line Tools first, which is a big download. And
+    that part may open a separate Apple window and then
+    sit there waiting for me to press a key when it
+    finishes, so a terminal that looks frozen probably is
+    not. Then let it run.
+  - When it finishes it prints a "Next steps" block. Have
+    me run the lines in it before anything else, then have
+    me run `brew --version` and tell you what came back.
+    On most Macs sold since 2020, brew does not work in
+    the window that just installed it until those lines
+    are run, and the next command would fail with
+    "command not found" for no reason I could guess.
   - Then install a better terminal:
     brew install --cask iterm2
-  - Now have me quit Terminal, open iTerm2, and do
-    everything from there. Say why in one line: in
-    Apple's Terminal, Shift+Enter sends the message
-    instead of starting a new line, and I will hit that
-    the first time I want to write two paragraphs.
+  - Now have me quit Terminal, open iTerm2 the same way
+    with Cmd+Space, and do everything from there. It will
+    not be in my dock. The first time it opens, macOS asks
+    whether I am sure because it came from the internet.
+    That is expected and the answer is open.
+  - Say why we moved, in one line: in Apple's Terminal,
+    Shift+Enter sends the message instead of starting a
+    new line, and I will hit that the first time I want to
+    write two paragraphs. Also tell me Ctrl+J starts a new
+    line in any terminal, in case I ever end up back in
+    one that cannot do Shift+Enter.
   - Only then install the agent, using its own
     installer. Not Homebrew. Homebrew was for iTerm2.
 

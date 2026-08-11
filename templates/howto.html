@@ -173,6 +173,17 @@
   <p>Open a terminal window and type three letters:</p>
   <div class="cmd"><pre>ccc</pre><button class="copy" type="button">Copy</button></div>
   <p>That is it. It starts wherever you are standing, which is why the next bit matters.</p>
+  <p><strong>On Windows, that means the Ubuntu window</strong> — open <em>Ubuntu</em> from the Start
+  menu, not the terminal that opens by default. If what you are looking at starts with
+  <code>PS C:\</code> you are in PowerShell, where <code>ccc</code> does not exist and never
+  will.</p>
+
+  <h2>Typing a second line</h2>
+  <p>The moment you want to write more than one line, press:</p>
+  <div class="cmd"><pre>Ctrl+J</pre><button class="copy" type="button">Copy</button></div>
+  <p>That starts a new line instead of sending. It works in every terminal. Shift+Enter does the
+  same in most of them, but not in Apple's Terminal, so <code>Ctrl+J</code> is the one worth
+  remembering.</p>
 
   <h2>Knowing where you are</h2>
   <p>Your prompt — the bit before you type — tells you:</p>
@@ -192,6 +203,15 @@
   <p>So to open a project you already have:</p>
   <div class="cmd"><pre>cd ~/projects/holiday-photos</pre><button class="copy" type="button">Copy</button></div>
   <div class="cmd"><pre>ccc</pre><button class="copy" type="button">Copy</button></div>
+
+  <h3>Windows: finding those folders in the normal file window</h3>
+  <p>Your projects live inside Ubuntu, so they are not on your <code>C:</code> drive and File
+  Explorer will not find them by looking. From the folder you are standing in, type:</p>
+  <div class="cmd"><pre>explorer.exe .</pre><button class="copy" type="button">Copy</button></div>
+  <p>That opens it as a normal Windows window, and you can drag files in. Worth bookmarking the
+  address it shows, which starts <code>\\wsl$\Ubuntu\</code>. <strong>Keep your work there rather
+  than moving it onto <code>C:</code></strong> — it is much slower from Ubuntu's side, and it is
+  not where the agent will look for it.</p>
 
   <h2>The things it does for you</h2>
   <p>You can <strong>type</strong> these, or just <strong>say them in normal words</strong>.
@@ -238,14 +258,14 @@
   <p>Do it whenever you start something different, or when the bar showing how full its memory is
   starts looking full. A fresh conversation is faster and sharper than a long one.</p>
 
-  <h2>Switching to the stronger brain</h2>
-  <div class="cmd"><pre>/model opus</pre><button class="copy" type="button">Copy</button></div>
-  <p>There are two. <strong>Sonnet</strong> is the fast one and your plan stretches much further
-  on it — that is what you are on unless you changed it. <strong>Opus</strong> is stronger at
-  genuinely hard problems and uses your allowance up faster.</p>
+  <h2>Making your allowance last</h2>
+  <div class="cmd"><pre>/model sonnet</pre><button class="copy" type="button">Copy</button></div>
+  <p>There are two. <strong>Opus</strong> is the stronger one and it is what you are on unless you
+  changed it. <strong>Sonnet</strong> is faster and your plan stretches much further on it, so it
+  is the one to reach for when you are doing something straightforward and would rather not burn
+  through your allowance.</p>
   <p>This switches it <strong>for the conversation you are in</strong>, not forever.
-  <code>/model sonnet</code> puts it back. Worth reaching for when something has you both stuck;
-  not worth leaving on.</p>
+  <code>/model opus</code> puts it back.</p>
 
   <h2>Two things that will scare you</h2>
   <div class="warn">
@@ -256,11 +276,12 @@
     ask before every single command. Most people pick the first, and that is the trade that makes
     this a your-own-computer thing and not a work one.</p>
   </div>
-  <p>To change your mind, open the file <code>ccc</code> lives in — <code>~/.zshrc</code> on a
-  Mac, <code>~/.bashrc</code> on Windows or Linux — find the two lines near the bottom that both
-  start with <code>alias ccc=</code>, and move the <code>#</code> to the other one. Open a new
-  terminal window and it has changed. Or just ask: <em class="say">“switch ccc to the other
-  one.”</em></p>
+  <p>To change your mind, the easiest thing by far is to ask: <em class="say">“switch ccc to the
+  other one.”</em> If you would rather do it yourself, open the file <code>ccc</code> lives in
+  — usually <code>~/.zshrc</code> on a Mac and <code>~/.bashrc</code> on Windows or Linux, and the
+  setup told you which one it used. Between the two lines marked
+  <code>mwk-genie:ccc</code> there is one pair starting with <code>alias ccc=</code>. Move the
+  <code>#</code> to the other one, open a new terminal window, and it has changed.</p>
 
   <h2>Changing how it behaves</h2>
   <p>There is a file at:</p>

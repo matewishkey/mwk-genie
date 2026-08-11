@@ -103,6 +103,10 @@ password, a GitHub account — comes after you have seen it work.
 - **The password that shows nothing.** Type your computer password into a terminal and the screen
   does not move. No dots, no stars. It looks broken, so people type it again and lock themselves
   out. It is working. Type it and press enter.
+- **On Windows it is not the password you think.** The one the terminal wants is the Ubuntu password
+  you made when you first opened Ubuntu, not your Windows sign-in. Since the screen shows nothing
+  either way, a wrong password looks exactly like a working one.
+- **Shift+Enter does not always give you a new line.** `Ctrl+J` always does, in every terminal.
 - **"Admin access" means your whole machine**, not one folder. Normal for installing software, and
   exactly the moment to ask the agent what the command does. That question is never annoying.
 - **It can delete things.** Same as you can. This is not a toy that is protected from itself, which

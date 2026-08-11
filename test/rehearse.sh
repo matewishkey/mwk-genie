@@ -55,13 +55,29 @@ u 'command -v curl' >/dev/null && bad "image already has curl" \
 printf '  … installing curl (this is the one thing stage zero may need a password for)\n'
 root "apt-get update -qq && apt-get install -y -qq curl ca-certificates"
 
-# The tarball path, exactly as SETUP.md writes it.
-u 'mkdir -p ~/projects && curl -sL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
-   | tar xz -C ~/projects && mv ~/projects/mwk-genie-main ~/projects/mwk-genie' >/dev/null
+# The tarball path, exactly as SETUP.md writes it -- and it has to be EXACTLY,
+# with nothing added here. This block used to prepend its own `mkdir -p
+# ~/projects`, which SETUP.md did not have, so the test supplied the one thing
+# that made it work and reported a pass on a command that failed for everyone
+# else. If you find yourself adding a step to make this go green, the bug is in
+# SETUP.md.
+u 'mkdir -p ~/projects/mwk-genie
+   curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
+   | tar xz --strip-components=1 -C ~/projects/mwk-genie' >/dev/null 2>&1
 if [ "$(u 'test -f ~/projects/mwk-genie/SETUP.md && echo yes')" = yes ]; then
   ok "curl + tar puts the kit in ~/projects/mwk-genie"
 else
   bad "curl + tar path failed"
+fi
+
+# Running it twice is a retry after an interrupted download. It must not nest a
+# second copy of the kit inside the first, which the old `mv` did, silently.
+u 'curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
+   | tar xz --strip-components=1 -C ~/projects/mwk-genie' >/dev/null 2>&1
+if [ "$(u 'test -e ~/projects/mwk-genie/mwk-genie-main && echo nested')" = nested ]; then
+  bad "a second download nested a duplicate copy inside ~/projects/mwk-genie"
+else
+  ok "downloading twice does not nest a duplicate copy"
 fi
 u 'rm -rf ~/projects/mwk-genie' >/dev/null
 
@@ -96,8 +112,14 @@ head_ "B. Stage one — the shell files, in a genuinely fresh shell"
 # A stub `claude` that just reports how it was called. This is the whole point:
 # `ccc` existing is not the same as `ccc` starting the agent the right way, and
 # the difference is invisible to a beginner. It is what failed on show 001.
+#
+# NOTE: this deliberately does NOT put ~/.local/bin on PATH. It used to, and
+# that hid a real bug for months -- the installer does not touch any startup
+# file, so `ccc` was command-not-found in any non-login shell and this phase
+# could never see it. ccc.sh now sets PATH itself. If you add the export back
+# here, you are testing your own line instead of the kit's.
 u 'mkdir -p ~/.local/bin && printf "%s\n" "#!/bin/sh" "echo STUB-CLAUDE \$*" > ~/.local/bin/claude \
-   && chmod +x ~/.local/bin/claude && echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc' >/dev/null
+   && chmod +x ~/.local/bin/claude' >/dev/null
 
 u 'cat ~/projects/mwk-genie/templates/ccc.sh    >> ~/.bashrc
    cat ~/projects/mwk-genie/templates/prompt.sh >> ~/.bashrc' >/dev/null
@@ -163,6 +185,27 @@ else
   printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"; [ "$fail" -eq 0 ] || exit 1; exit 0
 fi
 
+# The end-to-end version of the PATH bug: real installer, real ccc.sh in
+# .bashrc, a genuinely fresh interactive shell, and nothing helping. This is
+# the shape of "they type three letters and it works".
+out=$(u 'bash -ic "command -v claude"' | tr -d '\r')
+case "$out" in
+  */.local/bin/claude) ok "a fresh interactive shell finds the real claude, unaided" ;;
+  *) bad "fresh interactive shell cannot find claude (got: ${out:-nothing}) — ccc will be command-not-found" ;;
+esac
+
+# `sudo ccc` is a dead end and a beginner will try it after step 7 tells them
+# installing needs admin. Step 3 warns about it, so check the warning is true.
+out=$(docker exec "$NAME" bash -c \
+        '/home/newbie/.local/bin/claude --dangerously-skip-permissions -p hi' 2>&1 | tr -d '\r')
+case "$out" in
+  *root*|*privileges*|*sudo*) ok "the skip-permissions flag refuses to run as root, as step 3 says" ;;
+  *) bad "expected a root refusal from --dangerously-skip-permissions, got: ${out:-nothing}" ;;
+esac
+
+# Phase C runs non-interactive shells, which never read .bashrc, so this prefix
+# is plumbing for THIS script -- not a stand-in for the kit's own PATH line,
+# which the check above proves works on its own.
 C='export PATH=$HOME/.local/bin:$PATH;'
 u "$C claude plugin marketplace add ~/projects/mwk-genie" >/dev/null
 out=$(u "$C claude plugin install mwk-genie@matewishkey")
@@ -200,13 +243,13 @@ else
   ok "the plugin wrote to settings.json (keys: $keys) — step 10's warning has something to protect"
 
   printf '%s' "$settings" \
-    | python3 -c 'import json,sys;d=json.load(sys.stdin);d["model"]="sonnet";print(json.dumps(d,indent=2))' \
+    | python3 -c 'import json,sys;d=json.load(sys.stdin);d["model"]="opus";print(json.dumps(d,indent=2))' \
     | docker exec -i -u newbie "$NAME" tee /home/newbie/.claude/settings.json >/dev/null
 
   still=$(u "$C claude plugin list")
   has_model=$(u "grep -c '\"model\"' ~/.claude/settings.json" | tr -d '\r')
   if [ "$has_model" -ge 1 ] && [ "${still#*mwk-genie}" != "$still" ]; then
-    ok "merging \"model\": \"sonnet\" in leaves the plugin installed"
+    ok "merging \"model\": \"opus\" in leaves the plugin installed"
   else
     bad "after adding \"model\" the plugin is gone — merging is not optional"
   fi

@@ -26,13 +26,24 @@ git clone https://github.com/matewishkey/mwk-genie.git \
 ```
 
 ```
-curl -L https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
-  | tar xz -C ~/projects && mv ~/projects/mwk-genie-main \
-  ~/projects/mwk-genie
+mkdir -p ~/projects/mwk-genie
+curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
+  | tar xz --strip-components=1 -C ~/projects/mwk-genie
 ```
 
+**On a Mac, check that `git --version` answers rather than that the file exists.** Every Mac has a
+`/usr/bin/git` whether git is installed or not — it is a stub that pops up a graphical dialog you
+cannot see or dismiss, and then fails. `curl` is always real there, so the second block is the safe
+one on a Mac that has never had developer tools.
+
+The two blocks are written to leave exactly the same result and to survive being run twice, so a
+retry after an interrupted download is safe rather than something that quietly nests a second copy
+of the kit inside the first.
+
 If neither tool is there, install one — that is the one thing in stage zero that may need their
-password, and it is worth saying so out loud rather than surprising them with a prompt.
+password, and it is worth saying so out loud rather than surprising them with a prompt. On Ubuntu or
+WSL run `sudo apt update` first, or apt will tell you the package does not exist on an image that
+has never been updated.
 
 **Everything from here reads the files you just downloaded**, not the internet. If you are working
 from a web copy of this document instead, get the repo down first; the templates are the point.
@@ -73,11 +84,28 @@ Do not decide this for them. Put it to them in about this many words, then wait:
 >
 > You can change your mind later by moving one `#` in a file I will show you. Which one?
 
-**Then append the file with their answer active.** The template ships with the not-asking version
+**Then install the file with their answer active.** The template ships with the not-asking version
 switched on; if they chose asking, move the `#` so the plain `alias ccc='claude'` line is the live
-one. Append to the right file for their shell — `~/.zshrc` on macOS, `~/.bashrc` on Ubuntu and WSL
-— and check first whether a `ccc` is already defined there, so running this twice does not leave
-two copies.
+one.
+
+**Pick the file by their shell, not by their operating system.** `basename "$SHELL"` tells you:
+`zsh` means `~/.zshrc`, `bash` means `~/.bashrc`. macOS defaults to zsh and Ubuntu to bash, but
+people change it, and writing to a file their terminal never reads produces a `ccc` that does not
+exist with nothing to see anywhere. Tell them which file you used.
+
+**The block is fenced by `# >>> mwk-genie:ccc >>>` and `# <<< mwk-genie:ccc <<<`. If those markers
+are already in the file, replace what is between them. Only append when they are absent.** Running
+this step twice used to leave two `alias ccc=` pairs, and then the instruction they are given for
+changing their mind — move the `#` — edits the first pair while the second one silently wins. They
+ask for the safer option and get the other one, which is the worst way this kit can fail. Verify
+with `grep -c "^alias ccc=" <the file>`: the answer must be exactly `1`.
+
+**Check it ends up with one live alias**, matching their answer, before you go on.
+
+The block also puts `~/.local/bin` on their `PATH`. **Do not remove that** — the Claude Code
+installer puts `claude` there and does not touch any startup file itself, so without it `ccc` works
+in some terminals and is `command not found` in others, which is a horrible thing for a beginner to
+be handed.
 
 **It starts you where they are standing. It does not move them.** That is deliberate: which folder
 they are in is real and they are better off knowing it than having it hidden.
@@ -85,6 +113,12 @@ they are in is real and they are better off knowing it than having it hidden.
 **Then tell them to open a new terminal window and type `ccc`.** A shell only reads that file when it
 starts, so the command does not exist in the window they are sitting in. If you skip this they will
 type `ccc`, see `command not found`, and reasonably conclude it failed.
+
+**On Windows, say which window.** They have at least three and the wrong one is the default: opening
+the terminal they were just using gives them PowerShell, where `ccc` will never exist and the error
+says `The term 'ccc' is not recognized`. **They want the Ubuntu window** — from the Start menu, or
+the Ubuntu entry in the terminal's `˅` dropdown. One line is enough: if the prompt starts with
+`PS C:\`, that is the wrong window. This applies every other time you ask them to restart you, too.
 
 That is the moment this whole thing works. Let them do it.
 
@@ -95,16 +129,33 @@ One question, asked once. Not a section, not a lecture, and no going back over i
 **Do not move on until you have checked this.** The command can exist and still not do the thing,
 and a beginner cannot tell the difference — they see you start and assume it is fine.
 
-Once they are in the new window, check how you were launched:
+**This check belongs to the agent in the NEW window, not to you.** You were started before `ccc`
+existed, so asking how *you* were launched tells you nothing about their shortcut and will report a
+perfectly good setup as broken — after which you will "fix" a file that was already right. The new
+window is a fresh session with none of this conversation in it, so say what you have just done and
+what is left before they close this one.
+
+From that new window:
 
 ```
-ps -o args= -p $PPID
+ps -ww -o args= -p $PPID
 ```
 
 **Check it against their answer in step 2, not against a default.** If they chose not-asking,
 `--dangerously-skip-permissions` must be in that line. If they chose asking, it must not be. Either
 way the wrong result means the shortcut did not take the way they asked — fix it and check again
 before moving on.
+
+(`-ww` matters: without it `ps` truncates at the window width, and the flag being checked for is at
+the end of a long line. A narrow window would report it missing when it is there.)
+
+**What you can check from where you are**, before they open anything, is the file itself:
+`grep -c "^alias ccc=" <the file>` must be `1`, `grep "^alias ccc=" <the file>` must match their
+answer, and `command -v claude` must find it.
+
+**If `ccc` fails, do not let them reach for `sudo`.** `sudo ccc` cannot work — the not-asking version
+refuses to run with root privileges and says so in a way that reads like the kit is broken. It is a
+reasonable thing to try after step 7 tells them installing needs admin, and it is a dead end.
 
 Then tell them what you found, in one line, either way. This is the step that failed silently the
 first time it met a real person.
@@ -121,14 +172,26 @@ Not a lesson. Show them these three, once, in the terminal in front of them, and
 difference between driving and being driven, and it takes about a minute. Everything else they can
 ask you for.
 
+**On Windows, add a fourth thing, because their files are somewhere they cannot find.** `~/projects`
+lives inside Ubuntu and does not appear under `C:`, so the person whose wish is "sort out my photos"
+has nowhere to drag them to. From the folder they are in:
+
+    explorer.exe .
+
+That opens it in the normal Windows file window, and the address for a bookmark is
+`\\wsl$\Ubuntu\home\<their username>\projects`. **Tell them to keep their work there and not to drag
+it onto the C: drive** — it is much slower from Ubuntu's side, and it is not where you will look.
+
 ### 5. A prompt that tells them where they are
 
 The default prompt opens with their username and their computer's name. Neither ever changes, so
 neither is ever worth reading, and they push the only useful part off to the right.
 
 `~/projects/mwk-genie/templates/prompt.sh` replaces it with the folder they are in, the branch once
-a project is on GitHub, and a `*` when there is work they have not saved. Append it to the same
-file you appended `ccc` to.
+a project is on GitHub, and a `*` when there is work they have not saved. Install it into the same
+file you installed `ccc` into, the same way — it is fenced by `# >>> mwk-genie:prompt >>>` and
+`# <<< mwk-genie:prompt <<<`, so replace between the markers if they are already there rather than
+appending a second copy.
 
     ~/projects/holiday-photos (main*) $
 
@@ -161,7 +224,16 @@ Now the things that need a password or a download. Say what each one is for in o
 > my whole machine, not one folder.** I am going to use it for the GitHub command-line tool and
 > for `mise`, which is what keeps the rest of the installs tidy. May I?
 
-Ask for the password **once**, so you are not stopping at every step after that.
+Ask for the password **once**, so you are not stopping at every step after that. Say where they are
+going to type it, and if it has to go somewhere other than this conversation, show them how to get
+there.
+
+**On Windows this is not their Windows password.** It is the Ubuntu one they made the first time
+they opened Ubuntu, and it has nothing to do with their Windows sign-in or their Microsoft account.
+Say so *before* they type, because the failure is cruel: they try the Windows password, get three
+silent rejections, and you have already told them a blank screen is normal — so the last thing they
+will suspect is the password itself. If they have forgotten it, it is recoverable: `wsl -u root`
+from PowerShell, then `passwd <their ubuntu username>`.
 
 **Warn them before they type it that nothing will appear on screen** — no dots, no stars. It is the
 single most common place people think their computer has frozen, and they type it three times and
@@ -221,7 +293,8 @@ the same place. The slash commands are there for when they would rather point th
 
 **Then have them restart you** — close the window and type `ccc`. A plugin installed mid-session
 does not exist in that session, and the symptom is the command simply not being there. They have
-`ccc` by now, so this restart costs them three letters.
+`ccc` by now, so this restart costs them three letters. On Windows, say "the Ubuntu window" rather
+than "a terminal", every time — step 2 explains why.
 
 ### 10. Make yourself good at the work
 
@@ -229,16 +302,16 @@ Three small things, all one-off, none of which they will ever have to think abou
 
 **The model — their choice, and it is a real one.** Ask, in about this many words:
 
-> There are two brains I can run on. **Sonnet** is fast, and your plan stretches a lot further on
-> it — you will get more done before you hit a limit. **Opus** is the stronger one, and it eats
-> that allowance much faster. **I would start on sonnet**, because the two of us will spend most of
-> our time on things it handles easily, and you can switch to the stronger one for a single
-> conversation whenever something turns out to be hard. Which would you like?
+> There are two brains I can run on. **Opus** is the stronger one, and it is the one I would start
+> you on — you are building something you have not built before, and that is exactly where the
+> difference shows. **Sonnet** is faster and your plan stretches a lot further on it, so you get
+> more done before you hit a limit. The catch with Opus is that allowance goes much quicker. You
+> can swap either way in one line, any time. Which would you like?
 
-Write their answer into `~/.claude/settings.json` — `"sonnet"` or `"opus"`:
+Write their answer into `~/.claude/settings.json` — `"opus"` or `"sonnet"`:
 
 ```
-"model": "sonnet"
+"model": "opus"
 ```
 
 Either way, tell them the one line that matters: **`/model opus` and `/model sonnet` swap it for
@@ -303,14 +376,29 @@ They have looked at this window for the whole setup and it is the one thing here
 chosen. Both platforms get the same colours; macOS also gets a check that they are in the right
 application.
 
-**macOS — confirm they are in iTerm2, and fix it if they are not.** Step one of this kit installs
-iTerm2 before you exist, so the usual answer is that they already are. Check rather than assume:
+**First, and on every platform: tell them how to type a second line.** They will want one within a
+day — a longer question, a bit of text with a paragraph in it — and the key everybody tries is
+Shift+Enter:
+
+> **Ctrl+J** starts a new line instead of sending. Works in any terminal, nothing to set up.
+> `\` then Return does the same. In most terminals Shift+Enter works too, and in Apple's Terminal
+> it does not, which is the one exception worth knowing.
+
+That is the whole fix for the problem, it costs nothing, and it belongs to them whatever terminal
+they end up in. Everything below is comfort on top of it.
+
+**macOS — check which application they are in.** Step one of this kit installs iTerm2 before you
+exist, so the usual answer is that they are already somewhere good:
 
     echo $TERM_PROGRAM
 
-iTerm2 reports `iTerm.app`. **If it says anything else, they are in Apple's Terminal and Shift+Enter
-has been sending their half-written messages this entire time.** That is worth fixing now, and worth
-naming out loud, because they have probably hit it and assumed they did something wrong:
+**Only `Apple_Terminal` is worth acting on.** iTerm2 reports `iTerm.app`, and Ghostty, Kitty,
+WezTerm and Warp all report their own names and all handle Shift+Enter natively — so anything that
+is not `Apple_Terminal` needs nothing from you. Say so in a line and move on rather than talking
+someone out of a terminal that is already fine.
+
+If it *is* `Apple_Terminal`, offer iTerm2 and let them choose. Name what it buys and what it costs,
+in that order, and take no for an answer — they have Ctrl+J either way:
 
 - Install it — `brew install --cask iterm2`, and Homebrew from <https://brew.sh/> first if it is not
   there. That is a password and, on a Mac with no developer tools, a long download. Say both before
@@ -318,15 +406,23 @@ naming out loud, because they have probably hit it and assumed they did somethin
 - Then have them quit this window, open iTerm2, and run `ccc`. **You do not survive that** — you are
   a program in the window they are closing. Tell them what you have just done and what is left, so
   the next you can pick it up. This is the one place in the setup where you hand over to yourself.
-- **If they would rather not install anything, that is a fine answer.** `/terminal-setup` is a
-  command built into you that sets the same shortcut up in Terminal.app. It costs nothing, and it
-  will not run inside `tmux` or `screen`. Failing that, `\` then Return makes a new line anywhere.
+- **If they would rather not install anything, that is a fine answer and you drop it.** Do not offer
+  `/terminal-setup` here: it does not set up Shift+Enter for Apple's Terminal, and running it there
+  changes other things instead. Apple's Terminal sends the same character for Enter and Shift+Enter,
+  so there is nothing any program can bind. Ctrl+J is the answer, and it already works.
 
-**Windows.** Their Ubuntu terminal has a red background by default and it is horrible.
+**Windows.** The Ubuntu window's colours were never chosen for them, which is reason enough. The
+setting lives on the Windows side of the fence, not in Ubuntu where you are: it is
+`settings.json` under `%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\`,
+which you reach from here as `/mnt/c/Users/<their Windows username>/AppData/Local/...`. `ls
+/mnt/c/Users` will tell you the username. Windows Terminal applies the file the moment it is saved,
+so there is nothing to restart. **If Windows Terminal is not installed at all** — possible on older
+Windows 10 — say so and leave the colours alone rather than improvising; there is nothing here worth
+guessing at.
 
 **Both — Tokyo Night dark**: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from
-the official tokyonight project rather than from memory; it ships colour files for both of these
-terminals.
+the official tokyonight project rather than from memory; it ships ready-made colour files for both
+of these terminals, under `extras/iterm/` and `extras/windows_terminal/`.
 
 **A few settings worth changing while you are there**, all of them things they will never think to
 ask for: scrollback long enough that this morning is still in the window, a font size someone can
@@ -335,9 +431,17 @@ read across a desk, and whatever makes copy and paste behave the way they expect
 **Find the real setting, do not compose one that looks right.** An invented preference key does not
 error — it writes a value nothing reads, and you will report success on a change that never
 happened. If you cannot confirm a key is real, change it through the application's own settings and
-have them see it, or leave it alone and say you left it alone. Whatever you change, quit the
-terminal and open it again to confirm it survived; some terminals write their preferences back out
-on exit and quietly undo you.
+have them see it, or leave it alone and say you left it alone.
+
+On iTerm2 specifically there are two mechanisms that do not require you to guess: importing the
+`.itermcolors` file through Settings → Profiles → Colors → Color Presets, which they can watch
+happen, or a **Dynamic Profile** — a JSON file in
+`~/Library/Application Support/iTerm2/DynamicProfiles/`, which iTerm2 watches and reloads by itself.
+Prefer either over writing preference keys directly; the second also sidesteps the problem below.
+
+**On a Mac, quit the terminal and open it again to confirm the change survived** — iTerm2 writes its
+preferences back out on exit and can quietly undo you. Windows Terminal is the opposite: it applies
+`settings.json` on save, so there is nothing to restart and nothing to lose.
 
 ### 14. The page they bookmark
 
@@ -399,7 +503,8 @@ headings and let the page do the rest.
 Tell them the setup is finished, and give them the three things worth remembering — no more than
 three:
 
-- **`cd ~/projects/<name>`** then **`ccc`** brings you back to a project.
+- **`cd ~/projects/<name>`** then **`ccc`** brings you back to a project. On Windows, in the Ubuntu
+  window — never PowerShell.
 - **"start me a new project"** and **"save my work"** are the two things that need doing often.
 - **`~/.claude/CLAUDE.md`** is where they change how you behave.
 

@@ -51,8 +51,8 @@ without stopping at every step. A GitHub account — **this is the first point y
 commands for starting a project, finishing one, reviewing one, keeping a page of what you have
 learnt, and reporting a bug. Your pick of model, plus three of Anthropic's own plugins and a
 documentation lookup so the agent stops guessing at commands. `mise`, so tools never get installed
-over the whole machine. A status bar showing how full the agent's memory is. Your terminal made
-readable — Tokyo Night on both, which on Windows replaces that red Ubuntu background.
+over the whole machine. A status bar showing how full the agent's memory is. And your terminal made
+readable, in colours somebody actually chose, on both Windows and a Mac.
 
 **It ends with a page you can bookmark**, with every command on it and a copy button on each, so
 none of the above lives only in a terminal window you are about to close.

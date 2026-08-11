@@ -235,6 +235,106 @@ for sh in bash zsh; do
 done
 rm -f "$swapped"
 
+# The blocker this whole marker business exists for. Installing twice used to
+# leave TWO `alias ccc=` pairs; the instruction on howto.html says to move the
+# `#`, the person edits the first pair, and the second one -- still the
+# skip-permissions one -- wins. They ask for the safe option and silently get
+# the other. Simulate exactly that: append twice, swap the first pair, and
+# check what the shell actually ends up with.
+rc=$(mktemp)
+python3 - "$rc" templates/ccc.sh <<'PY'
+# Exactly what SETUP.md step 2 tells the agent to do: replace between the
+# markers when they are present, append when they are not. Run it twice.
+import sys
+rcfile, block = sys.argv[1], sys.argv[2]
+new = open(block).read()
+o, c = '# >>> mwk-genie:ccc >>>', '# <<< mwk-genie:ccc <<<'
+for _ in range(2):
+    cur = open(rcfile).read()
+    if o in cur and c in cur:
+        head = cur[:cur.index(o)]
+        tail = cur[cur.index(c) + len(c):]
+        tail = tail.split('\n', 1)[1] if '\n' in tail else ''
+        cur = head + new.lstrip('\n') + tail
+    else:
+        cur = cur + new
+    open(rcfile, 'w').write(cur)
+PY
+n=$(grep -c "^alias ccc=\|^# alias ccc=" "$rc")
+[ "$n" = 2 ] \
+  && ok "installing twice the documented way leaves one alias pair, not two" \
+  || bad "installing twice left $n alias lines (want 2: one live, one commented)"
+
+# ...and then the person follows howto.html and moves the # on the first pair.
+python3 - "$rc" <<'PY'
+import sys
+ls = open(sys.argv[1]).read().split('\n')
+off = on = False
+for i, l in enumerate(ls):
+    if not off and l.startswith("alias ccc='claude --dangerously"):
+        ls[i] = '# ' + l; off = True
+    elif not on and l.startswith("# alias ccc='claude'"):
+        ls[i] = l[2:]; on = True
+open(sys.argv[1], 'w').write('\n'.join(ls))
+PY
+got=$(bash -c "source $rc; alias ccc" 2>/dev/null)
+case "$got" in
+  *dangerously*) bad "installed twice, moving the # leaves the skip-permissions alias live" ;;
+  *claude*)      ok "installed twice, moving the # still gives the asks-every-time version" ;;
+  *)             bad "twice-installed ccc.sh defines no alias (got: ${got:-nothing})" ;;
+esac
+rm -f "$rc"
+
+# And if an agent ignores the markers and appends blindly anyway, the check
+# SETUP.md mandates has to notice. This is the last line of defence.
+blind=$(mktemp); cat templates/ccc.sh templates/ccc.sh > "$blind"
+[ "$(grep -c '^alias ccc=' "$blind")" = 2 ] \
+  && ok "a blind double-append is caught by SETUP.md's grep -c guard" \
+  || bad "a blind double-append would slip past the grep -c guard in SETUP.md"
+rm -f "$blind"
+
+# Both templates are fenced by markers so SETUP.md can replace rather than
+# append. Without them there is nothing to replace and the bug above returns.
+for m in ccc prompt; do
+  o=$(grep -c "^# >>> mwk-genie:$m >>>" "templates/$m.sh")
+  c=$(grep -c "^# <<< mwk-genie:$m <<<" "templates/$m.sh")
+  [ "$o" = 1 ] && [ "$c" = 1 ] \
+    && ok "templates/$m.sh is fenced by its replace markers" \
+    || bad "templates/$m.sh markers: $o opening, $c closing (want 1 and 1)"
+  grep -qF "mwk-genie:$m" SETUP.md \
+    && ok "SETUP.md tells the agent about the mwk-genie:$m markers" \
+    || bad "SETUP.md never mentions the mwk-genie:$m markers, so it will append blindly"
+done
+
+# The installer puts claude in ~/.local/bin and touches no startup file, so
+# without this `ccc` is command-not-found in any non-login shell.
+grep -qF '.local/bin' templates/ccc.sh \
+  && ok "ccc.sh puts ~/.local/bin on PATH" \
+  || bad "ccc.sh does not add ~/.local/bin to PATH -- ccc will not resolve in a non-login shell"
+
+n=$(env -i HOME=/nonexistent PATH=/usr/bin:/bin bash -c \
+      ". $PWD/templates/ccc.sh; . $PWD/templates/ccc.sh; printf '%s' \"\$PATH\"" 2>/dev/null \
+    | tr ':' '\n' | grep -c '^/nonexistent/.local/bin$')
+[ "$n" = 1 ] \
+  && ok "sourcing ccc.sh twice does not stack duplicate PATH entries" \
+  || bad "ccc.sh put ~/.local/bin on PATH $n times after two sources (want 1)"
+
+# A startup file with no trailing newline used to have its last line welded to
+# our first, producing two errors at the top of every new terminal forever.
+nl=$(mktemp)
+printf 'export MWK_LAST_LINE=1' > "$nl"        # deliberately no trailing newline
+cat templates/ccc.sh >> "$nl"
+bash -c "source $nl" 2>/dev/null \
+  && ok "appending to a file with no trailing newline still sources cleanly" \
+  || bad "appending ccc.sh to a file with no trailing newline breaks it"
+rm -f "$nl"
+
+# prompt.sh runs inside somebody's startup file. An unset variable under set -u
+# aborts everything below it.
+bash -c "set -u; source $PWD/templates/prompt.sh" 2>/dev/null \
+  && ok "prompt.sh survives set -u" \
+  || bad "prompt.sh aborts under set -u -- the rest of their startup file stops running"
+
 # prompt.sh must print ` (branch)`, ` (branch*)` when dirty, and nothing at all
 # outside a repo. The `*` is the thing the whole prompt exists for.
 tmp=$(mktemp -d)
@@ -258,6 +358,30 @@ for sh in bash zsh; do
     && ok "$sh: silent outside a repo" \
     || bad "$sh: printed '$outside' outside a repo"
 done
+
+# Testing __mwk_git is not testing the prompt. Deleting `setopt PROMPT_SUBST`
+# passes every check above while a real zsh window renders a literal
+# "$(__mwk_git)" on every line -- on the platform rehearse.sh never touches.
+# So render the actual prompt and look for the branch in it.
+touch "$tmp/dirty"
+
+zd=$(mktemp -d); cp templates/prompt.sh "$zd/.zshrc"
+rendered=$(cd "$tmp" && HOME="$zd" ZDOTDIR="$zd" zsh -i -c 'print -rP "$PROMPT"' 2>/dev/null)
+case "$rendered" in
+  *'(main*)'*|*'(master*)'*) ok "zsh: the rendered prompt contains the branch and star" ;;
+  *'__mwk_git'*) bad "zsh: prompt renders a literal \$(__mwk_git) -- PROMPT_SUBST is missing" ;;
+  *) bad "zsh: rendered prompt has no branch in it (got: ${rendered:-nothing})" ;;
+esac
+rm -rf "$zd"
+
+here=$PWD
+rendered=$(cd "$tmp" && bash -c ". '$here/templates/prompt.sh'; printf '%s' \"\${PS1@P}\"" 2>/dev/null)
+case "$rendered" in
+  *'(main*)'*|*'(master*)'*) ok "bash: the rendered prompt contains the branch and star" ;;
+  *'__mwk_git'*) bad "bash: prompt renders a literal \$(__mwk_git)" ;;
+  *) bad "bash: rendered prompt has no branch in it (got: ${rendered:-nothing})" ;;
+esac
+
 rm -rf "$tmp"
 
 # --- the prompt people paste -------------------------------------------------
@@ -347,6 +471,29 @@ if grep -qF 'brew install --cask iterm2' prompts/install.md; then
   [ "$tok" = "iterm2" ] \
     && ok "homebrew cask 'iterm2' exists" \
     || bad "prompts/install.md installs cask 'iterm2' but the Homebrew API returned '${tok:-nothing}'"
+else
+  # Never let this vanish silently: reword the command and the check would
+  # simply stop running, with no failure and no notice.
+  skip "prompts/install.md no longer contains 'brew install --cask iterm2' -- cask check not run"
+fi
+
+# Ctrl+J is the universal newline and the only thing that works in Apple's
+# Terminal. /terminal-setup does NOT set Shift+Enter up there, and saying it
+# does sends the person who declined the install away believing it is fixed.
+grep -qF 'Ctrl+J' SETUP.md \
+  && ok "SETUP.md gives them Ctrl+J for a new line" \
+  || bad "SETUP.md never mentions Ctrl+J, the one newline key that works everywhere"
+grep -qF 'Ctrl+J' templates/howto.html \
+  && ok "the bookmark page gives them Ctrl+J" \
+  || bad "templates/howto.html never mentions Ctrl+J"
+# It may only appear as the warning not to reach for it. Any other mention is
+# the old wrong advice creeping back.
+if ! grep -qF 'terminal-setup' SETUP.md; then
+  ok "SETUP.md does not mention /terminal-setup"
+elif [ "$(grep -cF 'terminal-setup' SETUP.md)" = 1 ] && grep -qF 'Do not offer' SETUP.md; then
+  ok "SETUP.md mentions /terminal-setup only to warn the agent off it"
+else
+  bad "SETUP.md offers /terminal-setup as an Apple Terminal fix -- it does not do that"
 fi
 
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST \
@@ -356,16 +503,27 @@ code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"mwk-check","version":"1"}}}' 2>/dev/null)
 [ "$code" = "200" ] && ok "$code  context7 MCP endpoint" || bad "$code  context7 MCP endpoint"
 
-# The three Anthropic plugins SETUP.md installs have to exist in that catalogue.
+# The Anthropic plugins SETUP.md installs have to exist in that catalogue.
+# Derive the list FROM SETUP.md rather than hardcoding it: the old version
+# grepped SETUP.md for a quoted "frontend-design" that is never written that
+# way, so the condition was always false and the else always printed a pass --
+# including for a plugin name that does not exist. A check that cannot fail is
+# worse than no check, because it is counted in the total.
 avail=$(curl -sL --max-time 20 \
   https://raw.githubusercontent.com/anthropics/claude-code/main/.claude-plugin/marketplace.json)
-for p in frontend-design feature-dev security-guidance; do
-  if grep -qF "\"$p\"" SETUP.md && ! echo "$avail" | grep -qF "\"$p\""; then
-    bad "SETUP.md installs '$p' but it is not in the anthropics/claude-code marketplace"
-  else
-    ok "$p exists in the Anthropic marketplace"
-  fi
-done
+plugins=$(grep -oE 'claude plugin install [a-z0-9-]+@claude-code-plugins' SETUP.md \
+          | sed 's/claude plugin install //; s/@claude-code-plugins//' | sort -u)
+if [ -z "$plugins" ]; then
+  bad "no 'claude plugin install <name>@claude-code-plugins' lines found in SETUP.md"
+elif [ -z "$avail" ]; then
+  skip "could not fetch the Anthropic marketplace"
+else
+  for p in $plugins; do
+    echo "$avail" | grep -qF "\"$p\"" \
+      && ok "$p exists in the Anthropic marketplace" \
+      || bad "SETUP.md installs '$p' but it is not in the anthropics/claude-code marketplace"
+  done
+fi
 
 # --- done --------------------------------------------------------------------
 # Skips are reported, never folded into the pass count — the checks that skip

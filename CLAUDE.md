@@ -37,6 +37,11 @@ a violation of the rule. A question costs them nothing; a password costs them so
 site's copy wrong once already. Three things are the person's to decide, and all three are asked
 once and never revisited: `ccc` (step 2), admin access (step 7), the model (step 10).
 
+**The model default is `opus`** — mate's call, 2026-08-11, after testing the kit on sonnet: *"I
+tested with sonnet, and it was not working really well."* The recommendation in step 10 and the
+framing on the bookmark page both follow from that, so they move together. Sonnet is now presented
+as the way to stretch the allowance rather than the starting point.
+
 **Homebrew is for iTerm2 and nothing else. The agent still installs itself.** Amended by mate on
 2026-08-11, and the halves are not interchangeable:
 
@@ -47,16 +52,36 @@ once and never revisited: `ccc` (step 2), admin access (step 7), the model (step
   prompt, before Claude Code is installed at all.
 
 **The reason it is there rather than in `SETUP.md` is the handoff, and it is the whole point.**
-Apple's Terminal is the only terminal in this kit where Shift+Enter sends the message instead of
-starting a new line — Claude Code's own `/terminal-setup` names iTerm2, WezTerm, Ghostty, Kitty,
-Warp and Windows Terminal as supporting it natively, and Terminal.app is the omission. Fixing that
-*during* `SETUP.md` means the agent tells the person to close the window it is running in, so it
-dies mid-setup and a fresh one has to pick the thread up. Installing iTerm2 **before the agent
-exists** costs nothing to hand over, because there is nothing to hand over.
+Fixing the terminal *during* `SETUP.md` means the agent tells the person to close the window it is
+running in, so it dies mid-setup and a fresh one has to pick the thread up. Installing iTerm2
+**before the agent exists** costs nothing to hand over, because there is nothing to hand over.
 
-Step 13 keeps the repair path anyway (`echo $TERM_PROGRAM`, then install-and-restart, or
-`/terminal-setup`, or `\`+Return) for anyone who arrives already in Terminal.app. Stage one is
+Step 13 keeps a repair path anyway for anyone who arrives already in Apple's Terminal. Stage one is
 untouched by any of this and must stay that way.
+
+### Ctrl+J is the actual fix. iTerm2 is comfort on top of it.
+
+**`Ctrl+J` starts a new line in every terminal, including Apple's, with nothing installed.** It is
+in Claude Code's own strings. Learned 2026-08-11, after the iTerm2 path had already been built, and
+it changes what that path is *for*: iTerm2 is a nicer terminal that also gets the colours, not the
+only way out. **So step 13 offers and takes no for an answer, and Ctrl+J is given first, on every
+platform.** Do not let a later edit turn the offer back into an instruction.
+
+**Do not cite the docs table for why Apple's Terminal is different — it is wrong.** Claude Code's
+documentation currently lists Apple Terminal among the terminals that work without setup. The real
+reason is mechanical: **Apple's Terminal sends the same byte (`0x0d`) for Enter and Shift+Enter, so
+there is nothing for any program to bind.** Cite that. Anyone who checks the table instead will
+conclude this whole section is unnecessary and delete it.
+
+**`/terminal-setup` does not fix Apple's Terminal**, and `SETUP.md` says so explicitly rather than
+staying silent, because the wrong version of that sentence shipped once already (2026-08-10, my
+error — inferred from the command's help text instead of checked). It configures VS Code, Cursor,
+Devin Desktop, Alacritty and Zed; in Apple Terminal it enables Option-as-Meta and silences the bell
+instead. `check.sh` fails if the file mentions it as anything but a warning.
+
+`echo $TERM_PROGRAM` **matches positively on `Apple_Terminal` and acts on nothing else.** Ghostty,
+Kitty, WezTerm and Warp all handle Shift+Enter natively, so "anything that is not iTerm2" would talk
+those users out of a perfectly good terminal.
 
 **Never write an iTerm2 preference key you have not read off a real Mac.** A wrong `defaults` key
 does not error; it writes something nothing reads, and the agent reports success. This fleet has a
@@ -172,6 +197,44 @@ nothing checks it, so **editing the top of `templates/CLAUDE.md` silently makes 
 wrong.** The two prompts cannot drift; this can. Checked accurate 2026-08-09; filed as an issue on
 that repo. If you change those opening paragraphs or rename an early heading, say so in the commit
 and file it across.
+
+## The two shell templates are installed by marker, never appended
+
+`templates/ccc.sh` and `templates/prompt.sh` are each fenced by
+`# >>> mwk-genie:<name> >>>` / `# <<< mwk-genie:<name> <<<`, and `SETUP.md` step 2 **replaces
+between the markers when they are present**. This is not tidiness.
+
+Appending blindly a second time leaves **two** `alias ccc=` pairs. The instruction on the page they
+keep — *move the `#` to the other line* — then edits the first pair while the second one, still the
+skip-permissions version, silently wins. **They ask for the safe option and get the dangerous one,
+with nothing on screen to tell them.** That is the worst failure this kit is capable of and it was
+live until 2026-08-11. `check.sh` now installs twice the documented way, performs the swap, and
+asserts what the shell actually ends up with.
+
+**`ccc.sh` also puts `~/.local/bin` on `PATH`, and that line is load-bearing.** The official
+installer writes `claude` there and touches no startup file at all — it just prints a note telling
+the user to fix PATH themselves. Without our line, `ccc` works in a login shell and is
+`command not found` in a non-login one, which is a horrible thing to hand a beginner.
+
+## A test that arranges its own preconditions is worse than no test
+
+Three findings on 2026-08-11 were the same bug in different clothes, and all three had been green
+for months:
+
+- `rehearse.sh` wrote `export PATH=$HOME/.local/bin:$PATH` into `.bashrc` **before** appending
+  `ccc.sh`, so phase B — which exists to prove `ccc` works in a fresh shell — supplied the one thing
+  that would otherwise have made it fail.
+- `rehearse.sh` ran `mkdir -p ~/projects` in front of the tarball command it described as *"exactly
+  as SETUP.md writes it"*. SETUP.md did not have that line, so the command failed for everyone and
+  passed here.
+- `check.sh` grepped `SETUP.md` for `"frontend-design"` **with quotes**, which never appears. The
+  condition was always false, the `else` always printed a pass, and an invented plugin name passed
+  too. Three of the suite's green ticks were counting nothing.
+
+**So: when a check goes green, ask what would have to be true for it to go red.** If you cannot
+construct that case, the check is decoration. And if you find yourself adding a step to a test to
+make it pass, the bug is in the thing being tested — both scripts now carry a comment saying so at
+the exact line where it happened.
 
 ## The plugin
 
