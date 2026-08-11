@@ -25,7 +25,13 @@ or the two published pages change.
       design exists to prevent, and it will not announce itself.
 - [ ] **It still finds the page with only the title.** Delete both again, answer the question by
       saying the page exists, and check it recovers the right artifact by title rather than
-      making a new one.
+      making a new one. The title is pinned in the skill as exactly **`What we learnt`** — if the
+      published page is called anything else, that is the bug, not the search.
+- [ ] **The second run reuses the address rather than finding it and then ignoring it.** The
+      subtle half: knowing the URL and *publishing to it* are two different steps, and a session
+      that did not create the page will mint a new one unless it is handed the address explicitly.
+      So after run two, check the URL in `~/.claude/mwk-genie-learning.txt` is **unchanged**, not
+      merely present — a fresh URL written confidently into the sidecar looks identical to success.
 - [ ] **Step 14's how-to page publishes** and the link survives closing the terminal.
 - [ ] **The show links work on the published page** — `check.sh` proves the URLs are alive, not that
       they render as clickable links once `howto.html` is an artifact. Open it and click all three.

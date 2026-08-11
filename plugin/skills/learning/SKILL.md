@@ -126,17 +126,36 @@ half is complete, and nobody finds out for weeks.
 **Write both every time you publish**, even when nothing changed. They are
 cheap, and the whole design rests on at least one of them being there.
 
+### The title is fixed, and it is not yours to improve
+
+The page is called exactly this, every time, forever:
+
+    What we learnt
+
+**Do not reword it, date it, or add their name to it.** It is the third way
+home when both files below are gone, and matching is by exact title — a page
+called "What we learnt so far" in March and "What We Learnt" in April is two
+pages as far as that search is concerned, which is the failure this whole
+section exists to prevent.
+
 ### Finding it again, in order
 
 1. Read `~/.claude/mwk-genie-learning.txt`.
 2. Read the first line of `log.html`.
-3. **List their artifacts and match this page by its exact title.** Keep the
-   title identical between runs — it is the last way home when both files are
-   gone.
+3. **List their artifacts and match by that exact title.**
 
-Take the first address any of those gives you and **update that page**. If two
-of them disagree, prefer the sidecar file, say so in one line, and repair the
-other.
+Take the first address any of those gives you and **update that page**.
+
+**Updating means handing the publish step that address.** This is the part that
+actually does the work, and skipping it is silent: a session that did not
+publish the page originally — which is every session after the first — creates
+a *new* page at a *new* address unless it is explicitly told which one to
+update. There is no other way to target an existing page. Everything above is
+only about finding the address; if you find it and then publish without it, you
+have still split the record and it will still look like it worked.
+
+If two sources disagree, prefer the sidecar file, say so in one line, and
+repair the other.
 
 ### If all three come up empty
 
@@ -148,8 +167,10 @@ other.
 
 **First time → publish, and tell them to bookmark it.** Anything else → they
 almost certainly still have the link in a bookmark or an old message, and one
-question costs a moment where a duplicate page costs the record. Only publish
-fresh once they have said it is genuinely gone.
+question costs a moment where a duplicate page costs the record. **If they can
+find the link, take it and use it** — that is the address, and it is better
+than anything you would create. Only publish fresh once they have said it is
+genuinely gone.
 
 This is the one place in this skill where asking beats getting on with it.
 

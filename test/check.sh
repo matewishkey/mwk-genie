@@ -126,6 +126,30 @@ $hits"
 done
 [ "$count_drift" = 0 ] && ok "the written-out count matches ($n_skills commands)"
 
+# The learning skill keeps ONE page forever, and the way it fails is by quietly
+# making a second one. Three things have to survive every edit to that file.
+L=plugin/skills/learning/SKILL.md
+
+# 1. The title is the last way home when both stored copies are gone, so it has
+#    to be written down here rather than left to whoever runs the command.
+grep -qE '^ {4}What we learnt$' "$L" \
+  && ok "learning: the artifact title is pinned in the skill" \
+  || bad "learning: no pinned artifact title -- recovery-by-title cannot work if it drifts"
+
+# 2. Finding the address is useless without passing it to the publish step. A
+#    session that did not create the page makes a NEW one unless told which to
+#    update, which is the whole failure mode wearing a success mask.
+grep -qi 'handing the publish step that address' "$L" \
+  && ok "learning: says to hand the stored address to the publish step" \
+  || bad "learning: never says to pass the address when publishing -- it will create a second page"
+
+# 3. Both stored copies, and the refusal to guess when they are gone.
+for want in 'mwk-genie-learning.txt' '<!-- artifact:' 'Stop. Do not publish'; do
+  grep -qF -- "$want" "$L" \
+    && ok "learning: keeps '$want'" \
+    || bad "learning: lost '$want' -- one of the three ways home is gone"
+done
+
 # --- the bookmark page -------------------------------------------------------
 # templates/howto.html is the one artefact they keep, the only branded thing in
 # the kit, and the only page here with a script on it. All three are reasons it
