@@ -63,11 +63,10 @@ or the two published pages change.
 - [ ] **macOS.** Homebrew is expected now, for one thing only. Confirm `brew list --cask` shows
       **iTerm2 and nothing else**, and that Claude Code came from its own installer rather than a
       formula (`brew list | grep -i claude` should find nothing).
-- [ ] **macOS, write down what `$TERM_PROGRAM` actually says.** Run `echo $TERM_PROGRAM` in iTerm2
-      and in Apple's Terminal and record both, verbatim. Step 13 branches on `Apple_Terminal`; that
-      value is corroborated by Claude Code's own binary but has never been read off a Mac. **This
-      is the highest-value line on this list** — if it is wrong, step 13 either does nothing or
-      talks people out of a terminal that was already fine.
+- [x] **macOS, `$TERM_PROGRAM`.** ~~Record what it actually says.~~ **Done 2026-08-11** on the
+      observer Mac (macOS 26.5.2): Apple's Terminal sets `Apple_Terminal`, iTerm2 sets `iTerm.app`,
+      both read out of the applications' own binaries. Step 13 matches these. The iTerm2 preference
+      keys were read off a live profile at the same time — see the table in `CLAUDE.md`.
 - [ ] **macOS, Ctrl+J really works in Apple's Terminal.** Press it and check it starts a new line
       rather than sending. This is the claim the whole "you can decline the install" branch rests
       on, and it is now the answer we give first, on every platform.

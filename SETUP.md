@@ -392,10 +392,11 @@ exist, so the usual answer is that they are already somewhere good:
 
     echo $TERM_PROGRAM
 
-**Only `Apple_Terminal` is worth acting on.** iTerm2 reports `iTerm.app`, and Ghostty, Kitty,
-WezTerm and Warp all report their own names and all handle Shift+Enter natively — so anything that
-is not `Apple_Terminal` needs nothing from you. Say so in a line and move on rather than talking
-someone out of a terminal that is already fine.
+**Only `Apple_Terminal` is worth acting on.** iTerm2 reports `iTerm.app`; Ghostty, Kitty, WezTerm
+and Warp report their own names and all handle Shift+Enter natively — so anything that is not
+`Apple_Terminal` needs nothing from you. Say so in a line and move on rather than talking someone
+out of a terminal that is already fine. (Both strings were read off the applications themselves on
+macOS 26 — they are not from memory.)
 
 If it *is* `Apple_Terminal`, offer iTerm2 and let them choose. Name what it buys and what it costs,
 in that order, and take no for an answer — they have Ctrl+J either way:
@@ -433,11 +434,23 @@ error — it writes a value nothing reads, and you will report success on a chan
 happened. If you cannot confirm a key is real, change it through the application's own settings and
 have them see it, or leave it alone and say you left it alone.
 
-On iTerm2 specifically there are two mechanisms that do not require you to guess: importing the
-`.itermcolors` file through Settings → Profiles → Colors → Color Presets, which they can watch
-happen, or a **Dynamic Profile** — a JSON file in
-`~/Library/Application Support/iTerm2/DynamicProfiles/`, which iTerm2 watches and reloads by itself.
-Prefer either over writing preference keys directly; the second also sidesteps the problem below.
+**On iTerm2, do not reach for `defaults write` at all.** Its preferences are
+`com.googlecode.iterm2`, but the things worth changing do not live at the top level — they are
+fields inside a profile, in a `New Bookmarks` array, so a top-level write does nothing and reports
+success. Use one of these two instead:
+
+- **Import the colours through the application** — Settings → Profiles → Colors → Color Presets →
+  Import, pointing at the `.itermcolors` file. They can watch it happen, which is worth something
+  on its own.
+- **Write a Dynamic Profile** — a JSON file in
+  `~/Library/Application Support/iTerm2/DynamicProfiles/`. iTerm2 watches that folder and reloads by
+  itself, so nothing races with the app and nothing gets written back over on exit. The field names
+  are the ones the profile already uses: `Guid` and `Name` to identify it, `Scrollback Lines`,
+  `Unlimited Scrollback` and `Normal Font` (a string like `FiraCode-Regular 12`) for the settings
+  above.
+
+Those key names were read out of a live iTerm2 profile on macOS 26. **Anything not on that list is
+still a guess** — find it the same way or leave it.
 
 **On a Mac, quit the terminal and open it again to confirm the change survived** — iTerm2 writes its
 preferences back out on exit and can quietly undo you. Windows Terminal is the opposite: it applies

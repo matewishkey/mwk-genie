@@ -85,9 +85,28 @@ those users out of a perfectly good terminal.
 
 **Never write an iTerm2 preference key you have not read off a real Mac.** A wrong `defaults` key
 does not error; it writes something nothing reads, and the agent reports success. This fleet has a
-logged fabrication of exactly that shape (2026-07-15). `SETUP.md` step 13 therefore describes the
-outcome and orders the agent to find the mechanism — do not "helpfully" replace that with concrete
-commands you cannot verify from a Linux box.
+logged fabrication of exactly that shape (2026-07-15).
+
+### Read off the observer Mac on 2026-08-11, so nobody re-derives them
+
+The fleet's macOS box is reachable as `matevisky@192.168.172.22` (macOS 26.5.2, arm64, login shell
+`/bin/zsh`). These are measured, not remembered:
+
+| Fact | Value | How |
+|---|---|---|
+| `TERM_PROGRAM` in Apple's Terminal | `Apple_Terminal` | string in `Terminal.app`'s own binary |
+| `TERM_PROGRAM` in iTerm2 | `iTerm.app` | string in `iTerm.app`'s own binary |
+| iTerm2 preference domain | `com.googlecode.iterm2` (plus `.private`) | `defaults domains` |
+| Where profile settings live | a `New Bookmarks` array, **not** top level | PlistBuddy on the live plist |
+| Real profile keys | `Guid`, `Name`, `Scrollback Lines`, `Unlimited Scrollback`, `Normal Font` | same |
+| Dynamic Profiles folder | `~/Library/Application Support/iTerm2/DynamicProfiles` | exists on that box |
+
+Two things that box also settles: it is **arm64**, and it has **no Homebrew at all** while iTerm2
+sits in `/Applications` — installed directly. So the Apple Silicon PATH problem step one now guards
+against is the default case, not an edge case, and the direct download is a real route people take.
+
+**Everything not in that table is still a guess.** `SETUP.md` step 13 names exactly these and tells
+the agent to find anything else the same way.
 
 ## The show is the point, and it is mentioned in exactly two places
 
