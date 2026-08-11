@@ -24,8 +24,8 @@ So `SETUP.md` runs in stages and **the stage boundaries are load-bearing, not de
   `~/.claude/CLAUDE.md`. **Nothing here may need a password, an install, or a package manager.**
   They type three letters and it works.
 - **Stage two** — everything that costs them something: sudo, GitHub, the plugin, the toolbox
-  (model, Anthropic plugins, Context7), mise, status bar, Windows terminal colours, and the
-  bookmarkable how-to artifact last.
+  (model, Anthropic plugins, Context7), mise, status bar, the terminal, and the bookmarkable how-to
+  artifact last.
 
 **Moving a step up into stage one is a regression** even when it is technically fine. The reason a
 person abandons this is being asked for their password twice before they have seen anything work.
@@ -37,8 +37,32 @@ a violation of the rule. A question costs them nothing; a password costs them so
 site's copy wrong once already. Three things are the person's to decide, and all three are asked
 once and never revisited: `ccc` (step 2), admin access (step 7), the model (step 10).
 
-macOS deliberately does **not** install Homebrew. The agent has its own installer and never needed a
-package manager to run — that came out on 2026-08-05 and should not come back.
+**Homebrew is for iTerm2 and nothing else. The agent still installs itself.** Amended by mate on
+2026-08-11, and the halves are not interchangeable:
+
+- **Never `brew install` Claude Code.** It has its own installer, it has never needed a package
+  manager to run, and that was the 2026-08-05 call. `test/rehearse.sh` asserts it — in a container
+  with no brew, no apt and no npm — and that assertion stays.
+- **Homebrew, Xcode Command Line Tools and iTerm2 belong to `prompts/install.md`**, the browser
+  prompt, before Claude Code is installed at all.
+
+**The reason it is there rather than in `SETUP.md` is the handoff, and it is the whole point.**
+Apple's Terminal is the only terminal in this kit where Shift+Enter sends the message instead of
+starting a new line — Claude Code's own `/terminal-setup` names iTerm2, WezTerm, Ghostty, Kitty,
+Warp and Windows Terminal as supporting it natively, and Terminal.app is the omission. Fixing that
+*during* `SETUP.md` means the agent tells the person to close the window it is running in, so it
+dies mid-setup and a fresh one has to pick the thread up. Installing iTerm2 **before the agent
+exists** costs nothing to hand over, because there is nothing to hand over.
+
+Step 13 keeps the repair path anyway (`echo $TERM_PROGRAM`, then install-and-restart, or
+`/terminal-setup`, or `\`+Return) for anyone who arrives already in Terminal.app. Stage one is
+untouched by any of this and must stay that way.
+
+**Never write an iTerm2 preference key you have not read off a real Mac.** A wrong `defaults` key
+does not error; it writes something nothing reads, and the agent reports success. This fleet has a
+logged fabrication of exactly that shape (2026-07-15). `SETUP.md` step 13 therefore describes the
+outcome and orders the agent to find the mechanism — do not "helpfully" replace that with concrete
+commands you cannot verify from a Linux box.
 
 ## The show is the point, and it is mentioned in exactly two places
 

@@ -297,11 +297,47 @@ Tell them why the first one matters: you can only hold so much of a conversation
 that fills up the older parts get squeezed out. Without the bar, that just feels like you going
 stupid on them for no reason.
 
-### 13. Terminal colours — Windows only
+### 13. The terminal they are sitting in
 
-Their Ubuntu terminal has a red background by default and it is horrible. Change the colour scheme to
-Tokyo Night dark: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from the
-official tokyonight project rather than from memory.
+They have looked at this window for the whole setup and it is the one thing here that was never
+chosen. Both platforms get the same colours; macOS also gets a check that they are in the right
+application.
+
+**macOS — confirm they are in iTerm2, and fix it if they are not.** Step one of this kit installs
+iTerm2 before you exist, so the usual answer is that they already are. Check rather than assume:
+
+    echo $TERM_PROGRAM
+
+iTerm2 reports `iTerm.app`. **If it says anything else, they are in Apple's Terminal and Shift+Enter
+has been sending their half-written messages this entire time.** That is worth fixing now, and worth
+naming out loud, because they have probably hit it and assumed they did something wrong:
+
+- Install it — `brew install --cask iterm2`, and Homebrew from <https://brew.sh/> first if it is not
+  there. That is a password and, on a Mac with no developer tools, a long download. Say both before
+  you start.
+- Then have them quit this window, open iTerm2, and run `ccc`. **You do not survive that** — you are
+  a program in the window they are closing. Tell them what you have just done and what is left, so
+  the next you can pick it up. This is the one place in the setup where you hand over to yourself.
+- **If they would rather not install anything, that is a fine answer.** `/terminal-setup` is a
+  command built into you that sets the same shortcut up in Terminal.app. It costs nothing, and it
+  will not run inside `tmux` or `screen`. Failing that, `\` then Return makes a new line anywhere.
+
+**Windows.** Their Ubuntu terminal has a red background by default and it is horrible.
+
+**Both — Tokyo Night dark**: background `#1a1b26`, text `#c0caf5`. Take the rest of the palette from
+the official tokyonight project rather than from memory; it ships colour files for both of these
+terminals.
+
+**A few settings worth changing while you are there**, all of them things they will never think to
+ask for: scrollback long enough that this morning is still in the window, a font size someone can
+read across a desk, and whatever makes copy and paste behave the way they expect.
+
+**Find the real setting, do not compose one that looks right.** An invented preference key does not
+error — it writes a value nothing reads, and you will report success on a change that never
+happened. If you cannot confirm a key is real, change it through the application's own settings and
+have them see it, or leave it alone and say you left it alone. Whatever you change, quit the
+terminal and open it again to confirm it survived; some terminals write their preferences back out
+on exit and quietly undo you.
 
 ### 14. The page they bookmark
 

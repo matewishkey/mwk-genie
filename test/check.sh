@@ -277,6 +277,23 @@ PY
   && ok "prompts/setup.md fence: $n_lines lines, longest $maxlen (limit 60)" \
   || bad "prompts/setup.md fence has $over line(s) over 60 columns (longest $maxlen)"
 
+# Both fences are rendered as reader-facing copy on matewishkey.com. That site
+# fails its own build on an em dash in rendered text, but deliberately exempts
+# <pre> -- which is exactly what these become. So the guard has to live here.
+# Mate's call 2026-08-09: no long dashes in anything published. Prose outside
+# the fence is GitHub-only and is not checked.
+for f in prompts/install.md prompts/setup.md; do
+  n=$(python3 - "$f" <<'PY'
+import re, sys
+b = re.search(r'^```\n(.*?)^```', open(sys.argv[1]).read(), re.S | re.M).group(1)
+print(sum(b.count(d) for d in ('—', '–')))
+PY
+)
+  [ "$n" = 0 ] \
+    && ok "$f fence: no em or en dashes" \
+    || bad "$f fence has $n em/en dash(es) -- they render on matewishkey.com"
+done
+
 # --- every URL handed to a stranger ------------------------------------------
 # A 404 here is not a broken link, it is a beginner's first five minutes.
 head_ "URLs"
@@ -316,6 +333,21 @@ check_url "https://github.com/anthropics/claude-code/issues"
 check_url "https://claude.com/pricing"
 # The installer everything downstream assumes exists.
 check_url "https://claude.ai/install.sh" redirects-ok  # -> downloads.claude.ai; the stable name is the point
+# macOS step one installs iTerm2 with Homebrew. Brew is for iTerm2 only -- the
+# agent still installs itself, which rehearse.sh phase C asserts in a container.
+check_url "https://brew.sh/"
+check_url "https://iterm2.com/"
+
+# The cask name is quoted in prompts/install.md. Homebrew's own API is the
+# authority on whether that token still exists -- guessing it is how a beginner
+# gets "No available formula" as their first command on a new Mac.
+if grep -qF 'brew install --cask iterm2' prompts/install.md; then
+  tok=$(curl -sL --max-time 20 https://formulae.brew.sh/api/cask/iterm2.json \
+        | python3 -c 'import json,sys; print(json.load(sys.stdin).get("token",""))' 2>/dev/null)
+  [ "$tok" = "iterm2" ] \
+    && ok "homebrew cask 'iterm2' exists" \
+    || bad "prompts/install.md installs cask 'iterm2' but the Homebrew API returned '${tok:-nothing}'"
+fi
 
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST \
   https://mcp.context7.com/mcp \

@@ -20,7 +20,7 @@ should be doing this somewhere other than a work laptop.
 
 Step 2 is an opinionated setup: it makes some choices for
 me and asks me about three of them. Do not set any of
-that up here — just say it exists so it is not a surprise.
+that up here. Just say it exists so it is not a surprise.
 
 Ask me this first, and wait for my answer:
 
@@ -43,14 +43,29 @@ WINDOWS
   - Everything after that happens inside Ubuntu, and it
     always will. PowerShell is only for the one command
     above. If you ever give me something to run on
-    Windows, you have gone wrong — say which window I
+    Windows, you have gone wrong. Say which window I
     should be in, every time, until it is obvious.
 
 MACOS
-  - The terminal is already there. Open it and go.
-  - The agent has its own installer. Do not reach for a
-    package manager to install it — Homebrew on a Mac,
-    apt on Ubuntu, either one is the wrong tool here.
+  - Open Terminal to start. We move to a better one in a
+    minute and stay there.
+  - Install Homebrew, the usual way to install developer
+    tools on a Mac. Take the command from brew.sh, not
+    from memory.
+  - Tell me two things before I start it, not after. It
+    asks for my password. And if this Mac has never had
+    developer tools on it, Homebrew installs Apple's
+    Command Line Tools first, which is a big download
+    and can take a while. Then let it run.
+  - Then install a better terminal:
+    brew install --cask iterm2
+  - Now have me quit Terminal, open iTerm2, and do
+    everything from there. Say why in one line: in
+    Apple's Terminal, Shift+Enter sends the message
+    instead of starting a new line, and I will hit that
+    the first time I want to write two paragraphs.
+  - Only then install the agent, using its own
+    installer. Not Homebrew. Homebrew was for iTerm2.
 
 LINUX
   - Straight to the agent.
@@ -71,7 +86,7 @@ WHEN YOU GIVE ME SOMETHING TO COPY
 
 RULES
   - Use the official install instructions for the agent.
-    Do not recite an install command from memory — go and
+    Do not recite an install command from memory. Go and
     check the real documentation first.
   - I do every login myself, in my own browser. Never ask
     me for a password, a code or a token.
@@ -84,7 +99,7 @@ RULES
     drop it into this chat.
 
 We are finished when the agent starts on my computer and I
-am logged in — nothing else. Do not set anything up for me
+am logged in, nothing else. Do not set anything up for me
 beyond that; step 2 does all of it.
 
 Then tell me to paste STEP 2 into the agent on my computer.

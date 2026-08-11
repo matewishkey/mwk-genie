@@ -12,7 +12,7 @@ needs no GitHub account and no login:
 
   https://github.com/matewishkey/mwk-genie
 
-Put it in ~/projects/mwk-genie — use git if this
+Put it in ~/projects/mwk-genie. Use git if this
 machine has it, or curl and tar if it does not. Tell me
 which one you used and why.
 
@@ -28,7 +28,7 @@ Get me to that point before you ask me for anything.
 This is an opinionated setup and I would rather know
 that than have it feel like magic. Where it makes a
 choice for me, say so in passing. Where the choice is
-mine — how ccc starts you, admin access, which model —
+mine (how ccc starts you, admin access, which model),
 ask me, once, in one short question, and then move on.
 
 Then check that ccc really worked rather than telling
@@ -49,8 +49,12 @@ of minutes, and it will already be behaving the way `CLAUDE.md` asks.
 **Stage two — everything that costs you something.** Your computer password once, so it can install
 without stopping at every step. A GitHub account — **this is the first point you need one**. The
 commands for starting a project, finishing one, reviewing one, keeping a page of what you have
-learnt, and reporting a bug. Your pick of model. `mise`, so tools never get installed over the
-whole machine. A status bar showing how full the agent's memory is. And on Windows, fixing that red
-Ubuntu terminal.
+learnt, and reporting a bug. Your pick of model, plus three of Anthropic's own plugins and a
+documentation lookup so the agent stops guessing at commands. `mise`, so tools never get installed
+over the whole machine. A status bar showing how full the agent's memory is. Your terminal made
+readable — Tokyo Night on both, which on Windows replaces that red Ubuntu background.
+
+**It ends with a page you can bookmark**, with every command on it and a copy button on each, so
+none of the above lives only in a terminal window you are about to close.
 
 That order is deliberate: you see the thing work before you are asked for anything.

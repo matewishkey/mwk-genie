@@ -47,8 +47,17 @@ or the two published pages change.
 
 - [ ] **Windows.** Everything above, once, in WSL — the Ubuntu-in-Windows path is the one nobody
       runs by accident, and step 13 (terminal colours) only exists there.
-- [ ] **macOS.** Confirm no Homebrew got installed. It should not have; the agent has its own
-      installer and never needed a package manager.
+- [ ] **macOS.** Homebrew is expected now, for one thing only. Confirm `brew list --cask` shows
+      **iTerm2 and nothing else**, and that Claude Code came from its own installer rather than a
+      formula (`brew list | grep -i claude` should find nothing).
+- [ ] **macOS, the terminal handoff.** Step one should leave them in iTerm2 before the agent is ever
+      installed, so `echo $TERM_PROGRAM` says `iTerm.app` all the way through setup and step 13 has
+      nothing to repair. **Then test the other path on purpose:** run the setup from Apple's
+      Terminal and check step 13 notices, explains itself, and hands over cleanly to a restarted
+      agent rather than dying silently.
+- [ ] **macOS, the settings actually took.** Whatever step 13 changed in iTerm2, quit the app and
+      reopen it. iTerm2 can write its preferences back on exit; a change that does not survive that
+      was never made.
 - [ ] **The live site still matches.** `prompts/install.md` and `prompts/setup.md` are fetched
       and published by `matewishkey.com` at build time. After a deploy, open
       `matewishkey.com/how-to/put-the-genie-in-the-box/` and check the two boxes show what this
