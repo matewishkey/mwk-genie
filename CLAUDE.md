@@ -171,11 +171,22 @@ machine, not one folder", and in the `ccc` question itself.
 
 Adding it is not a small safe improvement. It changes the tone of the one page they keep.
 
-## The bookmark page is the only branded thing, and it fetches the brand
+## The two pages they keep are branded. Nothing else is, and it fetches the brand
 
-`templates/howto.html` is the page they keep. It is **the one file in this kit that carries Mate
-Wish Key's branding** (mate's call, 2026-08-09) — everything else is deliberately plain, because a
-setup sheet covered in someone's logo reads as marketing and the tone is why people trust this.
+`templates/howto.html` and the generated learning page (`log.html`) both carry Mate Wish Key's
+look. **Everything else stays deliberately plain** — a setup sheet covered in someone's logo reads
+as marketing, and the tone is why people trust this.
+
+**The learning page was added to that list on 2026-08-12** (mate: *"why the what we learnt do not
+have a slight design just like a how to... super minimal"*), amending the 2026-08-09 call that made
+the bookmark page the only branded file. The reasoning that survives: the split is not
+setup-sheet-versus-record, it is **things they keep versus things they read once**. Those two are
+the pages that get bookmarked, opened on a phone and printed, so they should read as a pair. The
+prompts, `SETUP.md` and the README are read once by an agent or a stranger deciding whether to
+start, and stay plain.
+
+**Minimal is the whole instruction.** One block, a rule between entries, no cards, no second red.
+If the learning page starts looking like a brochure, that is the drift.
 
 It does not hardcode the brand and hope. **`SETUP.md`'s last step tells the publishing agent to
 read <https://matewishkey.com/design/> first and correct any token that has moved** — that page
@@ -194,8 +205,13 @@ Three rules out of that design kit, all enforced by `test/check.sh`:
 
 **It was markdown until 2026-08-09** and became HTML for one reason: copy buttons. Every command on
 it is something a beginner has to type, and selecting text by hand in a browser is where they pick
-up a leading space and get an error they cannot read. The learning page (`log.html`) got the same
-buttons and **none** of the branding.
+up a leading space and get an error they cannot read.
+
+**The learning skill carries its own copy of those three rules** (`plugin/skills/learning/SKILL.md`,
+"What it looks like"), because that page is *generated* rather than shipped — nothing in this repo
+is the file, so `check.sh` cannot diff it. The skill tells the run to read the design page first and
+to lift the block out of `templates/howto.html` rather than draw one. **If you change the three
+rules here, change them there too** — that pair is hand-kept and nothing checks it.
 
 ## The cross-repo coupling — editing a prompt here changes the live website
 

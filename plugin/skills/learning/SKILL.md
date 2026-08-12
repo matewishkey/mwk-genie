@@ -69,6 +69,34 @@ would be empty:
 4. **Where each project got to.** One line per project touched today, so it is
    obvious what is in flight.
 
+### What it looks like
+
+**This page carries the Mate Wish Key look, in its lightest form.** It and the
+bookmark page are the two things they keep, so they should read as a pair
+rather than as one designed page and one plain one.
+
+**Before you write it, read <https://matewishkey.com/design/>.** That page
+renders the real colour tokens live, so it cannot go stale the way a copy in
+this file would. Take the values from there. If it is unreachable, use what is
+already in `log.html` from last time and say so in a line.
+
+Keep it minimal — this is a record, not a brochure. Three rules, and they are
+the same three the bookmark page follows:
+
+- **Red is spent once**, on the block at the top left, and nowhere else. The
+  block reads as loud because of how much quiet page is around it, so a second
+  red spend costs the first its effect.
+- **Red is never body text.** Paragraphs are `--ink`, captions `--mute`,
+  kickers `--faint`. **The copy buttons are deliberately not red.**
+- **The block is the real logo file**, inlined verbatim from
+  `matewishkey.com/favicon.svg`. Do not hand-build a red square with a mark in
+  it. `~/projects/mwk-genie/templates/howto.html` has the correct one inlined
+  already — copy it from there rather than drawing one.
+
+Display type is Fraunces, body is Manrope, with ordinary system fallbacks
+because an artifact cannot fetch a font. Entries are separated by a rule, not
+boxed in cards.
+
 Rules for the page itself:
 
 - **Everything inline.** No links to stylesheets, no fonts, no scripts from the

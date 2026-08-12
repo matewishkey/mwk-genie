@@ -168,6 +168,19 @@ for want in 'mwk-genie-learning.txt' '<!-- artifact:' 'Stop. Do not publish'; do
     || bad "learning: lost '$want' -- one of the three ways home is gone"
 done
 
+# The learning page is GENERATED, so no file here is the page and nothing can
+# diff it. The skill carries its own copy of the three design rules instead, and
+# these assert that copy survives -- otherwise the next run quietly produces an
+# unstyled page and nobody notices until they open it.
+for want in 'matewishkey.com/design/' 'Red is spent once' 'favicon.svg'; do
+  grep -qF -- "$want" "$L" \
+    && ok "learning: keeps the design rule '$want'" \
+    || bad "learning: lost '$want' -- the generated page will drift off the brand"
+done
+grep -qiE 'copy buttons are deliberately not red' "$L" \
+  && ok "learning: says the copy buttons are not red" \
+  || bad "learning: lost the not-red copy button rule -- red gets spent twice"
+
 # 4. The words existing is not the procedure existing. Deleting the ordered
 #    recovery list while leaving the vocabulary scattered around the file used
 #    to pass all of the above -- which is the record splitting in two, silently.
