@@ -196,7 +196,8 @@ do
 done
 
 # --- the bookmark page -------------------------------------------------------
-# templates/howto.html is the one artefact they keep, the only branded thing in
+# templates/howto.html is one of the two artefacts they keep (the generated
+# learning page is the other, and carries the same look), the only branded files in
 # the kit, and the only page here with a script on it. All three are reasons it
 # gets checked rather than trusted.
 head_ "The bookmark page"

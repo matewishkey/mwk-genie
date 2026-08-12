@@ -154,7 +154,8 @@ That is deliberate and it is the one place in that skill where asking beats gett
 question costs a moment, a duplicate page costs the record. Do not "tidy" it into an automatic
 create.
 
-`test/check.sh` and `rehearse.sh` cannot see any of this — it needs a signed-in session and a
+`test/check.sh` pins the title, both stored copies of the address, the ordered recovery steps and
+the hand-it-to-publish instruction. **What no script can see is the second run** — it needs a
 second day. `test/MANUAL.md` is where it lives, and it is the most valuable line on that list.
 
 ## No disclaimer link, and this is settled
@@ -211,13 +212,15 @@ up a leading space and get an error they cannot read.
 "What it looks like"), because that page is *generated* rather than shipped — nothing in this repo
 is the file, so `check.sh` cannot diff it. The skill tells the run to read the design page first and
 to lift the block out of `templates/howto.html` rather than draw one. **If you change the three
-rules here, change them there too** — that pair is hand-kept and nothing checks it.
+rules here, change them there too.** `check.sh` asserts that the skill's copy is *present* — it
+cannot assert the two still say the same thing, so that pair stays hand-kept.
 
 ## The cross-repo coupling — editing a prompt here changes the live website
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
 BUILD TIME** (`src/data/genie-prompts.ts`) and renders them on
-`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path still 301s, but a
+`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path now 301s into a
+**404** — reported as `matewishkey-web#36`, which is the redirect argument proving itself; a
 redirect is not a home). This repo is the source of truth for those two
 files. Two consequences:
 

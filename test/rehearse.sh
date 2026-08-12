@@ -13,7 +13,7 @@
 #   C  stage two, the plugin — real Claude Code, installed the way we tell them
 #
 # Phase A tests `main`, so it can pass while your uncommitted changes are
-# broken; phase B is the one that tests what you are about to push.
+# broken; phases B and C are the ones that test what you are about to push.
 #
 # What this does NOT cover is in test/MANUAL.md. Read it.
 

@@ -30,19 +30,42 @@ the plugin.
   **fails** rather than publishing a wide line, so a long line here breaks somebody else's build.
 - **The bookmark page** (`templates/howto.html`) — every command block has a copy button and no
   block is empty, the copy has both a clipboard-API path and an `execCommand` fallback, no stylesheet, script,
-  font or image is loaded from another host (an artifact's CSP would drop it — the check matches
-  by file extension, so it would not catch an extensionless `src` or a `fetch()`), the design tokens are all
+  font or image is loaded from another host (an artifact's CSP would drop it — the check flags every
+  absolute `src` and every fetching `<link>`, so a query string no longer hides one, but a
+  `fetch()` in script would still slip through), the design tokens are all
   defined, dark theme covers both `prefers-color-scheme` and an explicit `data-theme`, **the copy
-  buttons are not red** (the design kit spends red once, on the block), and **the inlined block's
+  buttons are not red** in *any* of their rules — a red `:hover` used to slip past a check that read
+  only the first one — and **the inlined block's
   path data matches the live `favicon.svg`** — so a hand-built red square, or the site redrawing
   the mark, both surface here. (It compares the `d="…"` attributes, not the whole file, so a
   colour or `viewBox` change would slip through. If the site is unreachable this check **skips**,
   and a skip is reported separately from the passes — it is not a pass.)
+- **The shell templates install cleanly and only once** — both files are fenced by
+  `# >>> mwk-genie:<name> >>>` markers so `SETUP.md` replaces rather than appends. The check
+  installs `ccc.sh` twice the documented way, then performs the `#` swap the bookmark page tells
+  people to make, and asserts the shell ends up with the alias they *asked* for. It also asserts
+  `SETUP.md` still carries both halves of that instruction, that `ccc.sh` puts `~/.local/bin` on
+  `PATH` without stacking duplicates, that appending to a file with no trailing newline still
+  sources, that `prompt.sh` survives `set -u`, and that the **rendered** prompt contains the branch
+  — not just that `__mwk_git` returns one, which stayed green with `PROMPT_SUBST` deleted.
+- **The learning skill keeps its three ways home** — the pinned artifact title, the instruction to
+  hand the stored address to the publish step, both stored copies, the refusal to guess when they
+  are gone, the ordered recovery list itself, and its copy of the three design rules. That page is
+  *generated*, so no file here is the page and nothing can diff it; asserting the skill's own text
+  is the most that can be done.
+- **`Ctrl+J` is offered and `/terminal-setup` is not** — the second does not configure Apple's
+  Terminal, and saying it does sends the person who declined the install away believing it is fixed.
+- **The published prompt fences carry no em or en dashes** — the site fails its build on dashes in
+  rendered text but exempts `<pre>`, which is what these become, so the guard lives here.
 - Every URL handed to a stranger returns 200 **and is the address that answers, not one that
-  forwards** — the repo, raw `SETUP.md`, the tarball, the site and the genie page, the show links
-  (`/show/`, YouTube, Twitch), the design and media kits, the two places we send bug reports,
-  `claude.com/pricing`, the Claude Code installer, and Context7 — plus a check that the three
-  Anthropic plugins named in `SETUP.md` still exist in that catalogue.
+  forwards**. The list is **extracted from the files that ship** — `SETUP.md`, both prompts, the
+  README, the templates, the skills, the issue forms — and whatever it finds is curled. It is not
+  enumerated here or in the script, because a hand-kept list checks the URLs somebody remembered to
+  add, which is not the same set as the URLs a stranger is handed; breaking a real link in two
+  shipped files used to leave this section fully green. Plus the Homebrew cask `iterm2` against
+  Homebrew's own API, and a check that the Anthropic plugins named in `SETUP.md` still exist in that
+  catalogue — that list is derived from `SETUP.md` too, after the hardcoded version turned out to
+  pass for a plugin name that does not exist.
 
   **A 301 is a failure here.** It works until somebody re-uses the old path, which is exactly how
   the repo rename and `/wishes/put-the-genie-in-the-box` both went. Three URLs redirect by design
