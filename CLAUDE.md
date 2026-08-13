@@ -138,6 +138,17 @@ people trust it. If you are adding a third, you are probably wrong.
 (The README's *footer* does mention the show, in prose, with no `/show` link. That predates the rule
 and sits inside it — it is a colophon, not a call to action. Leave it alone.)
 
+**The closing also clones `mwk-shownotes`, and only ever for somebody who has already said yes to
+the invitation above it** (mate's call, 2026-08-13: *"some other might use this library, i do not
+want to enforce it"*). That is not a third mention of the show — it is inside one of the two, and it
+is conditional on an answer the person has already given.
+
+**It is an offer, not a step**, in the same sense step 13's iTerm2 is: skipped in silence for the
+majority who are not guests, and never a fourth thing to walk them through. The "three things are
+theirs to decide" rule in `SETUP.md` says so out loud so the count stays honest. Turning it into an
+unconditional install would put a conversation-collecting tool on the machine of every stranger who
+runs this kit, which is the thing the separate repo exists to avoid.
+
 ## The learning page is ONE page, and losing its address is the whole risk
 
 `/mwk-genie:learning` updates a single artifact forever. **A second page is the
@@ -374,3 +385,7 @@ exactly one must be live. `check.sh` sources both files in both shells and asser
 - **[mergodon/matewishkey-web](https://github.com/mergodon/matewishkey-web)** — the site, which
   publishes this repo's two prompts. Never edit it from here; file an issue with
   `gh issue create -R mergodon/matewishkey-web`.
+- **[matewishkey/mwk-shownotes](https://github.com/matewishkey/mwk-shownotes)** — the show-notes
+  collector, cloned by this kit's closing for guests only. Deliberately a separate repo and
+  deliberately **not** a sixth `/mwk-genie:` command. It carries its own reasoning in its
+  `CLAUDE.md`; if the clone URL here ever changes, that is a rename sweep in both places.
