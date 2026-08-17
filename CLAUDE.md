@@ -230,9 +230,10 @@ cannot assert the two still say the same thing, so that pair stays hand-kept.
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
 BUILD TIME** (`src/data/genie-prompts.ts`) and renders them on
-`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path now 301s into a
-**404** — reported as `matewishkey-web#36`, which is the redirect argument proving itself; a
-redirect is not a home). This repo is the source of truth for those two
+`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path 301s here and the
+redirect lands on a 200 again — it was broken into a 404 for a while, which is what
+`matewishkey-web#36` was; that issue is closed, and re-checked 2026-08-17. Still write the
+`/how-to/` path, never the redirect). This repo is the source of truth for those two
 files. Two consequences:
 
 - **A prompt edit here is a content change to a live public page.** It ships on that site's next
