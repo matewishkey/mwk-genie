@@ -1,5 +1,5 @@
 ---
-name: save
+name: mwk-save
 description: Save a session's work for someone who is not a developer — say in plain English what changed, leave a note for next time in TODO.md, make a save point, push it to GitHub, and tell them how to start fresh. Use when they say they are finished, done for now, or ask to save or back up their work.
 ---
 

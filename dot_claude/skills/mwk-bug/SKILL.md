@@ -1,5 +1,5 @@
 ---
-name: bug
+name: mwk-bug
 description: Report a bug in the Mate Wish Key kit itself — write the report out of what actually happened, show it to them, and file it on GitHub once they say yes. Use when they say something is broken, that a command did not work, that this is a bug, or ask how to report one.
 argument-hint: "[what went wrong, if they said]"
 ---

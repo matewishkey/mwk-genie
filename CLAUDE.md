@@ -1,5 +1,16 @@
 # mwk-genie — agent notes
 
+> ## ⚠️ You are on branch `v2`, and this file still describes v1
+>
+> **Read [`docs/v2-decisions.md`](docs/v2-decisions.md) first.** It records what changed and what
+> was measured. The sections below on **the plugin**, **the two shell templates**, **the learning
+> page** and **the two branded pages** describe the v1 design and are being replaced. Everything
+> about the **cross-repo coupling**, **verifying identifiers** and **tests that arrange their own
+> preconditions** is still true and still load-bearing.
+>
+> `test/check.sh` fails on this branch — it asserts plugin manifests that no longer exist. That
+> rewrite is pending, and a green suite is a precondition for merging.
+
 The starter kit for **[Mate Wish Key](https://matewishkey.com)**: an AI agent running on somebody's
 own computer, set up for a person who has never opened a terminal. Two prompts they paste, and a
 `SETUP.md` the agent works through. `README.md` is the front door for a human; this file is the stuff

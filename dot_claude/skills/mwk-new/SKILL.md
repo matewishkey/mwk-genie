@@ -1,5 +1,5 @@
 ---
-name: new-project
+name: mwk-new
 description: Start a new project for someone who is not a developer — a folder in ~/projects, save points turned on, a private GitHub repo, and one line telling them how to come back to it. Use when they say they want to start something new, or want to work on a thing that does not exist yet.
 argument-hint: "[what it is for]"
 ---
