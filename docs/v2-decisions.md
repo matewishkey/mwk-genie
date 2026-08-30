@@ -103,3 +103,38 @@ retires the worst failure mode in v1: the learning page's address had to be stor
 because a second published page is indistinguishable from a successful run. A directory has no
 such problem. **Accepted cost: it is not reachable from their phone.** Mate's call — "from that
 computer for now".
+
+## One package manager — the answer is none (measured 2026-08-30)
+
+The question was Homebrew-on-the-Mac plus apt-on-Ubuntu versus something single. The kit needs
+exactly four tools plus language runtimes, and **all four are single binaries their own projects
+publish for both platforms**. So no package manager is required at all — `mise` reads one
+`mise.toml` and fetches the right binary per platform.
+
+Three of mise's backends were tried, and only one is right:
+
+| Backend | Result |
+|---|---|
+| `ubi:` | **Deprecated.** mise prints it on use: *"Use the github backend instead … This will be removed in mise 2027.1.0."* It also installs only ONE executable, so `age` arrived without `age-keygen` — which `mwk init` needs. |
+| `github:` | Extracts the whole archive, so `age-keygen` comes along. But it exposes whatever the asset is **named**, and sops publishes a bare `sops-v3.13.3.linux.amd64` — so no `sops` command appears at all. |
+| `aqua:` | ✅ The curated registry knows each project's naming: `sops`, `age`, `age-keygen`, `miniserve` all land under the right names. It also **verifies SLSA provenance** on the way in, which neither brew nor apt was doing. |
+
+Versions are **pinned** and `mise.lock` is committed. "latest" would mean two people running the
+kit a month apart get different binaries, and every upgrade would be invisible rather than a
+reviewable diff.
+
+**Homebrew's only remaining case was iTerm2, and iTerm2 is optional** — `Ctrl+J` makes a new line
+in every terminal including Apple's. If it is ever wanted,
+`iterm2.com/downloads/stable/latest` 302s straight to a versioned `.zip`. Verified.
+
+### chezmoi's prompts need a TTY
+
+`chezmoi init` fails with *"could not open a new TTY: open /dev/tty"* when there isn't one. So
+**an agent cannot run `install.sh`** any more than it can run `mwk add`. That is the design mate
+asked for — the person runs the script, the agent does the work afterwards — and it is now
+enforced by the tool rather than by an instruction.
+
+For unattended runs (the rehearsal) only `--promptDefaults` works; `--promptChoice ccc_mode=…`
+does **not** satisfy `promptChoiceOnce` in chezmoi 2.72.0 — tried, it still prompts. Consequence:
+the automated test only ever exercises the **fast** path. Testing **careful** needs a real
+terminal, so it belongs in `test/MANUAL.md`.
