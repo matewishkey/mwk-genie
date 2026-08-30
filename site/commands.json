@@ -1,0 +1,4 @@
+{"commands":[
+ {"why":"Making your master password needs your own keyboard — I have no way to type, and anything you typed to me would be saved in our conversation.","run":"mwk init"},
+ {"why":"Same reason. The value never appears on screen and never reaches your command history.","run":"mwk add OPENAI_API_KEY global"}
+]}

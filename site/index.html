@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your computer</title>
+<style>
+  :root{
+    --red:#e2342b; --red-deep:#c9251d;
+    --bg:#faf7f7; --fg:#131313; --muted:#8a848e; --line:#e3dbdb; --card:#ffffff; --chip:#f4f2f6;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+    --bg:#131313; --fg:#faf7f7; --muted:#a8a2b0; --line:#2b2b2b; --card:#1b1b1b; --chip:#232323; --red-deep:#f0524a;
+  }}
+  :root[data-theme=dark]{--bg:#131313;--fg:#faf7f7;--muted:#a8a2b0;--line:#2b2b2b;--card:#1b1b1b;--chip:#232323;--red-deep:#f0524a}
+  *{box-sizing:border-box}
+  body{margin:0;padding:0 20px 90px;background:var(--bg);color:var(--fg);
+       font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;gap:16px;padding:44px 0 22px;border-bottom:1px solid var(--line);margin-bottom:34px}
+  .block{width:52px;height:52px;flex:0 0 52px;border-radius:9px;overflow:hidden;line-height:0}
+  .block svg{width:100%;height:100%;display:block}
+  h1{font-size:27px;margin:0;letter-spacing:-.02em;font-weight:650}
+  .sub{color:var(--muted);margin:3px 0 0;font-size:15px}
+  h2{font-size:19px;margin:42px 0 4px;font-weight:640}
+  .lede{color:var(--muted);margin:6px 0 18px;font-size:15px}
+  a{color:var(--red-deep)}
+  .cmd{background:var(--card);border:1px solid var(--line);border-radius:11px;margin:14px 0;overflow:hidden}
+  .cmd .why{padding:13px 16px 0;font-size:14.5px;color:var(--muted)}
+  .cmd .row{display:flex;align-items:stretch;gap:10px;padding:12px 12px 14px}
+  .cmd code{flex:1;min-width:0;font-family:var(--mono);font-size:14px;background:var(--chip);
+            padding:12px 14px;border-radius:8px;overflow-x:auto;white-space:pre;display:block}
+  /* Deliberately neutral. Red is spent once, on the block. */
+  .copy{flex:0 0 auto;align-self:center;font:600 13px/1 inherit;padding:11px 15px;border-radius:8px;
+        border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+  .copy:hover{border-color:var(--muted)}
+  .copy.done{border-color:var(--muted);color:var(--muted)}
+  ul.kit{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;
+         grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+  ul.kit li{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:11px 13px;font-size:14.5px}
+  ul.kit b{font-family:var(--mono);font-size:13.5px;font-weight:600}
+  ul.kit span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+  .empty{color:var(--muted);font-size:15px;padding:18px;border:1px dashed var(--line);border-radius:11px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <!-- The real logo file, inlined verbatim from matewishkey.com/favicon.svg. Not hand-drawn. -->
+  <div class="block"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Mate Wish Key"><title>Mate Wish Key</title><rect width="100" height="100" fill="#e2342b"/><g transform="translate(21.282 25.67) scale(0.4866)"><path d="M0 100 L23.09 0 L46.17 100 L69.26 0 L69.26 100" fill="none" stroke="#ffffff" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M69.26 100 L118.03 0" fill="none" stroke="#ffffff" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg></div>
+  <div>
+    <h1>Your computer</h1>
+    <p class="sub">Keep this tab open. It updates by itself.</p>
+  </div>
+</header>
+
+<h2>Run these yourself</h2>
+<p class="lede">Almost everything gets done for you. These are the few things that cannot be —
+each one says why. Press <b>Copy</b>, paste it into your terminal, press Enter.</p>
+<div id="queue"><p class="empty">Nothing waiting for you right now.</p></div>
+
+<h2>What you can type</h2>
+<ul class="kit">
+  <li><b>ccc</b><span>start me, anywhere</span></li>
+  <li><b>mwk list</b><span>your keys, names only</span></li>
+  <li><b>mwk run — …</b><span>run something with your keys</span></li>
+  <li><b>mwk lock</b><span>lock your keys again</span></li>
+</ul>
+
+<footer>
+  Served from your own computer, by you. Nothing here leaves this machine.
+</footer>
+</div>
+
+<script>
+// The whole point of this page: the agent writes commands.json, this picks them up.
+// No round trip, no "tell me when you've done it", and the person never selects text
+// by hand — which is where a beginner picks up a leading space and gets an error they
+// cannot read.
+const q = document.getElementById('queue');
+let last = '';
+
+function copy(text, btn){
+  const done = () => { btn.textContent = 'Copied'; btn.classList.add('done');
+                       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600); };
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done, () => fallback(text, done));
+  } else fallback(text, done);
+}
+// http://localhost IS a secure context in every current browser, but a page opened
+// straight off disk with file:// is not — so the old path stays.
+function fallback(text, done){
+  const t = document.createElement('textarea');
+  t.value = text; t.setAttribute('readonly',''); t.style.position='fixed'; t.style.top='-1000px';
+  document.body.appendChild(t); t.select();
+  try { document.execCommand('copy'); done(); } catch(e){ /* nothing sensible left to try */ }
+  document.body.removeChild(t);
+}
+
+function render(items){
+  if (!items.length){ q.innerHTML = '<p class="empty">Nothing waiting for you right now.</p>'; return; }
+  q.innerHTML = '';
+  for (const it of items){
+    const d = document.createElement('div'); d.className = 'cmd';
+    const why = document.createElement('p'); why.className = 'why'; why.textContent = it.why || '';
+    const row = document.createElement('div'); row.className = 'row';
+    const c = document.createElement('code'); c.textContent = it.run;
+    const b = document.createElement('button'); b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', () => copy(it.run, b));
+    row.append(c, b); d.append(why, row); q.append(d);
+  }
+}
+
+async function poll(){
+  try{
+    const r = await fetch('commands.json?t=' + Date.now(), {cache:'no-store'});
+    if (!r.ok) return;
+    const txt = await r.text();
+    if (txt === last) return;
+    last = txt;
+    render(JSON.parse(txt).commands || []);
+  }catch(e){ /* file not there yet is the normal state, not an error */ }
+}
+poll(); setInterval(poll, 2000);
+</script>
+</body>
+</html>
