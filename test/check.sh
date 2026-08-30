@@ -153,12 +153,31 @@ printf '%s\n' "$managed" | grep -q 'site-templates' \
   && no "templates are NOT copied into their home" "they live in the kit folder" \
   || ok "templates are not copied into their home"
 
+head_ "The menu numbers match the handlers"
+# This exact bug shipped: an edit renumbered the case arms and silently did not match the
+# printed block, so there were TWO number 3s and uninstall was unreachable. It read fine.
+printed=$(sed -n '/What would you like to do/,/Type a number/p' bin/executable_mwk \
+          | grep -oE '^ +[0-9]+' | tr -d ' ' | tr '\n' ' ')
+handled=$(sed -n '/read -r choice/,/esac/p' bin/executable_mwk \
+          | grep -oE '^ +[0-9]+\)' | tr -d ' )' | tr '\n' ' ')
+is "every printed number has a handler, in order" "$printed" "$handled"
+dupes=$(printf '%s' "$printed" | tr ' ' '\n' | sort | uniq -d | tr -d '\n')
+is "no number appears twice in the menu" "$dupes" ""
+
 head_ "The file browser"
 grep -q 'cmd_files' bin/executable_mwk && ok "mwk files exists" || no "mwk files exists" "missing"
 grep -q 'PORT_FILES=29201' bin/executable_mwk && ok "it is on 29201, beside the page" || no "it is on 29201" "wrong port"
 grep -q 'upload-files\|--mkdir' bin/executable_mwk \
   && no "the browser is read-only" "upload or mkdir is enabled — a delete button over their own work" \
   || ok "the browser is read-only"
+# Loopback binding does not stop a web page: a site can rebind its own domain to 127.0.0.1
+# and read the tree from the victim's browser. Basic auth does stop it, because a browser
+# will not attach credentials cross-origin.
+grep -q 'auth "mwk:\$tok"' bin/executable_mwk \
+  && ok "and it is behind a per-run password (DNS rebinding)" \
+  || no "the file browser has per-run auth" "~/projects would be readable by any site the person visits"
+grep -q 'head -c 16 /dev/urandom' bin/executable_mwk \
+  && ok "the password is random per run, not fixed" || no "the password is random per run" "a fixed one is no password"
 
 head_ "Colour"
 for f in install.sh uninstall.sh bin/executable_mwk; do

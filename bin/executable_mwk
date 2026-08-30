@@ -340,25 +340,45 @@ cmd_uninstall() {
 # a beginner a delete button over their own work, in a browser tab they will forget is
 # open, is not a kindness. Files are for looking at here; changing them is the agent's job
 # or their editor's.
+#
+# ⚠ AND IT NEEDS A PASSWORD, WHICH THE PAGE ON 29200 DOES NOT. The reason is DNS rebinding:
+# binding to 127.0.0.1 stops other machines, but it does not stop a web page. A malicious
+# site can point its own domain at 127.0.0.1, and the browser will then happily fetch
+# http://theirdomain:29201/ — from the loopback server, same-origin with their script. This
+# tree is the person's whole ~/projects, so that is worth defending; 29200 serves three
+# static pages the kit itself wrote, so it is not.
+#
+# miniserve 0.35.0 has NO --allowed-hosts flag (checked its --help; a Host allowlist would
+# be the direct fix and it does not exist here). Basic auth does the job instead: a browser
+# will not attach credentials to a cross-origin fetch, so the rebound request gets a 401.
+# The token is random per run and printed in the URL, so nobody has to remember anything.
 cmd_files() {
   d="$HOME/projects"
   [ -d "$d" ] || die "no ~/projects yet"
+  tok=$(head -c 16 /dev/urandom 2>/dev/null | od -An -tx1 | tr -d ' \n' || date +%s)
+  [ -n "$tok" ] || tok=$(date +%s)
   # Same three non-defaults as the page: loopback only (miniserve binds every interface),
   # no symlink following (it follows them), and nothing hidden is served.
-  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 "http://127.0.0.1:$PORT_FILES/"; then
-    note "Already open: http://127.0.0.1:$PORT_FILES/"; return 0
+  # A 401 means it is already up — the port is taken and answering, which is all we need
+  # to know. Only "no answer at all" means we should start one.
+  if command -v curl >/dev/null 2>&1 \
+     && curl -s -o /dev/null --max-time 2 "http://127.0.0.1:$PORT_FILES/" 2>/dev/null; then
+    note "Already open on $PORT_FILES — stop it (Ctrl+C in its window) to get a fresh link."
+    return 0
   fi
   if have_tty; then
-    note "Your files: http://127.0.0.1:$PORT_FILES/   (Ctrl+C here stops it)"
-    exec miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d"
+    note "Your files: http://mwk:$tok@127.0.0.1:$PORT_FILES/   (Ctrl+C here stops it)"
+    note "If your browser asks: the name is mwk and the password is in that link."
+    exec miniserve -i 127.0.0.1 -P --auth "mwk:$tok" --port "$PORT_FILES" --title "Your projects" "$d"
   fi
   if command -v setsid >/dev/null 2>&1; then
-    setsid miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
+    setsid miniserve -i 127.0.0.1 -P --auth "mwk:$tok" --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
   else
-    nohup miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
+    nohup miniserve -i 127.0.0.1 -P --auth "mwk:$tok" --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
   fi
   sleep 1
-  good "Their files are browsable: http://127.0.0.1:$PORT_FILES/"
+  good "Their files are browsable: http://mwk:$tok@127.0.0.1:$PORT_FILES/"
+  note "That link carries a one-off password. Give them the whole thing, not just the port."
 }
 
 cmd_lock() { gpg-connect-agent reloadagent /bye >/dev/null 2>&1 || true; note "Locked. The next command will ask for your master password."; }
@@ -404,10 +424,11 @@ cmd_menu() {
     1  Start something new         a folder for it, and me in it
     2  Open your page              the buttons and the commands
     3  Look through your files     everything in ~/projects, in a web page
-    3  Keep a key safe             a password or an API key
-    4  See what keys you have      names only, never the values
-    5  Lock your keys
-    6  Just show me the commands
+    4  Keep a key safe             a password or an API key
+    5  See what keys you have      names only, never the values
+    6  Lock your keys
+    7  Just show me the commands
+    8  Take all of this off this computer
 
 EOF
   printf '  Type a number and press Enter: '
