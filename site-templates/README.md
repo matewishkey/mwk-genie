@@ -4,9 +4,14 @@ Two of them. Copy one into a project instead of starting from an empty file — 
 where people stall, and inventing a layout is not the interesting part of what they came to do.
 
 ```
+mwk.css       the master copy — edit this one
 one-page/     index.html  mwk.css          everything on one scrolling page
 pages/        index.html  work.html  about.html  mwk.css     a small site with a menu
 ```
+
+**Each template ships its own copy of `mwk.css`** so that copying one folder gives a site that
+works, with nothing to wire up. The copy at the top is the master: change it there, then copy it
+down into both. They are meant to be identical, and `check.sh` says so if they drift.
 
 **Start with `one-page/`.** Almost every first website is one page, and splitting it later is
 five minutes' work. Reach for `pages/` only when there is genuinely more than one thing to say.

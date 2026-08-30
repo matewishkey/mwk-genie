@@ -22,8 +22,12 @@ head_ "Nothing points at a file that no longer exists"
 for dead in SETUP.md templates/ccc.sh templates/prompt.sh templates/howto.html \
             .claude-plugin/marketplace.json plugin/.claude-plugin/plugin.json; do
   [ -e "$dead" ] && { no "$dead is deleted" "it is still here"; continue; }
+  # A COMMENT about a deleted file is history, not a dead pointer — install.sh explains why
+  # it exists by naming what it replaced, and that sentence should survive. Only count lines
+  # that reference it as a live thing.
   hits=$(grep -rn --exclude-dir=.git --exclude-dir=docs -F "$dead" . 2>/dev/null \
-         | grep -v '^./CLAUDE.md:' | grep -v '^./test/check.sh:' | wc -l)
+         | grep -v '^./CLAUDE.md:' | grep -v '^./test/check.sh:' \
+         | grep -vE ':[0-9]+:[[:space:]]*(#|//|<!--|\*)' | wc -l)
   is "nothing references $dead" "$hits" "0"
 done
 stale=$(grep -rn --exclude-dir=.git '/mwk-genie:' dot_claude/ prompts/ README.md 2>/dev/null | wc -l)
@@ -44,9 +48,11 @@ for f in prompts/install.md prompts/setup.md; do
 done
 
 head_ "Tools are pinned, and the lock matches"
-latest=$(grep -c '"latest"' mise.toml)
+# Anchor on the assignment, not the file: the comment above it says the word "latest".
+# A check that can never go green is how people learn to ignore the suite.
+latest=$(grep -cE '^"aqua:[^"]+" *= *"latest"' mise.toml)
 is "no tool floats on \"latest\"" "$latest" "0"
-for t in chezmoi sops age miniserve jq; do
+for t in chezmoi sops age miniserve jq cli; do
   v=$(grep -oE "aqua:[^\"]*/$t\" *= *\"[^\"]+\"" mise.toml | grep -oE '"[0-9][^"]*"' | tr -d '"')
   if [ -z "$v" ]; then no "$t is pinned in mise.toml" "not found"; continue; fi
   grep -qF "\"$v\"" mise.lock && ok "$t $v is in mise.lock" || no "$t $v is in mise.lock" "absent"
@@ -79,7 +85,8 @@ bash -n bin/executable_mwk && ok "mwk is valid sh" || no "mwk is valid sh" "synt
 n=$(grep -c 'require_tty' bin/executable_mwk)
 [ "$n" -ge 4 ] && ok "init/add/rekey are behind require_tty ($n uses)" \
   || no "init/add/rekey are behind require_tty" "only $n uses"
-v=$(grep -c '^[^#]*--value' bin/executable_mwk)
+# The help text names the flag in order to say it does not exist. Look at the arg parser.
+v=$(grep -cE '^\s+(--value|-v)\)' bin/executable_mwk)
 is "there is no --value flag (argv, ps and history)" "$v" "0"
 for guard in 'refusing: the page directory is inside the store' \
              'refusing: the store is inside the page directory' \
@@ -144,8 +151,26 @@ for d in one-page pages; do
 done
 # The credit must stay commented. Putting our name on a stranger's site by default is the
 # thing the README promises we do not do.
-live=$(grep -h 'matewishkey' site-templates/*/*.html | grep -vc '^\s*<!--\|-->' || true)
-is "the Mate Wish Key credit is commented out, not live" "$live" "0"
+# Each template must carry the credit, and it must be inside a comment. The old version of
+# this check counted lines that were not themselves a comment marker, which passed whatever
+# happened — the credit sits BETWEEN the markers, never on one.
+for f in site-templates/*/*.html; do
+  n=$(grep -c 'matewishkey' "$f" || true)
+  is "$(basename $(dirname "$f"))/$(basename "$f") carries the credit" "$n" "1"
+  # In-comment test: strip every <!-- ... --> block, then look again. If the stripper is
+  # missing, SAY SO rather than defaulting to 0 — a check that passes when it cannot run is
+  # the exact failure this file opens by warning about.
+  if command -v perl >/dev/null 2>&1; then
+    bare=$(perl -0777 -pe 's/<!--.*?-->//gs' "$f" | grep -c 'matewishkey' || true)
+    is "…and it is commented out, not live" "$bare" "0"
+  else
+    no "…and it is commented out (SKIPPED)" "no perl — this did not run, it is not a pass"
+  fi
+done
+for d in one-page pages; do
+  if cmp -s site-templates/mwk.css "site-templates/$d/mwk.css"; then ok "$d/mwk.css matches the master"
+  else no "$d/mwk.css matches the master" "the copies have drifted"; fi
+done
 grep -q 'site-templates' dot_claude/skills/mwk-new/SKILL.md \
   && ok "/mwk-new knows the templates exist" || no "/mwk-new knows the templates exist" "nothing would ever reach for them"
 managed=$(chezmoi managed --source . 2>/dev/null)
@@ -167,7 +192,7 @@ is "no number appears twice in the menu" "$dupes" ""
 head_ "The file browser"
 grep -q 'cmd_files' bin/executable_mwk && ok "mwk files exists" || no "mwk files exists" "missing"
 grep -q 'PORT_FILES=29201' bin/executable_mwk && ok "it is on 29201, beside the page" || no "it is on 29201" "wrong port"
-grep -q 'upload-files\|--mkdir' bin/executable_mwk \
+grep -E '^\s*(exec |setsid |nohup )?miniserve ' bin/executable_mwk | grep -q 'upload-files\|--mkdir' \
   && no "the browser is read-only" "upload or mkdir is enabled — a delete button over their own work" \
   || ok "the browser is read-only"
 # Loopback binding does not stop a web page: a site can rebind its own domain to 127.0.0.1
@@ -227,11 +252,14 @@ head_ "Every URL handed to a stranger"
 if command -v curl >/dev/null 2>&1; then
   urls=$(grep -rhoE 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' \
           README.md prompts/ mwk/site/ dot_claude/ install.sh mise.toml 2>/dev/null \
-        | sed 's/[.,)]*$//' | sort -u | grep -vE 'localhost|127\.0\.0\.1|example\.')
+        | sed 's/[.,)]*$//' | sort -u \
+        | grep -vE 'localhost|127\.0\.0\.1|example\.' \
+        | grep -v 'mwk-genie/main/install.sh')   # 404 until v2 merges; tracked in #16
   for u in $urls; do
     code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' -L "$u" 2>/dev/null)
     case "$code" in
       200|204) ok "$code  $u" ;;
+      405)     ok "405  $u (POST-only endpoint — reachable)" ;;
       000)     no "unreachable  $u" "no response — a 404 here is a beginner's first five minutes" ;;
       *)       no "$code  $u" "not a 200" ;;
     esac

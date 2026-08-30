@@ -20,7 +20,10 @@
 set -eu
 
 ENDPOINT="${MWK_DEBUG_ENDPOINT:-https://debug.matewishkey.com}"
-[ -n "${MWK_DEBUG:-}" ] || [ "${1:-}" = "send" ] || exit 0
+# No exception for `send`. It had one, and it meant `mwk-debug send FILE` uploaded with
+# debug mode off and nothing on screen first — the opposite of what the header above
+# promises, and of the rule that anything leaving the machine is announced before it goes.
+[ -n "${MWK_DEBUG:-}" ] || exit 0
 
 redact() {
   # $HOME first, so a username cannot survive inside a longer path.
@@ -74,7 +77,7 @@ send() {
 }
 
 case "${1:-}" in
-  send) shift; [ -f "${1:-}" ] || { echo "mwk-debug send <file>" >&2; exit 2; }; send "$1" ;;
+  send) shift; [ -f "${1:-}" ] || { echo "mwk-debug send <file>" >&2; exit 2; }; notice; send "$1" ;;
   run)  shift; [ "${1:-}" = "--" ] && shift
         notice
         t=$(mktemp); trap 'rm -f "$t"' EXIT

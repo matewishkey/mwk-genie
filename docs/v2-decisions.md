@@ -2,7 +2,9 @@
 
 Branch `v2`, opened 2026-08-28 off `db64756`. **Breaking changes are fine** (mate's call: there
 are not many installs). This file is the record of *why*, so nothing here gets re-litigated from
-memory. `CLAUDE.md` still describes v1 in most places — that rewrite is pending.
+memory. **Superseded in places — see the notes marked ⤳ below.** This file is the record of *why*, so
+where the code has since moved past a decision it is annotated rather than rewritten. `CLAUDE.md`
+now describes v2 (it was rewritten on 2026-08-30); it is the current picture, this is the reasoning.
 
 ## Decided
 
@@ -12,7 +14,7 @@ memory. `CLAUDE.md` still describes v1 in most places — that rewrite is pendin
 | 2 | **Prefix, not namespace.** `/mwk-save`, `/mwk-magic`, `/mwk-learning`, `/mwk-bug`, `/mwk-new` | User-level skills share one flat namespace, so the prefix goes in the directory name. Same readability, no plugin needed. |
 | 3 | **chezmoi is the installer**, and it owns `~/.zshrc` from the first line ever written to it | Every documented near-miss in v1 was an agent interpreting prose slightly wrong. A marker-fenced region becomes a *file*; there is no append, so the whole class is gone. Half-owning a startup file is the one option worse than either extreme. |
 | 4 | **Windows means WSL Ubuntu.** No native Windows target | `prompts/install.md` already says so, live on the site: *"There is a way to install the agent straight onto Windows… Do not take it."* A native target would share nothing with the Linux one and double the render matrix. |
-| 5 | **Two questions**, in `.chezmoi.toml.tmpl` | `ccc_mode` and `admin`. The model question is gone — opus was already decided on 2026-08-11. |
+| 5 | **Two questions**, in `.chezmoi.toml.tmpl` | `ccc_mode` and `admin`. The model question is gone — opus was already decided on 2026-08-11. **⤳ Superseded 2026-08-30: it now asks NOTHING.** Both answers moved to `.chezmoidata.yaml`, and `admin` was deleted rather than answered by putting iTerm2 in `~/Applications`. Removing the last prompt removed a TTY requirement, which is what let the agent run the installer and kept the long command out of a 60-column fence. |
 | 6 | **No fleet anything.** No `~/.secrets`, no `td-sops`, no age recipients, no work.l | Mate will never run this himself; it is a clean install for clients, tested repeatedly on fresh machines. |
 | 7 | **`http://localhost:29200/` replaces the bookmark page** and the published learning artifact | See "The local site" below. |
 
@@ -54,6 +56,11 @@ Everything below was run on this box with `sops 3.13.3` and `age 1.1.1`. None of
   lock state once, bounded, before touching a pipeline.
 
 ### Layout
+
+**⤳ Superseded 2026-08-30: the store is `~/.mwk/`, not `~/projects/.mwk/`.** It moved out of
+`~/projects` when `~/mwk/site` became a directory handed to a web server — the rule is now that the
+served root neither contains nor is contained by the store, which is structural rather than a flag.
+The paths below are the original design; the reasoning about ciphertext and git still holds.
 
 ```
 ~/projects/.mwk/
@@ -130,7 +137,7 @@ in every terminal including Apple's. If it is ever wanted,
 ### chezmoi's prompts need a TTY
 
 `chezmoi init` fails with *"could not open a new TTY: open /dev/tty"* when there isn't one. So
-**an agent cannot run `install.sh`** any more than it can run `mwk add`. That is the design mate
+**an agent cannot run `install.sh`** *(⤳ no longer true: the prompts were removed on 2026-08-30, and with nothing to ask there is no TTY requirement)* any more than it can run `mwk add`. That is the design mate
 asked for — the person runs the script, the agent does the work afterwards — and it is now
 enforced by the tool rather than by an instruction.
 

@@ -2,8 +2,23 @@
 
 ```
 bash test/check.sh          # seconds, no Docker. Files, renders, URLs.
-bash test/rehearse.sh v2    # minutes, Docker. The real install in a clean ubuntu:24.04.
+bash test/rehearse.sh <sha> # minutes, Docker. The real install in a clean ubuntu:24.04.
 ```
+
+And the third one, which is different in kind:
+
+```
+curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-genie/<sha>/test/on-this-machine.sh \
+  | MWK_REF=<sha> MWK_DEBUG=1 sh
+```
+
+⚠ **`on-this-machine.sh` installs on the machine you run it on.** Nothing is mocked, and it
+finishes by uninstalling and reinstalling — so the machine is left set up, not clean. It is the
+only way to test the Mac path, since the other two are Linux and a Linux container. It ships one
+log for all six phases, so a failure arrives with everything that led to it.
+
+**Pass a SHA rather than a branch to any of them.** `MWK_REF` defaults to `main`, where
+`install.sh` does not exist until v2 merges — a branch or a bare default will 404.
 
 **Pass a commit SHA to `rehearse.sh` right after a push**, not a branch name —
 `raw.githubusercontent.com` serves a stale copy of a branch path for a few minutes, and

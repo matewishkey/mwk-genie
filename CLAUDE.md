@@ -17,7 +17,7 @@ instructions meant for you.
 prompt one  (browser)  → Mac or Windows? → WSL / Xcode CLT → Claude Code → start it with
                          --dangerously-skip-permissions
 prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder and a page
-install.sh             → kit → mise → 5 pinned tools → Claude Code → mise use -g → chezmoi apply
+install.sh             → kit → mise → 6 pinned tools → Claude Code → mise use -g → chezmoi apply
 chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/.claude/{CLAUDE.md,settings.json,skills/},
                          ~/mwk/site/, and on macOS iTerm2
 ```
@@ -65,7 +65,7 @@ download or a temp file to `install.sh`, update the list in the same commit.
 | macOS has **no `timeout`** and no `gtimeout` | Calling it exits 127. Every agent-side `mwk` read once reported "locked" forever |
 | A stock Mac has **no pinentry and no gpg-agent** | sops reads `/dev/tty` itself. **The 600s cache window is Linux-only** — it was written here as a flat cross-platform fact and that was wrong |
 | Binaries fetched by curl/Go carry `com.apple.provenance`, not `com.apple.quarantine` | Gatekeeper does not block the toolchain. **Never add a blanket `xattr -dr`** to "fix" it |
-| All four pinned tools are ad-hoc signed arm64 | They exec on Apple Silicon. `spctl -a` says "rejected" for ad-hoc binaries — that is the assessment API, not exec enforcement |
+| The four checked at the time (chezmoi, sops, age, miniserve) are ad-hoc signed arm64 — jq and gh were pinned later and not re-checked | They exec on Apple Silicon. `spctl -a` says "rejected" for ad-hoc binaries — that is the assessment API, not exec enforcement |
 | miniserve binds `0.0.0.0` and `[::]` by default and follows symlinks | Reproduced: a fetch from the LAN returned 200, and a symlink out of the served root returned the store's ciphertext |
 | `mise` shims resolve from the config **in scope** | `mise.toml` is a project config, so tools were active only inside the kit. `mise use -g` fixes it |
 | A plain chezmoi-managed `settings.json` | With no TTY it **aborts the whole apply**; with `--force` it reverts the file and destroys `enabledPlugins`. Use `modify_`; `.chezmoi.stdin` does not exist, so it must be a script |
@@ -93,7 +93,7 @@ shell history as a class rather than mitigating them.
 ## The failure this repo keeps having
 
 **A string replace that does not match is silent, and it looks exactly like one that worked.** It
-has now happened four times: three of v1's green ticks counted nothing, an ignore file placed
+has now happened three times: v1's green ticks counted nothing, an ignore file placed
 nothing while reading correctly, and a menu renumbering left **two number 3s** with `uninstall`
 listed nowhere — so "see what keys you have" ran *add a key*.
 
@@ -180,9 +180,13 @@ stay neutral.
 ## Test it before you push
 
 ```
-bash test/check.sh          # seconds, no Docker
-bash test/rehearse.sh <sha> # minutes, Docker, the real install → uninstall → reinstall cycle
+bash test/check.sh                    # seconds, no Docker
+bash test/rehearse.sh <sha>           # minutes, Docker, install → uninstall → reinstall
+curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 ```
+
+The third one installs on the machine it runs on and is the only way to test macOS. It ships one
+debug log for all six phases.
 
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
@@ -196,7 +200,7 @@ after a push, and that has already cost two runs.
 | **#15** | Caddy as the shared front for project sites. nginx cannot be used — source only. `auto_https off` and `admin off` are load-bearing |
 | **#16** | The v2 → main merge blockers, in order. `matewishkey-web#77` first, or their build goes red |
 
-**And the one that is not filed because it is not a task: neither test script has ever been run in
+**And the one that is not filed because it is not a task: none of the three test scripts has ever been run in
 its current form, and macOS has never had the kit installed on it.** Everything macOS in the table
 above was measured by probing a real Mac; nothing was installed there. A red result on the first
 real run is information, not a defect.
