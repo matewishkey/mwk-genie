@@ -77,6 +77,29 @@ case "$p" in 292*) ok "mwk port gave $p"; q=$(cd "$HOME" && mwk port 2>/dev/null
   [ "$p" = "$q" ] && ok "and the same folder gets it again" || bad "port is stable" "$p then $q" ;;
   *) bad "mwk port gave a number" "got [$p]" ;; esac
 
+# A project, served on its own number — the thing `mwk port` used to only promise. Built
+# from a real starter template rather than an echoed <html>, so this also proves the
+# templates are copyable and that what a beginner would actually make is what gets served.
+DEMO="$HOME/projects/on-this-machine-demo"
+mkdir -p "$DEMO"
+cp "$KIT/site-templates/one-page/index.html" "$KIT/site-templates/one-page/mwk.css" "$DEMO/" 2>/dev/null
+( cd "$DEMO" && mwk serve >/dev/null 2>&1 )
+sleep 2
+dp=$(cd "$DEMO" && mwk port 2>/dev/null)
+case "$dp" in
+  292*)
+    try "a project serves on its own port ($dp)"   "curl -sf -m 5 http://127.0.0.1:$dp/ -o /dev/null"
+    try "…and its stylesheet came with it"         "curl -sf -m 5 http://127.0.0.1:$dp/mwk.css -o /dev/null"
+    try "…and it is NOT on the network"            "! curl -sf -m 4 http://\$(hostname):$dp/ -o /dev/null"
+    try "it appears on their page"                 "curl -sf -m 5 http://127.0.0.1:29200/projects.json | grep -q on-this-machine-demo"
+    try "…as parseable JSON"                       "curl -sf -m 5 http://127.0.0.1:29200/projects.json | jq -e . >/dev/null"
+    try "serving it twice does not start a second" "cd $DEMO && mwk serve 2>&1 | grep -q 'Already open'"
+    ;;
+  *) bad "the demo project got a port" "got [$dp]" ;;
+esac
+try "mwk serve refuses your whole home"     "! mwk serve \$HOME >/dev/null 2>&1"
+try "mwk serve refuses all of ~/projects"   "! mwk serve \$HOME/projects >/dev/null 2>&1"
+
 phase "5 · The store refuses what it should"
 out=$(mwk init </dev/null 2>&1); rc=$?
 [ "$rc" = 3 ] && ok "mwk init refuses with no keyboard (exit 3)" || bad "mwk init refuses without a tty" "exit $rc"
@@ -94,6 +117,11 @@ curl -fsSL "$RAW/install.sh" | MWK_REF="$REF" MWK_DEBUG= sh >/dev/null 2>&1
 [ -f "$HOME/.mwk-shell.sh" ] && . "$HOME/.mwk-shell.sh"
 try "reinstall put mwk back"        "command -v mwk"
 try "reinstall put the page back"   "test -f \$HOME/mwk/site/index.html"
+# Uninstall trashes ~/mwk, and ports.tsv lives in it — so the project list is genuinely
+# gone here, not merely stale. Re-registering is the real check, not a repeat of phase 4.
+( cd "$DEMO" && mwk port >/dev/null 2>&1 )
+try "the project list rebuilds after a reinstall" \
+    "curl -sf -m 5 http://127.0.0.1:29200/projects.json | grep -q on-this-machine-demo"
 
 printf '\n%s%s%s passed, %s failed%s\n' "$B" "$G" "$PASS" "$FAIL" "$R"
 cat <<EOF
@@ -106,5 +134,8 @@ cat <<EOF
     the prompts   whether they read well to somebody who has never done this
 
   Open http://127.0.0.1:29200/ and http://127.0.0.1:29201/ and have a look.
+  The page should list one project, ${B}on-this-machine-demo${R}${Y}, with a green dot beside it.
+  That folder is left in ~/projects on purpose — it is a real starter site, and
+  deleting it would leave the page pointing at somewhere that is not there.${R}
 
 EOF
