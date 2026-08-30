@@ -90,6 +90,25 @@ done
 grep -q 'unset SOPS_AGE_KEY' bin/executable_mwk && ok "the master key is unset before the wrapped command runs" \
   || no "the master key is unset before the wrapped command runs" "it would be inherited"
 
+head_ "It can be taken back off"
+sh -n uninstall.sh && ok "uninstall.sh is valid sh" || no "uninstall.sh is valid sh" "syntax error"
+grep -q 'trash_it "$HOME/.mwk"' uninstall.sh \
+  && ok "the key store is TRASHED, never rm -rf'd" \
+  || no "the key store is trashed, never rm -rf'd" "a password store must survive a typo"
+grep -q 'cmd_uninstall' bin/executable_mwk && ok "mwk uninstall reaches it" || no "mwk uninstall reaches it" "missing"
+grep -q '\[ -t 0 \] || return 1' uninstall.sh \
+  && ok "no keyboard means no consent — it does not assume yes" \
+  || no "no keyboard means no consent" "an unattended run could delete their keys"
+
+head_ "Colour"
+for f in install.sh uninstall.sh bin/executable_mwk; do
+  grep -q '226;52;43' "$f" && ok "$f carries the brand red" || no "$f carries the brand red" "missing"
+  grep -q 'if \[ -t 1 \]' "$f" && ok "$f: no colour when piped" \
+    || no "$f: no colour when piped" "escape codes would land in logs and captured values"
+done
+grep -q 'PROMPT=' dot_mwk-shell.sh.tmpl && grep -q 'PS1=' dot_mwk-shell.sh.tmpl \
+  && ok "a prompt is set for both zsh and bash" || no "a prompt is set for both shells" "missing"
+
 head_ "Skills"
 for d in dot_claude/skills/*/; do
   name=$(basename "$d")

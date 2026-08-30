@@ -31,8 +31,22 @@ GLOBAL="$STORE/global.enc.env"
 PROJ_DIR="$STORE/projects"
 NEEDS_FILE=".mwk-keys"
 
-die() { printf '%s\n' "mwk: $*" >&2; exit 1; }
+# Mate Wish Key red is #e2342b — truecolor where the terminal says it can do it, the
+# nearest xterm-256 red otherwise, and NOTHING when output is not a terminal. A value
+# piped into a file must never arrive wrapped in escape codes.
+if [ -t 1 ]; then
+  case "${COLORTERM:-}" in
+    truecolor|24bit) RED=$(printf '\033[38;2;226;52;43m') ;;
+    *)               RED=$(printf '\033[38;5;203m') ;;
+  esac
+  B=$(printf '\033[1m'); DIM=$(printf '\033[2m'); GRN=$(printf '\033[32m'); R=$(printf '\033[0m')
+else
+  RED=''; B=''; DIM=''; GRN=''; R=''
+fi
+
+die() { printf '%smwk:%s %s\n' "$RED" "$R" "$*" >&2; exit 1; }
 note() { printf '%s\n' "$*" >&2; }
+good() { printf '%s%s%s\n' "$GRN" "$*" "$R" >&2; }
 
 # The one boundary. Everything that touches a plaintext value goes through this.
 have_tty() { [ -t 0 ] && [ -t 1 ] && (exec 3<>/dev/tty) 2>/dev/null; }
@@ -157,13 +171,13 @@ cmd_add() {
   IFS= read -rs value; printf '\n' >&2
   [ -n "$value" ] || die "nothing pasted — no change made"
   { sops_d "$f" | grep -vE "^${name}=" || true; printf '%s=%s\n' "$name" "$value"; } | sops_e "$f"
-  note "Stored $name ($scope). It is not on screen and not in your history."
+  good "Stored $name ($scope). It is not on screen and not in your history."
 }
 
 cmd_list() {
   store_exists || die "no store yet — run 'mwk init' first"
   preflight_read
-  printf '%-34s %s\n' NAME SCOPE
+  printf '%s%-34s %s%s\n' "$DIM" NAME SCOPE "$R"
   names_of "$GLOBAL" | while read -r n; do printf '%-34s %s\n' "$n" global; done
   names_of "$(scope_file "$(slug)")" | while read -r n; do printf '%-34s %s\n' "$n" "project($(slug))"; done
 }
@@ -234,6 +248,14 @@ cmd_queue() {
   note "Put on their page: $run"
 }
 
+# Handing this to the script in the kit rather than reimplementing it: there is one list of
+# what gets removed, and it lives next to the thing that installs it.
+cmd_uninstall() {
+  u="$HOME/projects/mwk-genie/uninstall.sh"
+  [ -f "$u" ] || die "the kit is not at ~/projects/mwk-genie, so I cannot take it off cleanly"
+  exec sh "$u" "$@"
+}
+
 cmd_lock() { gpg-connect-agent reloadagent /bye >/dev/null 2>&1 || true; note "Locked. The next command will ask for your master password."; }
 
 cmd_rekey() {
@@ -261,6 +283,7 @@ mwk — your keys, in one place, behind one password.
   mwk needs                write .mwk-keys: what this project uses. Safe to commit
   mwk lock                 forget the master password until you type it again
   mwk rekey                change the master password
+  mwk uninstall            take all of this back off this computer
 
 There is no way to print a value, and no --value flag. That is on purpose.
 EOF
@@ -270,9 +293,8 @@ EOF
 # "interactive" — have_tty — reused rather than a second one invented. Options 1 and 3
 # still hit require_tty inside the commands they call, so the menu inherits the boundary.
 cmd_menu() {
-  cat <<'EOF'
-
-  What would you like to do?
+  printf '\n  %s%sWhat would you like to do?%s\n' "$B" "$RED" "$R"
+  cat <<'EOF' 
 
     1  Start something new         a folder for it, and me in it
     2  Open your page              the buttons and the commands
@@ -293,6 +315,7 @@ EOF
     4) cmd_list;;
     5) cmd_lock;;
     6) usage;;
+    7) cmd_uninstall;;
     *) note "I didn't catch that. Run mwk again and type a number.";;
   esac
 }
@@ -301,6 +324,7 @@ case "${1:-}" in
   init) shift; cmd_init "$@";;
   site) shift; cmd_site "$@";;
   queue) shift; cmd_queue "$@";;
+  uninstall) shift; cmd_uninstall "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;
   run) shift; cmd_run "$@";;

@@ -48,3 +48,49 @@ if [ -n "${ZSH_VERSION:-}" ]; then
   setopt AUTO_CD 2>/dev/null || true
   unsetopt BEEP 2>/dev/null || true
 fi
+
+# ── The prompt, and colour ────────────────────────────────────────────────────────────
+# A terminal that is all one grey is where a beginner loses their place. This is the
+# smallest prompt that answers the three questions people actually ask: where am I, is
+# this a project with history, and have I saved?
+#
+# Mate Wish Key red is #e2342b. zsh takes it literally on a truecolor terminal; everything
+# else gets xterm-256 colour 203, which is the nearest red. Both are set, so no terminal
+# ends up with a raw escape sequence in the prompt.
+#
+# The `*` is the one to explain out loud: it means there is work here you have not saved.
+# `/mwk-save` clears it. It is referenced by that skill and by the page they keep, so if
+# this ever moves, those move with it.
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz vcs_info 2>/dev/null
+  zstyle ':vcs_info:git:*' formats       ' %F{242}%b%f%F{203}%u%c%f'
+  zstyle ':vcs_info:git:*' actionformats ' %F{242}%b|%a%f'
+  zstyle ':vcs_info:git:*' unstagedstr '*'
+  zstyle ':vcs_info:git:*' stagedstr   '*'
+  zstyle ':vcs_info:git:*' check-for-changes true
+  precmd_functions+=(vcs_info)
+  setopt PROMPT_SUBST
+  PROMPT='%F{203}%1~%f${vcs_info_msg_0_} %F{203}›%f '
+
+elif [ -n "${BASH_VERSION:-}" ]; then
+  # bash has no vcs_info, so this is the same three facts by hand. Kept quiet and cheap:
+  # every failure path prints nothing rather than an error into the prompt.
+  __mwk_git() {
+    b=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 0
+    d=''; git diff --quiet --ignore-submodules HEAD 2>/dev/null || d='*'
+    printf ' \001\033[2m\002%s\001\033[0m\033[38;5;203m\002%s\001\033[0m\002' "$b" "$d"
+  }
+  PS1='\[\033[38;5;203m\]\W\[\033[0m\]$(__mwk_git) \[\033[38;5;203m\]›\[\033[0m\] '
+fi
+
+# Colour everywhere else too. macOS ls wants -G and its own variable; GNU ls wants
+# --color, and asking the wrong one produces an error on every single command.
+if ls --color=auto >/dev/null 2>&1; then
+  alias ls='ls --color=auto'
+else
+  export CLICOLOR=1
+  export LSCOLORS=ExGxFxdaCxDaDahbadeche
+fi
+alias grep='grep --color=auto'
+export LESS='-R'

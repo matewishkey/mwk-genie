@@ -31,6 +31,16 @@ Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-sav
 
 **It can see and change things in your home folder.** Not just one project. That is what makes it useful and it is worth knowing.
 
+## Taking it off again
+
+```
+mwk uninstall
+```
+
+It removes everything it put there and asks before touching anything that is yours. **Your keys and your work go to the trash, not the bin** — a password store that vanishes on a typo would be the worst thing this kit could do. It tells you where they went.
+
+`sh ~/projects/mwk-genie/uninstall.sh --dry-run` says what would go without touching anything.
+
 ## Keys
 
 Never put an API key in a file or in the chat. `mwk add NAME` stores one behind a single master password; `mwk run -- <command>` hands the values to that one command and they vanish with it. **Save that master password in your password manager the moment you make it** — nobody can reset it. If it ever gets out, `mwk rekey` is one command.

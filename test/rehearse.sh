@@ -74,5 +74,29 @@ PY'
   chk 'a key Claude Code wrote survives an apply'  'grep -q someone/thing ~/.claude/settings.json'
   chk 'and ours is still asserted'                 'grep -q opus ~/.claude/settings.json'
 
+  echo '  --- take it all off, then put it back on ---'
+  # This is the cycle the kit has to survive, because it is the one used to test it. A
+  # second install onto a machine that still has the first is not what a new person meets.
+  su - guest -c 'mkdir -p ~/.mwk && echo CIPHERTEXT > ~/.mwk/identity.age'
+  su - guest -c 'sh ~/projects/mwk-genie/uninstall.sh --all' >/dev/null 2>&1 || { echo '  UNINSTALL FAILED'; FAILED=1; }
+
+  for leftover in .mwk-shell.sh bin/mwk .claude/skills/mwk-save mwk projects/mwk-genie .config/chezmoi; do
+    if su - guest -c \"test -e ~/\$leftover\" 2>/dev/null; then ok \"gone: ~/\$leftover\" FAIL; FAILED=1
+    else ok \"gone: ~/\$leftover\" PASS; fi
+  done
+  n3=\$(su - guest -c 'grep -c mwk-shell.sh ~/.bashrc' 2>/dev/null || echo 0)
+  ok 'the source line is out of ~/.bashrc' \"\$([ \"\$n3\" = 0 ] && echo PASS || echo \"FAIL (n=\$n3)\")\"
+  [ \"\$n3\" = 0 ] || FAILED=1
+  chk 'ccc is gone from a fresh shell'          '! bash -ic \"alias ccc\"'
+
+  # Their keys were moved, not erased. Deleting a password store on a typo would be the
+  # worst thing this kit could do, so the trash is load-bearing rather than politeness.
+  chk 'the keys are in the trash, not erased'   'ls ~/.local/share/Trash/files/.mwk/identity.age'
+
+  su - guest -c 'curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-genie/$REF/install.sh | MWK_REF=$REF sh' >/dev/null 2>&1 \
+    || { echo '  REINSTALL FAILED'; FAILED=1; }
+  chk 'reinstall: mwk runs again'               'bash -ic \"command -v mwk\"'
+  chk 'reinstall: ccc is back'                  'bash -ic \"alias ccc\"'
+
   echo; [ \"\$FAILED\" = 0 ] && echo 'ALL GREEN' || { echo 'SOME FAILED'; exit 1; }
 "
