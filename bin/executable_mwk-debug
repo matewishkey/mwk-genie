@@ -1,25 +1,26 @@
 #!/bin/sh
-# mwk-debug — ship a run's output somewhere mate can read it, instead of asking whoever is
-# testing to copy a terminal window between two machines.
+# mwk-debug — send this run's output somewhere it can be looked at, so nobody has to copy
+# a terminal window between two computers.
 #
-# ⚠ OFF UNLESS EXPLICITLY TURNED ON. It does nothing at all unless MWK_DEBUG holds a token.
-# There is no flag a guest could trip over and no default endpoint: with no token this exits
-# 0 having sent nothing. A stranger running the kit never uploads anything, ever.
+#   MWK_DEBUG=1 sh install.sh          the installer sends its own log
+#   MWK_DEBUG=1 mwk-debug run -- cmd   run something and send what it printed
+#   mwk-debug send FILE                send a file
 #
-#   MWK_DEBUG=<token> sh install.sh        # the installer ships its own log
-#   MWK_DEBUG=<token> mwk-debug send FILE  # send anything else
-#   MWK_DEBUG=<token> mwk-debug run -- cmd # run something and ship what it printed
+# ANYONE CAN TURN IT ON, AND NOBODY BUT US CAN READ IT BACK. That asymmetry is deliberate:
+# turning it on has to be one word a person can type while you are on a call with them, not
+# a token read down a phone line. Posting is open; reading needs a token they never see.
 #
-# WHAT IT REDACTS, AND WHY THAT IS NOT OPTIONAL: this uploads a terminal transcript from a
-# machine that has a secret store on it. Anything key-shaped is replaced before it leaves.
-# Redaction is done on the way OUT rather than trusting the log not to contain one, because
-# the whole point of a debug log is that it captured something you did not expect.
+# IT IS STILL OFF BY DEFAULT. With MWK_DEBUG unset this exits 0 having sent nothing, so a
+# person who never asks for help never uploads anything.
+#
+# WHAT LEAVES THE MACHINE, AND WHAT DOES NOT: the terminal output, the computer's name, its
+# operating system, and which tools are installed. Anything key-shaped is replaced BEFORE
+# it goes — on the way out, rather than by trusting the log not to contain one, because the
+# whole point of a debug log is that it caught something nobody expected.
 set -eu
 
 ENDPOINT="${MWK_DEBUG_ENDPOINT:-https://debug.matewishkey.com}"
-TOKEN="${MWK_DEBUG:-}"
-
-[ -n "$TOKEN" ] || exit 0          # not in debug mode. Silence is the correct behaviour.
+[ -n "${MWK_DEBUG:-}" ] || [ "${1:-}" = "send" ] || exit 0
 
 redact() {
   # $HOME first, so a username cannot survive inside a longer path.
@@ -29,39 +30,53 @@ redact() {
       -e 's/gh[pousr]_[A-Za-z0-9]\{16,\}/[github-token-redacted]/g' \
       -e 's/xox[abps]-[A-Za-z0-9-]\{10,\}/[slack-token-redacted]/g' \
       -e 's/eyJ[A-Za-z0-9_.-]\{20,\}/[jwt-redacted]/g' \
-      -e 's/[A-Za-z0-9+/]\{40,\}=\{0,2\}/[long-string-redacted]/g' \
-      -e "s|$TOKEN|[debug-token-redacted]|g"
+      -e 's/[A-Za-z0-9+/]\{40,\}=\{0,2\}/[long-string-redacted]/g'
 }
 
 facts() {
+  # `host` is what tells two testers apart, and it is the one identifying thing here.
+  # Said out loud on screen before sending rather than buried, because a person should
+  # not discover afterwards what left their computer.
+  printf 'host      %s\n' "$(hostname 2>/dev/null || echo unknown)"
   printf 'os        %s %s\n' "$(uname -s)" "$(uname -m)"
   [ "$(uname -s)" = Darwin ] && printf 'macos     %s\n' "$(sw_vers -productVersion 2>/dev/null || echo '?')"
   [ -r /etc/os-release ] && printf 'distro    %s\n' "$(. /etc/os-release; echo "$PRETTY_NAME")"
   grep -qi microsoft /proc/version 2>/dev/null && printf 'wsl       yes\n'
   printf 'shell     %s\n' "${SHELL:-?}"
-  printf 'kit       %s\n' "$(git -C "$HOME/projects/mwk-genie" rev-parse --short HEAD 2>/dev/null || echo 'not a checkout')"
+  printf 'kit       %s\n' "$(git -C "$HOME/projects/mwk-genie" rev-parse --short HEAD 2>/dev/null || echo '-')"
   for t in mise chezmoi sops age miniserve jq claude mwk; do
-    printf '%-9s %s\n' "$t" "$(command -v "$t" 2>/dev/null || echo '-')"
+    printf '%-9s %s\n' "$t" "$(command -v "$t" >/dev/null 2>&1 && echo yes || echo '-')"
   done
 }
 
+notice() {
+  [ -t 2 ] || return 0
+  cat >&2 <<'EOF'
+
+  Debug mode is on, so when this finishes it will send a copy of what you
+  see here to Mate Wish Key, to be looked at. It includes this screen, your
+  computer's name and which tools got installed. Anything that looks like a
+  password or a key is removed before it is sent.
+
+EOF
+}
+
 send() {
-  run="${MWK_RUN_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
-  body=$( { printf '=== %s ===\n' "$run"; facts; printf '\n--- output ---\n'; cat "$1"; } | redact )
-  code=$(printf '%s' "$body" | curl -s -o /dev/null -w '%{http_code}' -m 20 \
-          -X POST "$ENDPOINT/r/$run" \
-          -H "Authorization: Bearer $TOKEN" \
-          -H 'Content-Type: text/plain' --data-binary @- 2>/dev/null || echo 000)
+  body=$( { printf '=== mwk %s ===\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"; facts;
+            printf '\n--- output ---\n'; cat "$1"; } | redact )
+  code=$(printf '%s' "$body" | curl -s -m 25 -X POST "$ENDPOINT/r" \
+          -H 'Content-Type: text/plain' --data-binary @- 2>/dev/null || true)
   case "$code" in
-    200|201) printf '\n  debug log sent: %s/r/%s\n' "$ENDPOINT" "$run" >&2 ;;
-    000) printf '\n  debug log could not be sent (no network?) — kept at %s\n' "$1" >&2 ;;
-    *)   printf '\n  debug log rejected (%s) — kept at %s\n' "$code" "$1" >&2 ;;
+    ''|*[!A-Za-z0-9-]*) printf '\n  Could not send the log. It is saved at %s\n' "$1" >&2 ;;
+    *) printf '\n  Sent. Your code is: %s\n' "$code" >&2
+       printf '  Read it back to whoever is helping you.\n' >&2 ;;
   esac
 }
 
 case "${1:-}" in
   send) shift; [ -f "${1:-}" ] || { echo "mwk-debug send <file>" >&2; exit 2; }; send "$1" ;;
   run)  shift; [ "${1:-}" = "--" ] && shift
+        notice
         t=$(mktemp); trap 'rm -f "$t"' EXIT
         "$@" 2>&1 | tee "$t"; send "$t" ;;
   *) echo "mwk-debug send <file> | run -- <command>" >&2; exit 2 ;;

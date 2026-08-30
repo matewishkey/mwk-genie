@@ -58,6 +58,7 @@ have_git() {
 # The trap is the point: the run worth reading is the one that FAILED, and `set -e` means
 # a failure exits without reaching the bottom of the file. EXIT fires either way.
 if [ -n "${MWK_DEBUG:-}" ]; then
+  [ -t 2 ] && printf "\n  Debug mode is on — a copy of this run will be sent when it finishes.\n" >&2
   MWK_LOG=$(mktemp 2>/dev/null || echo /tmp/mwk-install.$$)
   MWK_RUN_ID="install-$(date +%Y%m%d-%H%M%S)-$$"; export MWK_RUN_ID
   _fifo="${TMPDIR:-/tmp}/mwk-fifo.$$"
