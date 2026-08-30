@@ -40,8 +40,6 @@ alias ccc='claude'
 # alias ccc='claude --dangerously-skip-permissions'
 {{- end }}
 
-# Everything they can run. `mwk` is the key store; `mwk-site` is the page they keep.
-alias mwk-site='miniserve --index index.html --port 29292 "$HOME/projects/mwk-genie/site"'
 
 if [ -n "${ZSH_VERSION:-}" ]; then
   autoload -Uz compinit 2>/dev/null && compinit -u 2>/dev/null

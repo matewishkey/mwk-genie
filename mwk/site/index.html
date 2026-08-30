@@ -76,7 +76,7 @@ each one says why. Press <b>Copy</b>, paste it into your terminal, press Enter.<
 </div>
 
 <script>
-// The whole point of this page: the agent writes commands.json, this picks them up.
+// The whole point of this page: the agent writes queue.json, this picks them up.
 // No round trip, no "tell me when you've done it", and the person never selects text
 // by hand — which is where a beginner picks up a leading space and gets an error they
 // cannot read.
@@ -116,7 +116,7 @@ function render(items){
 
 async function poll(){
   try{
-    const r = await fetch('commands.json?t=' + Date.now(), {cache:'no-store'});
+    const r = await fetch('queue.json?t=' + Date.now(), {cache:'no-store'});
     if (!r.ok) return;
     const txt = await r.text();
     if (txt === last) return;

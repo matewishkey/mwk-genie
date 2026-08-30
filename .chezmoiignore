@@ -13,4 +13,4 @@ prompts/**
 templates/**
 .github/**
 .gitignore
-site/**
+mwk/site/queue.json

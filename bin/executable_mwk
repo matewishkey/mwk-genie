@@ -17,7 +17,14 @@
 #     class; HIST_IGNORE_SPACE only mitigates it.
 set -euo pipefail
 
-STORE="${MWK_STORE:-$HOME/projects/.mwk}"
+# The store lives OUTSIDE ~/mwk, and that is structural rather than tidy. ~/mwk/site is
+# handed to a web server; anything under it is one `ln -s` or one forgotten flag away from
+# being served. Measured 2026-08-30: with the store as a plain subdirectory of the served
+# root, `GET /store/identity.age` returned 200 — from the LAN, because miniserve binds
+# 0.0.0.0 by default. "It is a dotfile and miniserve hides those" survives exactly until
+# someone adds -H to work out why a file is missing. Not being under the root survives that.
+STORE="${MWK_STORE:-$HOME/.mwk}"
+SITE="${MWK_SITE:-$HOME/mwk/site}"
 ID_ENC="$STORE/identity.age"
 ID_PUB="$STORE/identity.pub"
 GLOBAL="$STORE/global.enc.env"
@@ -57,6 +64,23 @@ recipient() { cat "$ID_PUB"; }
 #
 #  2. `sops -e ... > "$f"` truncates $f before sops runs. A failed encrypt therefore DELETES
 #     the store. Write to a temp and move it into place instead.
+# "" when there is nothing to bound with, which is the correct macOS behaviour.
+TIMEOUT=""
+if command -v timeout >/dev/null 2>&1; then TIMEOUT="timeout ${MWK_LOCK_PROBE:-6}"
+elif command -v gtimeout >/dev/null 2>&1; then TIMEOUT="gtimeout ${MWK_LOCK_PROBE:-6}"; fi
+
+# Unlock ONCE per invocation. Without this a Mac asks for the master password separately
+# for the global file and the project file — twice for one `mwk list`, which reads as
+# broken. The key is held in this process's environment and NEVER written to disk: a
+# plaintext identity in a temp file would outlive `mwk run`, because that ends in `exec`
+# and an EXIT trap never fires after exec.
+unlock_once() {
+  [ -n "${SOPS_AGE_KEY:-}" ] && return 0
+  have_tty || return 0
+  SOPS_AGE_KEY="$(age -d "$ID_ENC")" || die "wrong password, or the store is damaged"
+  export SOPS_AGE_KEY
+}
+
 locked_msg() {
   cat >&2 <<'EOF'
 mwk: your keys are locked, and I can't unlock them — that needs your password.
@@ -70,9 +94,9 @@ EOF
 # Probe the lock state once, in the main shell, so `exit` actually exits and the
 # message is printed once rather than once per store file.
 preflight_read() {
-  have_tty && return 0
+  have_tty && { unlock_once; return 0; }
   [ -f "$GLOBAL" ] || return 0
-  SOPS_AGE_KEY_FILE="$ID_ENC" timeout "${MWK_LOCK_PROBE:-6}" \
+  SOPS_AGE_KEY_FILE="$ID_ENC" $TIMEOUT \
     sops -d --input-type dotenv --output-type dotenv "$GLOBAL" >/dev/null 2>&1 || locked_msg
 }
 
@@ -81,7 +105,7 @@ sops_d() {
   if have_tty; then
     SOPS_AGE_KEY_FILE="$ID_ENC" sops -d --input-type dotenv --output-type dotenv "$1"
   else
-    SOPS_AGE_KEY_FILE="$ID_ENC" timeout "${MWK_LOCK_PROBE:-6}" \
+    SOPS_AGE_KEY_FILE="$ID_ENC" $TIMEOUT \
       sops -d --input-type dotenv --output-type dotenv "$1" 2>/dev/null || locked_msg
   fi
 }
@@ -152,6 +176,7 @@ cmd_run() {
   tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
   { sops_d "$GLOBAL"; sops_d "$(scope_file "$(slug)")"; } > "$tmp"
   set -a; . "$tmp"; set +a; rm -f "$tmp"
+  unset SOPS_AGE_KEY          # never hand the master key to the command being wrapped
   exec "$@"
 }
 
@@ -161,6 +186,29 @@ cmd_needs() {
   { names_of "$GLOBAL" | sed 's/$/ global/'
     names_of "$(scope_file "$(slug)")" | sed 's/$/ project/'; } | sort > "$NEEDS_FILE"
   note "Wrote $NEEDS_FILE — names only, no values. Safe to commit."
+}
+
+# Serve the page. Three things here are not defaults, and each was measured today:
+#   -i 127.0.0.1  miniserve otherwise binds "[::]:29292, 0.0.0.0:29292" and the page is
+#                 readable by everyone on the wifi. Verified: a fetch from this box's LAN
+#                 address returned 200.
+#   -P            symlinks are followed by default. Verified: a symlink from the served
+#                 root into the store returned the ciphertext with a 200.
+#   the overlap check below, because both of those are flags and flags get changed.
+cmd_site() {
+  [ -f "$SITE/index.html" ] || die "no page at $SITE — run 'chezmoi apply' first"
+  a=$(cd "$SITE" 2>/dev/null && pwd -P) || die "cannot resolve $SITE"
+  # Fall back to the literal path when the store does not exist yet — which is the normal
+  # state on a fresh machine, before `mwk init`. A check that goes quiet in the one state
+  # it is most needed is not a check.
+  b=$(cd "$STORE" 2>/dev/null && pwd -P) || b="$STORE"
+  case "$a/" in "$b/"*) die "refusing: the page directory is inside the store ($b)";; esac
+  case "$b/" in "$a/"*) die "refusing: the store is inside the page directory ($a)";; esac
+  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 http://127.0.0.1:29292/; then
+    note "Already open: http://127.0.0.1:29292/"; return 0
+  fi
+  note "Your page: http://127.0.0.1:29292/   (Ctrl+C here stops it)"
+  exec miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a"
 }
 
 cmd_lock() { gpg-connect-agent reloadagent /bye >/dev/null 2>&1 || true; note "Locked. The next command will ask for your master password."; }
@@ -180,7 +228,9 @@ cmd_rekey() {
 usage() { cat <<'EOF'
 mwk — your keys, in one place, behind one password.
 
+  mwk                      (on your own terminal) a menu of the things you can do
   mwk init                 make the store (asks for a master password, once)
+  mwk site                 open your page at http://127.0.0.1:29292/
   mwk add NAME [scope]     add a key. scope is 'project' (default) or 'global'
   mwk list                 what you have — names only, never values
   mwk run -- <command>     run something with your keys, just for that command
@@ -192,14 +242,47 @@ There is no way to print a value, and no --value flag. That is on purpose.
 EOF
 }
 
+# A door for a person, today's usage for anything without a keyboard. One notion of
+# "interactive" — have_tty — reused rather than a second one invented. Options 1 and 3
+# still hit require_tty inside the commands they call, so the menu inherits the boundary.
+cmd_menu() {
+  cat <<'EOF'
+
+  What would you like to do?
+
+    1  Start something new         a folder for it, and me in it
+    2  Open your page              the buttons and the commands
+    3  Keep a key safe             a password or an API key
+    4  See what keys you have      names only, never the values
+    5  Lock your keys
+    6  Just show me the commands
+
+EOF
+  printf '  Type a number and press Enter: '
+  IFS= read -r choice
+  case "$choice" in
+    1) note "Not built yet — ask me in the chat and I'll make it for you.";;
+    2) cmd_site;;
+    3) printf '  What should it be called (e.g. OPENAI_API_KEY)? '; IFS= read -r n
+       printf '  Just this project, or everywhere? [project/global] '; IFS= read -r sc
+       cmd_add "$n" "${sc:-project}";;
+    4) cmd_list;;
+    5) cmd_lock;;
+    6) usage;;
+    *) note "I didn't catch that. Run mwk again and type a number.";;
+  esac
+}
+
 case "${1:-}" in
   init) shift; cmd_init "$@";;
+  site) shift; cmd_site "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;
   run) shift; cmd_run "$@";;
   needs) shift; cmd_needs "$@";;
   lock) shift; cmd_lock "$@";;
   rekey) shift; cmd_rekey "$@";;
-  ""|-h|--help|help) usage;;
+  "") if have_tty; then cmd_menu; else usage; fi ;;
+  -h|--help|help) usage;;
   *) die "unknown command '$1' — try 'mwk help'";;
 esac

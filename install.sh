@@ -23,6 +23,17 @@ say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
 step() { printf '  %s\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# `command -v git` is TRUE on every Mac even with no developer tools, because /usr/bin/git
+# is Apple's xcode-select shim — verified 2026-08-30: /usr/bin/git and /usr/bin/clang are
+# the SAME INODE (1152921500312571562, 78 hardlinks) and the binary links libxcselect.
+# Running it pops a GUI dialog and exits non-zero, and this script is `set -eu`, so the
+# whole install would die at step 1. Ask whether git WORKS, not whether a file exists.
+have_git() {
+  command -v git >/dev/null 2>&1 || return 1
+  if [ "$(uname -s)" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then return 1; fi
+  return 0
+}
+
 case "$(uname -s)" in
   Darwin|Linux) ;;
   *) printf 'This needs macOS or Linux. On Windows, open your Ubuntu window and run it there.\n' >&2; exit 1 ;;
@@ -30,9 +41,9 @@ esac
 
 say "1/5  Getting the kit"
 mkdir -p "$HOME/projects"
-if [ -d "$KIT/.git" ] && have git; then
+if [ -d "$KIT/.git" ] && have_git; then
   step "already here — updating"; git -C "$KIT" pull --ff-only >/dev/null 2>&1 || true
-elif have git; then
+elif have_git; then
   step "cloning"; git clone --quiet --branch "$REF" "$REPO.git" "$KIT"
 else
   # A Mac with no developer tools has a /usr/bin/git that only offers to install Xcode.
