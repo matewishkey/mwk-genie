@@ -241,11 +241,14 @@ cannot assert the two still say the same thing, so that pair stays hand-kept.
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` AND `prompts/setup.md` FROM THIS REPO AT
 BUILD TIME** (`src/data/genie-prompts.ts`) and renders them on
-`matewishkey.com/how-to/put-the-genie-in-the-box/` (the old `/wishes/…` path 301s here and the
-redirect lands on a 200 again — it was broken into a 404 for a while, which is what
-`matewishkey-web#36` was; that issue is closed, and re-checked 2026-08-17. Still write the
-`/how-to/` path, never the redirect). This repo is the source of truth for those two
-files. Two consequences:
+**`matewishkey.com/wishes/put-the-genie-in-the-box/`** — and **the direction flipped**. This file
+used to say `/how-to/…` was canonical and `/wishes/…` was the redirect. Measured 2026-08-30, it is
+the other way round: `/how-to/…` **301s to** `/wishes/…`, which is the 200. Their
+`public/_redirects` (lines 11-19) folded the how-tos back into the wishes on 2026-08-17, and this
+file went on instructing the redirect — the exact thing it warns against. **Write `/wishes/`.**
+(Positive control run at the same time: a made-up `/how-to/<anything>` also 301s, so it is a blanket
+prefix rule, while a made-up `/wishes/<anything>` 404s — so `/wishes/` is the real routing, not a
+second redirect.) This repo is the source of truth for those two files. Two consequences:
 
 - **A prompt edit here is a content change to a live public page.** It ships on that site's next
   deploy. There is nothing to sync and nothing to remember, which is the point — but it also means a
@@ -260,13 +263,17 @@ a too-long line here breaks somebody else's build. `prompts/install.md` goes int
 is deliberately not width-checked.
 
 **There is a THIRD coupling and it is the dangerous one, because it is a hand-typed copy rather
-than a fetch.** `src/content/howtos/put-the-genie-in-the-box.mdx` quotes **the opening of
+than a fetch.** `src/content/wishes/put-the-genie-in-the-box.mdx` quotes **the opening of
 `templates/CLAUDE.md`** — the first three paragraphs, re-wrapped narrower, inside a
 ` ```markdown ` fence — and then describes the headings that follow it. Nothing fetches it and
 nothing checks it, so **editing the top of `templates/CLAUDE.md` silently makes a live public page
-wrong.** The two prompts cannot drift; this can. Checked accurate 2026-08-09; filed as an issue on
-that repo. If you change those opening paragraphs or rename an early heading, say so in the commit
-and file it across.
+wrong.** The two prompts cannot drift; this can. The quoted fence still matches word for word
+(re-verified normalised, 2026-08-30) — but **the fence is the smallest part of the drift.** The
+hand-written prose around it also states "two prompts", "three stages", "it asks you three things",
+"which of the two brains", "bookmark that one" and "an `mwk` plugin" — every one of which v2
+falsifies, and none of which any check can see. There is no `src/content/howtos/` directory; that
+path in this file was wrong too. If you change those opening paragraphs or rename an early heading,
+say so in the commit and file it across.
 
 ## The two shell templates are installed by marker, never appended
 
