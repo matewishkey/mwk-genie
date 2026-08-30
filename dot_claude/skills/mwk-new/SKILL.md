@@ -84,7 +84,7 @@ they will use it every day.
 
 ## 8. Then, in the new window
 
-    /mwk-genie:save
+    /mwk-save
 
 ...when they are finished for now. It writes down what changed and puts it
 somewhere safe. Tell them they can also just say "save my work" — the slash

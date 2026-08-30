@@ -15,7 +15,7 @@ changes, not just the file names, so you can describe them in their words.
 
 **If this folder is not set up for save points**, say that plainly — their work
 is on their computer but nothing is keeping old versions of it — and offer to
-set it up now. `/mwk-genie:new-project` is what does that for a new one.
+set it up now. `/mwk-new` is what does that for a new one.
 
 ## 2. Tell them what changed
 

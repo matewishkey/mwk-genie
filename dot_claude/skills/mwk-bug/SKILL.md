@@ -14,7 +14,7 @@ What they said, if anything: `$ARGUMENTS`
 **Do this before writing anything.** Three different things get called "a bug"
 and only one of them belongs here:
 
-- **This kit** — `ccc`, the prompt, `CLAUDE.md`, one of the `/mwk-genie:`
+- **This kit** — `ccc`, the prompt, `CLAUDE.md`, one of the `/mwk-`
   commands, or a step in the setup. **That is a bug report. Carry on.**
 - **Claude Code itself**, or a plugin somebody else wrote. Say so plainly, say
   where it actually goes, and offer to help them get there. Filing it with us
@@ -35,8 +35,10 @@ look:
 - **What they expected instead.** Only ask if it is genuinely not obvious.
 - **Which machine** — macOS, Windows with WSL, or Linux.
 - **Versions** — `claude --version`, and the kit's version from
-  `~/projects/mwk-genie/plugin/.claude-plugin/plugin.json`. If the kit is not
-  in that folder, say so in the report rather than guessing a version.
+  `git -C ~/projects/mwk-genie rev-parse --short HEAD`. There is no version file
+  any more — the plugin manifest that used to carry one is gone, and a commit is
+  a better answer anyway. If the kit is not in that folder, say so in the report
+  rather than guessing.
 - **Whether it reproduces.** If it is safe and quick to try again, try again
   and say what happened. "Happens every time" and "happened once" send the
   person reading it down completely different paths.

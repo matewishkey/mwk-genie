@@ -211,6 +211,29 @@ cmd_site() {
   exec miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a"
 }
 
+# The page's producer. It existed only as a sentence in a JavaScript comment: the site
+# polled queue.json and nothing anywhere wrote one, so v2's whole handover mechanism had
+# no writer. Asking an agent to hand-write JSON is the exact class of thing this kit
+# stopped doing when install.sh replaced a prose document.
+#
+#   mwk queue "why this is yours to run" "the command"
+#   mwk queue --clear
+cmd_queue() {
+  Q="$SITE/queue.json"
+  mkdir -p "$SITE"
+  if [ "${1:-}" = "--clear" ]; then printf '{"commands":[]}\n' > "$Q"; note "Page cleared."; return 0; fi
+  [ $# -eq 2 ] || die 'usage: mwk queue "<why it is theirs to run>" "<command>"'
+  why="$1"; run="$2"
+  # jq keeps this honest about quoting; without it, a command containing a quote would
+  # produce a JSON file the page silently fails to parse — and a page that shows nothing
+  # looks identical to a page with nothing to show.
+  command -v jq >/dev/null 2>&1 || die "queueing needs jq (mise install)"
+  [ -f "$Q" ] && jq -e . "$Q" >/dev/null 2>&1 || printf '{"commands":[]}\n' > "$Q"
+  tmp="$Q.tmp.$$"
+  jq --arg w "$why" --arg r "$run" '.commands += [{why:$w, run:$r}]' "$Q" > "$tmp" && mv "$tmp" "$Q"
+  note "Put on their page: $run"
+}
+
 cmd_lock() { gpg-connect-agent reloadagent /bye >/dev/null 2>&1 || true; note "Locked. The next command will ask for your master password."; }
 
 cmd_rekey() {
@@ -231,6 +254,7 @@ mwk — your keys, in one place, behind one password.
   mwk                      (on your own terminal) a menu of the things you can do
   mwk init                 make the store (asks for a master password, once)
   mwk site                 open your page at http://127.0.0.1:29292/
+  mwk queue "why" "cmd"    put a command on their page (for the agent, not them)
   mwk add NAME [scope]     add a key. scope is 'project' (default) or 'global'
   mwk list                 what you have — names only, never values
   mwk run -- <command>     run something with your keys, just for that command
@@ -276,6 +300,7 @@ EOF
 case "${1:-}" in
   init) shift; cmd_init "$@";;
   site) shift; cmd_site "$@";;
+  queue) shift; cmd_queue "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;
   run) shift; cmd_run "$@";;

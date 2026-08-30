@@ -10,7 +10,6 @@ mise.lock
 docs/**
 test/**
 prompts/**
-templates/**
 .github/**
 .gitignore
 mwk/site/queue.json

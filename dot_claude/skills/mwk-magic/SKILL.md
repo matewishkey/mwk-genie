@@ -61,5 +61,5 @@ Say which of the three you can do right now and roughly what would change. Then
 wait. **Do not start fixing while you are still describing** — they asked you to
 look, not to rearrange.
 
-If they say yes, fix them, then run `/mwk-genie:save` so the tidy-up is a save
+If they say yes, fix them, then run `/mwk-save` so the tidy-up is a save
 point of its own and not tangled up with their actual work.

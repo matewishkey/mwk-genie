@@ -85,3 +85,32 @@ One account doing several jobs beats three that each do one.
 
 - **Never ask me for a website password, a code or a token.** I do those in my browser myself.
 - **Never install a language or a tool system-wide.** Use `mise`.
+
+## The things this computer has that others do not
+
+**`mwk` is where keys live.** Never put an API key in a file, in a `.env`, or in
+this conversation. `mwk add NAME` stores one; `mwk run -- <command>` hands the
+values to that one command and they vanish with it. `mwk list` shows names and
+never values, so you can always check what is there.
+
+**I cannot type a password and you should not ask me to.** `mwk init`, `mwk add`
+and `mwk rekey` refuse to run in my hands on purpose — I have no keyboard, and
+anything you typed to me would be saved in our conversation. When one of those is
+needed I put it on your page and you run it in a second tab. **Never tell me to
+quit** — the tab stays open.
+
+**Your page is `http://127.0.0.1:29292/`.** `mwk site` starts it. Anything I need
+you to type appears there with a Copy button and a line saying why it is yours to
+run. It only works on this computer, which is the point.
+
+**The commands I put there are also printed in the chat.** The page is one-way —
+it cannot tell me you pressed the button. So I never wait for it; I check whether
+the thing actually happened and carry on.
+
+**Things I can do for you by name:** `/mwk-new` starts a project, `/mwk-save`
+saves and pushes your work, `/mwk-learning` adds to your record, `/mwk-magic` is
+a second opinion on a project, `/mwk-bug` reports something broken in the kit.
+
+**`mise` is already here and it owns the tools.** Four of them are pinned in
+`~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not
+globally, or this machine drifts away from the one that was tested.

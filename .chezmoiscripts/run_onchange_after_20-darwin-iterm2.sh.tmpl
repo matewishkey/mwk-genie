@@ -1,0 +1,50 @@
+#!/bin/sh
+{{- if eq .chezmoi.os "darwin" }}
+# iTerm2 — macOS only. Mate's call, 2026-08-30: install it, don't offer it.
+#
+# NOT via Homebrew, and this is the one place it would have been tempting. iTerm2 is the
+# only thing in the whole kit that Homebrew could install and mise cannot, and dragging in
+# a package manager for one GUI app is how you end up maintaining two of everything.
+#
+# WHY THERE IS NO `xattr -dr com.apple.quarantine` HERE, and why nobody should add one:
+# com.apple.quarantine is set by applications that opt in — browsers, Mail. curl does not
+# set it. Verified on a real Mac: a Chrome download carried `com.apple.quarantine: 0281;…`
+# while binaries fetched by curl and by mise carried only `com.apple.provenance`. So there
+# is nothing to strip, and teaching a beginner's kit to blanket-strip quarantine is exactly
+# the wrong reflex to install on someone's first day.
+#
+# `ditto -x -k` rather than `unzip`: it is Apple's own unarchiver and preserves .app bundle
+# metadata without anyone having to think about which flags matter.
+#
+# ⚠ WRITTEN BUT NOT RUN. No Mac was available to execute this. Everything above was
+# measured on a real Mac; the sequence below has not been executed anywhere.
+set -eu
+[ "$(uname -s)" = Darwin ] || exit 0
+
+{{ if .admin -}}
+DEST="/Applications"
+{{- else -}}
+# /Applications is group-admin-writable, so it needs the admin answer. ~/Applications
+# always works and never prompts — which is why the question is asked once, at the start,
+# and reused here rather than becoming a second one.
+DEST="$HOME/Applications"
+{{- end }}
+
+if [ -d "$DEST/iTerm.app" ] || [ -d "/Applications/iTerm.app" ] || [ -d "$HOME/Applications/iTerm.app" ]; then
+  exit 0
+fi
+
+ZIP="${TMPDIR:-/tmp}/mwk-iterm2.zip"
+printf 'Installing iTerm2 (a nicer terminal — this takes a moment)\n'
+if ! curl -fsSL -o "$ZIP" https://iterm2.com/downloads/stable/latest; then
+  printf 'iTerm2 download failed. Not fatal — everything works without it.\n' >&2
+  exit 0
+fi
+mkdir -p "$DEST"
+if ditto -x -k "$ZIP" "$DEST"; then
+  printf 'iTerm2 is in %s. Open it from Spotlight when you want it.\n' "$DEST"
+else
+  printf 'iTerm2 could not be unpacked. Not fatal — everything works without it.\n' >&2
+fi
+rm -f "$ZIP"
+{{- end }}

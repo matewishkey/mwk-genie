@@ -1,0 +1,43 @@
+#!/bin/sh
+# ~/.claude/settings.json — MERGED, never replaced.
+#
+# This is a `modify_` script, not a managed file, and the difference was measured rather
+# than guessed (2026-08-30, chezmoi 2.72.0):
+#
+#   A plain managed dot_claude/settings.json, once Claude Code has written to it:
+#     * `chezmoi apply` with no TTY  → "could not open a new TTY", ABORTING THE WHOLE APPLY
+#     * `chezmoi apply --force`      → silently reverted the file, DESTROYING enabledPlugins
+#                                      — i.e. uninstalling their plugins with nothing on screen
+#   `create_` would be safe but write-once, so a later change to the kit's defaults would
+#   never reach anyone already installed.
+#
+# So: a script. chezmoi pipes the file's current content in on stdin and takes the new
+# content from stdout. Claude Code's own keys survive; ours are re-asserted every apply.
+#
+# NOTE FOR ANYONE TEMPTED TO MAKE THIS A TEMPLATE: `modify_` templates cannot do this.
+# `.chezmoi.stdin` does not exist in 2.72.0 — the key list was enumerated and it is absent.
+# Only a modify_ SCRIPT receives the current content.
+#
+# ⚠ WRITTEN BUT NOT RUN.
+set -eu
+
+current=$(cat)
+[ -n "$current" ] || current='{}'
+
+# No jq → pass the file through untouched. A merge tool that cannot merge must not write:
+# emitting anything else here would overwrite their real settings with a guess.
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s' "$current"
+  exit 0
+fi
+
+# Invalid JSON → also pass through. Their broken file is still more theirs than ours.
+if ! printf '%s' "$current" | jq -e . >/dev/null 2>&1; then
+  printf '%s' "$current"
+  exit 0
+fi
+
+# Opus, because the question was removed on the grounds it was already decided — and
+# removing the question had removed the setting with it. Claude Code's own default is not
+# opus. `/model sonnet` still switches it for one conversation, which is worth knowing.
+printf '%s' "$current" | jq '. + {model: (.model // "opus")}'
