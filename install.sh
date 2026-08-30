@@ -55,7 +55,13 @@ if have claude; then step "already installed"; else curl -fsSL https://claude.ai
 
 say "5/5  Setting up your computer"
 step "two questions, then everything else is automatic"
-mise exec -C "$KIT" -- chezmoi init --apply --source "$KIT"
+# Extra arguments are handed to chezmoi. That is how an unattended run supplies the two
+# answers:  ... | sh -s -- --promptChoice ccc_mode=fast --promptBool admin=true
+#
+# ⚠ chezmoi's prompts need a TTY (measured: "could not open a new TTY: open /dev/tty").
+# So THIS SCRIPT CANNOT BE RUN BY AN AGENT either — same boundary as `mwk add`. That is
+# the design, not a limitation: the person runs the script, the agent does the work after.
+mise exec -C "$KIT" -- chezmoi init --apply --source "$KIT" "$@"
 
 cat <<'DONE'
 
