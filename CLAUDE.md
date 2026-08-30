@@ -70,6 +70,10 @@ download or a temp file to `install.sh`, update the list in the same commit.
 | `mise` shims resolve from the config **in scope** | `mise.toml` is a project config, so tools were active only inside the kit. `mise use -g` fixes it |
 | A plain chezmoi-managed `settings.json` | With no TTY it **aborts the whole apply**; with `--force` it reverts the file and destroys `enabledPlugins`. Use `modify_`; `.chezmoi.stdin` does not exist, so it must be a script |
 | `nginx` ships **source only** — no binaries | It cannot be installed without a package manager. Caddy is in the aqua registry with mac and linux builds |
+| miniserve 0.35.0 has **no `--allowed-hosts`** | Checked its `--help`. A Host allowlist is the direct fix for rebinding and it does not exist here |
+| Binding to `127.0.0.1` does **not** stop a web page | A site can point its own domain at loopback and read the server same-origin. `mwk files` exposes all of `~/projects`, so it carries per-run basic auth; a browser will not send credentials cross-origin |
+| `.chezmoiignore` patterns match the **target** name | `dot_claude/**` matches nothing — the target is `.claude/**`. Writing the source name places NOTHING while reading correctly |
+| `A && B \|\| C && D` groups as `((A && B) \|\| C) && D` | A successful first branch still ran the second. Use `if/elif` |
 
 ## The store
 
@@ -86,11 +90,44 @@ directories contain one another.
 not a convention to remember. No `--value` flag anywhere, deliberately: that removes argv, `ps` and
 shell history as a class rather than mitigating them.
 
+## The failure this repo keeps having
+
+**A string replace that does not match is silent, and it looks exactly like one that worked.** It
+has now happened four times: three of v1's green ticks counted nothing, an ignore file placed
+nothing while reading correctly, and a menu renumbering left **two number 3s** with `uninstall`
+listed nowhere — so "see what keys you have" ran *add a key*.
+
+Every one was written confidently and reviewed as correct. The defence is not more care, it is
+asserting the result: after an edit, read back the thing that should have changed. `test/check.sh`
+now compares the menu's printed digits against its `case` arms, and asserts the placed-file list by
+name in both directions.
+
+## Debug mode
+
+`MWK_DEBUG=1` sends a run's log to `debug.matewishkey.com` — a Cloudflare Worker, KV, 30-day
+expiry. **Posting is open and reading needs a token**, deliberately: turning it on has to be one
+word a person can type on a call, and what needed protecting was reading. The read token is in
+`td-sops` at `apps/mwk-genie.enc.env`; the Worker holds its own copy, so rotating means both.
+
+Guards, all measured against the live endpoint: a body not starting with `=== mwk ` is 400 before
+it costs a KV write, 20 posts per IP per hour (post 19 → 201, post 20 → 429), 512 KB cap, reads
+401 without the token. **The run id is built in the Worker, not taken from the caller** — otherwise
+anyone posting could overwrite an existing run.
+
+Redaction happens **on the way out**, not by trusting the log: `$HOME` first so a username cannot
+survive inside a path, then age keys, `sk-`, `gh[pousr]_`, Slack, JWTs and long base64. The whole
+point of a debug log is that it caught something nobody expected.
+
+Two things in `install.sh`'s capture that are easy to break: the real stderr is kept on **fd 3**,
+because everything else is redirected into the capture pipe and a confirmation written into the log
+it is confirming is no confirmation; and the send is on an **EXIT trap**, because the run worth
+reading is the one that failed and `set -e` never reaches the bottom of the file.
+
 ## Ports
 
-Everything served lives in **292xx**: `29200` is always their page, and `mwk port` gives each
-project the next number up and the same one every time. One fixed port breaks the moment there are
-two projects.
+Everything served lives in **292xx**: `29200` is their page, `29201` browses `~/projects`, and
+`mwk port` gives each project the next number up from `29202` — the same one every time. One fixed
+port breaks the moment there are two projects.
 
 ## The page
 
@@ -150,12 +187,16 @@ bash test/rehearse.sh <sha> # minutes, Docker, the real install → uninstall �
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-## Still open
+## Still open — all four are filed
 
-- **Neither test script has been run in its current form.** An unrun suite is the failure this file
-  spends a section on.
-- **macOS is untested end to end.** Everything above was measured on a real Mac by probe; nothing
-  was installed there.
-- **nginx / Caddy** — mate wants one shared web front for project sites. nginx needs a package
-  manager; Caddy does not. Not built.
-- **`~/mwk/` vs the `input/`+`archive/` convention** — designed, not implemented.
+| # | |
+|---|---|
+| **#13** | `mwk` menu option 1 is a stub. It is the first thing on the front door and the one that does nothing. The issue carries the `input/` + `archive/` convention it should build |
+| **#14** | The show is mentioned in **zero** places and the rule is exactly two. A decision about tone, not a sweep |
+| **#15** | Caddy as the shared front for project sites. nginx cannot be used — source only. `auto_https off` and `admin off` are load-bearing |
+| **#16** | The v2 → main merge blockers, in order. `matewishkey-web#77` first, or their build goes red |
+
+**And the one that is not filed because it is not a task: neither test script has ever been run in
+its current form, and macOS has never had the kit installed on it.** Everything macOS in the table
+above was measured by probing a real Mac; nothing was installed there. A red result on the first
+real run is information, not a defect.
