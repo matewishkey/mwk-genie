@@ -90,6 +90,26 @@ done
 grep -q 'unset SOPS_AGE_KEY' bin/executable_mwk && ok "the master key is unset before the wrapped command runs" \
   || no "the master key is unset before the wrapped command runs" "it would be inherited"
 
+head_ "Only the right things reach a stranger's home directory"
+# .chezmoiignore is an ALLOW-list and its patterns match TARGET names, not source names —
+# get that wrong and it places NOTHING while looking correct. Assert both directions.
+managed=$(chezmoi managed --source . 2>/dev/null)
+for want in .claude/CLAUDE.md .claude/settings.json .claude/skills/mwk-save/SKILL.md \
+            .mwk-shell.sh bin/mwk bin/mwk-debug mwk/site/index.html mwk/site/password.html; do
+  printf '%s\n' "$managed" | grep -qx "$want" && ok "placed: $want" || no "placed: $want" "MISSING"
+done
+for never in debug-worker uninstall.sh README.md CLAUDE.md install.sh mise.toml mise.lock \
+             test prompts docs mwk/site/queue.json; do
+  printf '%s\n' "$managed" | grep -q "^$never" \
+    && no "never placed: $never" "it is being copied into their home" || ok "never placed: $never"
+done
+
+head_ "Nothing guest-facing assumes our machines"
+for term in td-sops 'work\.l' devproxy '192\.168' dotfiles-cz dokku healthchecks; do
+  n=$(grep -rniI "$term" dot_claude/ mwk/ bin/ prompts/ 2>/dev/null | wc -l)
+  is "no reference to $term" "$n" "0"
+done
+
 head_ "It can be taken back off"
 sh -n uninstall.sh && ok "uninstall.sh is valid sh" || no "uninstall.sh is valid sh" "syntax error"
 grep -q 'trash_it "$HOME/.mwk"' uninstall.sh \
@@ -134,10 +154,18 @@ grep -q 'artifact:' dot_claude/skills/mwk-learning/SKILL.md \
   || ok "mwk-learning has no artifact machinery left"
 
 head_ "The page they keep"
+# The rule is "red is never body text", which counting the hex does not test — the token
+# definition and the logo are both legitimate. Test the rule instead: red may be declared,
+# and it may fill the block, but nothing may set it as a text colour.
+for site in mwk/site/index.html mwk/site/password.html; do
+  grep -q 'e2342b' "$site" && ok "$(basename "$site"): the block carries the brand red" \
+    || no "$(basename "$site"): the block carries the brand red" "missing"
+  body_red=$(grep -c 'color:var(--red)[^-]' "$site" || true)
+  is "$(basename "$site"): red is never body text" "$body_red" "0"
+done
 site=mwk/site/index.html
-grep -q 'e2342b' "$site" && ok "the block carries the brand red" || no "the block carries the brand red" "missing"
-reds=$(grep -o 'e2342b' "$site" | wc -l)
-is "red is spent once, on the block" "$reds" "1"
+grep -q 'password.html' "$site" && ok "the page links the password guidance" \
+  || no "the page links the password guidance" "a guest would never find it"
 grep -q 'queue.json' "$site" && ok "the page reads queue.json" || no "the page reads queue.json" "missing"
 grep -q 'cmd_queue' bin/executable_mwk && ok "…and mwk writes it" || no "…and mwk writes it" "the page would have no producer"
 if command -v curl >/dev/null 2>&1; then

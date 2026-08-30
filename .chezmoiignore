@@ -1,14 +1,29 @@
-# Everything in this repo that is NOT a thing to place in their home directory.
-# Without this, chezmoi cheerfully copies the whole kit into $HOME.
-README.md
-CLAUDE.md
-LICENSE
-install.sh
-mise.toml
-mise.lock
-docs/**
-test/**
-prompts/**
-.github/**
-.gitignore
+# An ALLOW-LIST, inverted: ignore everything, then un-ignore the handful of paths that are
+# genuinely meant to land in somebody's home directory.
+#
+# WHY NOT A DENY-LIST: it was one, and it leaked. `debug-worker/` and `uninstall.sh` were
+# added to the repo weeks apart, neither was on the list, and chezmoi was placing
+# ~/debug-worker/wrangler.toml and ~/uninstall.sh into a stranger's home. A deny-list makes
+# the DEFAULT "copy it into their home", and the default is what you get on the day nobody
+# remembers to add a line.
+#
+# ⚠ THESE PATTERNS MATCH THE TARGET NAME, NOT THE SOURCE NAME. `dot_claude/**` matches
+# nothing; the target is `.claude/**`. Writing the source name here silently places NOTHING
+# — which is how the first version of this file dropped every skill and both settings files
+# while looking correct.
+*
+!.claude
+!.claude/**
+!.mwk-shell.sh
+!bin
+!bin/mwk
+!bin/mwk-debug
+!mwk
+!mwk/site
+!mwk/site/index.html
+!.chezmoiscripts
+!.chezmoiscripts/**
+
+# …except the queue, which the agent writes at runtime. chezmoi must not own it, or an
+# apply would wipe whatever is waiting on their page.
 mwk/site/queue.json

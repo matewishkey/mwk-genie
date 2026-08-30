@@ -33,7 +33,7 @@ SITE="${MWK_SITE:-$HOME/mwk/site}"
 # One fixed port per machine was the obvious first idea and it is wrong the moment there
 # are two projects — the second one either takes the first's port or picks something
 # random, and now nobody knows which address is which. A range removes the question
-# instead of answering it. Same shape as devproxy on the fleet.
+# instead of answering it.
 PORT_SITE=29200
 PORT_MIN=29201
 PORT_MAX=29299
@@ -178,19 +178,44 @@ cmd_init() {
   # age-keygen -o refuses to overwrite an existing file, and mktemp has already made one.
   age-keygen > "$tmp" 2>/dev/null
   grep -oE 'age1[a-z0-9]+' "$tmp" | head -1 > "$ID_PUB"
+  # The screen-share warning comes BEFORE anything is on screen, and it waits. A password
+  # revealed during a call, a recording or a shared screen is the one mistake here that
+  # cannot be taken back, and "be careful" printed alongside the password is too late.
+  printf '\n  %s%sBefore we make your password%s\n\n' "$B" "$RED" "$R"
   cat <<'EOF'
+  If anyone can see this screen right now — a call, a recording, someone
+  sitting next to you — stop sharing it before you go on. What comes next
+  is the one thing here that cannot be undone if somebody else sees it.
 
-  Your master password
-  ────────────────────
-  Everything you keep here is locked with one password. It is the only way in.
-  Nobody can reset it — not me, not anyone. Put it in your password manager now,
-  before you type it, and it will never be a problem again.
+EOF
+  printf '  Press Enter when nobody is looking. '
+  IFS= read -r _ || true
+  printf '\n  %s%sYour master password%s\n\n' "$B" "$RED" "$R"
+  cat <<'EOF'
+  Everything you keep here is locked behind one password, and it is the only
+  way in. Nobody can reset it — not me, not anyone.
+
+  Open your password manager FIRST, make a new entry, and keep it open. Then
+  either type a password you have just generated in there, or press Enter and
+  a strong one will be made for you and shown once.
+
+  There is more about this, including what to do if you have no password
+  manager yet, at:  http://127.0.0.1:29200/password.html
 
 EOF
   age -p -a -o "$ID_ENC" "$tmp"
   chmod 600 "$ID_ENC"
   : | sops_e "$GLOBAL"
-  note "Store created at $STORE"
+  cat >&2 <<'EOF'
+
+  Saved. Two things, now rather than later:
+
+    1. Put that password in your password manager if you have not already.
+    2. Clear this window so it is not sitting in your scroll-back —
+       type 'clear' and press Enter, or close the window.
+
+EOF
+  good "Your keys live in $STORE"
 }
 
 cmd_add() {
