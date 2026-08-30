@@ -33,7 +33,7 @@
 "aqua:twpayne/chezmoi"     = "2.72.0"   # applies this repo to their home directory
 "aqua:getsops/sops"        = "3.13.3"   # the store's encryption
 "aqua:FiloSottile/age"     = "1.3.1"    # …and its key. Brings age-keygen
-"aqua:svenstaro/miniserve" = "0.35.0"   # the local site on :29292
+"aqua:svenstaro/miniserve" = "0.35.0"   # the local site on :29200
 # jq merges ~/.claude/settings.json rather than replacing it. NOT python3: a stock Mac has
 # none without Command Line Tools, which v2 deliberately stopped installing.
 "aqua:jqlang/jq"           = "1.8.2"

@@ -14,7 +14,7 @@ memory. `CLAUDE.md` still describes v1 in most places — that rewrite is pendin
 | 4 | **Windows means WSL Ubuntu.** No native Windows target | `prompts/install.md` already says so, live on the site: *"There is a way to install the agent straight onto Windows… Do not take it."* A native target would share nothing with the Linux one and double the render matrix. |
 | 5 | **Two questions**, in `.chezmoi.toml.tmpl` | `ccc_mode` and `admin`. The model question is gone — opus was already decided on 2026-08-11. |
 | 6 | **No fleet anything.** No `~/.secrets`, no `td-sops`, no age recipients, no work.l | Mate will never run this himself; it is a clean install for clients, tested repeatedly on fresh machines. |
-| 7 | **`http://localhost:29292/` replaces the bookmark page** and the published learning artifact | See "The local site" below. |
+| 7 | **`http://localhost:29200/` replaces the bookmark page** and the published learning artifact | See "The local site" below. |
 
 ## The secret store — measured, 2026-08-28
 
@@ -86,7 +86,7 @@ without the password.
 
 ## The local site
 
-`http://localhost:29292/` — **not** `mwk.local`. Measured reasons:
+`http://localhost:29200/` — **not** `mwk.local`. Measured reasons:
 
 - `work.l` resolves because `.10` runs a LAN DNS server; a guest's laptop has none, and there is
   nothing to point a name at but their own machine.
@@ -96,7 +96,7 @@ without the password.
 - Any name at all costs a sudo (`/etc/hosts`) or a daemon (mDNS). `localhost` costs nothing and
   behaves identically on macOS, Ubuntu and WSL.
 
-Port `29292` verified free, and clear of `devproxy`'s 25000–25019.
+Port `29200` verified free, and clear of `devproxy`'s 25000–25019.
 
 **It replaces both keepers** — `templates/howto.html` and the published learning artifact. That
 retires the worst failure mode in v1: the learning page's address had to be stored in three places

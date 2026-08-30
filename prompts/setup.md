@@ -27,7 +27,7 @@ Run install.sh and let it finish. It asks nothing and needs no password. It inst
 THEN — PROVE IT WORKED, IN THEIR WORDS
 
   - `mwk` answers with a menu
-  - `mwk site` serves http://127.0.0.1:29292/
+  - `mwk site` serves http://127.0.0.1:29200/
   - a NEW terminal window knows `ccc` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
 
 THEN — GIVE THEM SOMEWHERE TO WORK

@@ -19,7 +19,7 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 |---|---|
 | `ccc` | starts the agent, from anywhere |
 | `mwk` | a menu: start something, see your keys, open your page |
-| `http://127.0.0.1:29292/` | your page — what you can type, and anything the agent needs you to run |
+| `http://127.0.0.1:29200/` | your page — what you can type, and anything the agent needs you to run |
 | `~/projects/<your thing>/` | your work, with an `input` folder to drop things into |
 | `~/.mwk/` | your keys, behind one password that only you know |
 

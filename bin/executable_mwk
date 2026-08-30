@@ -25,6 +25,40 @@ set -euo pipefail
 # someone adds -H to work out why a file is missing. Not being under the root survives that.
 STORE="${MWK_STORE:-$HOME/.mwk}"
 SITE="${MWK_SITE:-$HOME/mwk/site}"
+
+# ── ports ──────────────────────────────────────────────────────────────────────────────
+# Everything Mate Wish Key serves lives in 292xx, and one sentence explains the whole
+# scheme: 29200 is always your page, and every project you make gets the next number up.
+#
+# One fixed port per machine was the obvious first idea and it is wrong the moment there
+# are two projects — the second one either takes the first's port or picks something
+# random, and now nobody knows which address is which. A range removes the question
+# instead of answering it. Same shape as devproxy on the fleet.
+PORT_SITE=29200
+PORT_MIN=29201
+PORT_MAX=29299
+PORTS="$HOME/mwk/ports.tsv"      # <port>\t<absolute project path>
+
+port_free() { ! (command -v nc >/dev/null 2>&1 && nc -z 127.0.0.1 "$1" >/dev/null 2>&1); }
+
+# Same folder always gets the same number back. A port that moved between runs would make
+# every bookmark and every note stale, which is the thing a fixed address is for.
+cmd_port() {
+  here=$(pwd -P)
+  mkdir -p "$(dirname "$PORTS")"; [ -f "$PORTS" ] || : > "$PORTS"
+  mine=$(awk -F'\t' -v d="$here" '$2==d{print $1; exit}' "$PORTS")
+  if [ -n "$mine" ]; then printf '%s\n' "$mine"; return 0; fi
+  n=$PORT_MIN
+  while [ "$n" -le "$PORT_MAX" ]; do
+    if ! grep -q "^$n	" "$PORTS" && port_free "$n"; then
+      printf '%s\t%s\n' "$n" "$here" >> "$PORTS"
+      printf '%s\n' "$n"; return 0
+    fi
+    n=$((n+1))
+  done
+  die "every port from $PORT_MIN to $PORT_MAX is taken — 99 projects is a lot"
+}
+
 ID_ENC="$STORE/identity.age"
 ID_PUB="$STORE/identity.pub"
 GLOBAL="$STORE/global.enc.env"
@@ -203,9 +237,11 @@ cmd_needs() {
 }
 
 # Serve the page. Three things here are not defaults, and each was measured today:
-#   -i 127.0.0.1  miniserve otherwise binds "[::]:29292, 0.0.0.0:29292" and the page is
-#                 readable by everyone on the wifi. Verified: a fetch from this box's LAN
-#                 address returned 200.
+#   -i 127.0.0.1  miniserve binds every interface by default. Measured on port 29491:
+#                 it printed "Bound to [::]:29491, 0.0.0.0:29491", and a fetch from this
+#                 box's LAN address returned 200 — the page was readable by everyone on
+#                 the wifi. The port in that quote is the one the test used; the default
+#                 is the same whatever port you give it.
 #   -P            symlinks are followed by default. Verified: a symlink from the served
 #                 root into the store returned the ciphertext with a 200.
 #   the overlap check below, because both of those are flags and flags get changed.
@@ -218,24 +254,24 @@ cmd_site() {
   b=$(cd "$STORE" 2>/dev/null && pwd -P) || b="$STORE"
   case "$a/" in "$b/"*) die "refusing: the page directory is inside the store ($b)";; esac
   case "$b/" in "$a/"*) die "refusing: the store is inside the page directory ($a)";; esac
-  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 http://127.0.0.1:29292/; then
-    note "Already open: http://127.0.0.1:29292/"; return 0
+  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 http://127.0.0.1:29200/; then
+    note "Already open: http://127.0.0.1:29200/"; return 0
   fi
   # An agent has no terminal to give up, and `exec miniserve` never returns — so running
   # this the obvious way would hang the tool call until it timed out, and the page the
   # whole flow depends on would look broken. With no tty, detach and come straight back.
   if have_tty; then
-    note "Your page: http://127.0.0.1:29292/   (Ctrl+C here stops it)"
-    exec miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a"
+    note "Your page: http://127.0.0.1:29200/   (Ctrl+C here stops it)"
+    exec miniserve -i 127.0.0.1 -P --index index.html --port "$PORT_SITE" "$a"
   fi
   if command -v setsid >/dev/null 2>&1; then
-    setsid miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a" >/dev/null 2>&1 < /dev/null &
+    setsid miniserve -i 127.0.0.1 -P --index index.html --port "$PORT_SITE" "$a" >/dev/null 2>&1 < /dev/null &
   else
     # macOS has no setsid. nohup plus a background job is the portable equivalent.
-    nohup miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a" >/dev/null 2>&1 < /dev/null &
+    nohup miniserve -i 127.0.0.1 -P --index index.html --port "$PORT_SITE" "$a" >/dev/null 2>&1 < /dev/null &
   fi
   sleep 1
-  good "Their page is open: http://127.0.0.1:29292/"
+  good "Their page is open: http://127.0.0.1:29200/"
 }
 
 # The page's producer. It existed only as a sentence in a JavaScript comment: the site
@@ -288,7 +324,7 @@ mwk — your keys, in one place, behind one password.
 
   mwk                      (on your own terminal) a menu of the things you can do
   mwk init                 make the store (asks for a master password, once)
-  mwk site                 open your page at http://127.0.0.1:29292/
+  mwk site                 open your page at http://127.0.0.1:29200/
   mwk queue "why" "cmd"    put a command on their page (for the agent, not them)
   mwk add NAME [scope]     add a key. scope is 'project' (default) or 'global'
   mwk list                 what you have — names only, never values
@@ -337,6 +373,7 @@ case "${1:-}" in
   init) shift; cmd_init "$@";;
   site) shift; cmd_site "$@";;
   queue) shift; cmd_queue "$@";;
+  port) shift; cmd_port "$@";;
   uninstall) shift; cmd_uninstall "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;

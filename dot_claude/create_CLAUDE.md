@@ -99,7 +99,13 @@ anything you typed to me would be saved in our conversation. When one of those i
 needed I put it on your page and you run it in a second tab. **Never tell me to
 quit** — the tab stays open.
 
-**Your page is `http://127.0.0.1:29292/`.** `mwk site` starts it. Anything I need
+**Everything served on this computer lives in 292xx, and the rule is one sentence: `29200`
+is always their page, and each project gets the next number up.** `mwk port` inside a
+project prints its number and gives back the same one every time, so a bookmark or a note
+never goes stale. Never pick a port by hand — you would take one that is already spoken
+for, and nothing would say so.
+
+**Your page is `http://127.0.0.1:29200/`.** `mwk site` starts it. Anything I need
 you to type appears there with a Copy button and a line saying why it is yours to
 run. It only works on this computer, which is the point.
 

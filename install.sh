@@ -52,7 +52,7 @@ case "$(uname -s)" in
   *) printf 'This needs macOS or Linux. On Windows, open your Ubuntu window and run it there.\n' >&2; exit 1 ;;
 esac
 
-say "1/5  Getting the kit"
+say "1/6  Getting the kit"
 mkdir -p "$HOME/projects"
 if [ -d "$KIT/.git" ] && have_git; then
   step "already here — updating"; git -C "$KIT" pull --ff-only >/dev/null 2>&1 || true
@@ -63,28 +63,42 @@ else
   # curl is always real there, so the tarball is the kinder path. Safe to re-run.
   step "downloading (no git needed)"
   mkdir -p "$KIT"
-  curl -fsSL "$REPO/archive/refs/heads/$REF.tar.gz" | tar xz --strip-components=1 -C "$KIT"
+  # refs/heads/<x> is a BRANCH path and 404s for a commit SHA — and the rehearsal is told
+  # to pass a SHA, because raw.githubusercontent serves a stale branch for minutes after a
+  # push. So try the branch path, then the bare one, which is what a SHA needs.
+  curl -fsSL "$REPO/archive/refs/heads/$REF.tar.gz" 2>/dev/null | tar xz --strip-components=1 -C "$KIT" 2>/dev/null \
+    || curl -fsSL "$REPO/archive/$REF.tar.gz" | tar xz --strip-components=1 -C "$KIT"
 fi
 
-say "2/5  Installing mise (this is the only tool that installs tools)"
+say "2/6  Installing mise (this is the only tool that installs tools)"
 if have mise; then step "already installed"; else curl -fsSL https://mise.run | sh >/dev/null; fi
 PATH="$BIN:$HOME/.local/share/mise/shims:$PATH"; export PATH
 
-say "3/5  Installing chezmoi, sops, age and miniserve"
+say "3/6  Installing chezmoi, sops, age, miniserve and jq"
 step "from $KIT/mise.toml — same versions on every machine"
 ( cd "$KIT" && mise install --yes >/dev/null 2>&1 ) || ( cd "$KIT" && mise install --yes )
 
-say "4/5  Installing Claude Code"
+say "4/6  Installing Claude Code"
 if have claude; then step "already installed"; else curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1 || true; fi
 
-say "5/5  Setting up your computer"
-step "two questions, then everything else is automatic"
-# Extra arguments are handed to chezmoi. That is how an unattended run supplies the two
-# answers:  ... | sh -s -- --promptChoice ccc_mode=fast --promptBool admin=true
+# Make the kit's tools active EVERYWHERE, not just inside the kit directory.
 #
-# ⚠ chezmoi's prompts need a TTY (measured: "could not open a new TTY: open /dev/tty").
-# So THIS SCRIPT CANNOT BE RUN BY AN AGENT either — same boundary as `mwk add`. That is
-# the design, not a limitation: the person runs the script, the agent does the work after.
+# mise shims resolve a tool from the config in scope. mise.toml is a PROJECT config, so
+# `sops` and `age` are in scope inside ~/projects/mwk-genie and nowhere else — and `mwk`
+# is run from wherever the person happens to be standing. `mise use -g` writes the same
+# pinned versions into their global config, additively, so the shims resolve anywhere.
+say "5/6  Making those tools available everywhere"
+step "so mwk works wherever you are standing, not just inside the kit"
+for t in $(grep -oE '^"aqua:[^"]+"' "$KIT/mise.toml" | tr -d '"'); do
+  v=$(grep -F "\"$t\"" "$KIT/mise.toml" | grep -oE '"[0-9][^"]*"$' | tr -d '"')
+  mise use -g "$t@$v" >/dev/null 2>&1 || true
+done
+
+say "6/6  Setting up your computer"
+step "no questions, and no password"
+# There is nothing left to ask, which is why this can run unattended. chezmoi's prompts
+# were the only thing that needed a TTY; with none, an agent can run this script too.
+# Any extra arguments still reach chezmoi, which is how the rehearsal drives it.
 mise exec -C "$KIT" -- chezmoi init --apply --source "$KIT" "$@"
 
 printf '\n  %s────────────────────────────────────────────────────────────%s\n' "$DIM" "$R"

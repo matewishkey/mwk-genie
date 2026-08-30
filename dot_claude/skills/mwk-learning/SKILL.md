@@ -126,7 +126,7 @@ Rules for the page itself:
 ## 4. Save it, and tell them where
 
 Write it to `~/mwk/site/learnt.html`, beside `index.html`. Their page is already
-being served, so it is at **http://127.0.0.1:29292/learnt.html** the moment you
+being served, so it is at **http://127.0.0.1:29200/learnt.html** the moment you
 save it. Say that address out loud — it is the one they keep.
 
 **There is no publishing step and there is nothing to look up.** This used to be
