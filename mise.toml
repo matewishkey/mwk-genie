@@ -37,6 +37,9 @@
 # jq merges ~/.claude/settings.json rather than replacing it. NOT python3: a stock Mac has
 # none without Command Line Tools, which v2 deliberately stopped installing.
 "aqua:jqlang/jq"           = "1.8.2"
+# gh, because /mwk-save pushes their work and /mwk-bug files a report — both were written
+# assuming it, and nothing installed it. A project they cannot push is not saved.
+"aqua:cli/cli"             = "2.98.0"
 
 [settings]
 lockfile = true

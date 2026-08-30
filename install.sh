@@ -107,7 +107,7 @@ say "2/6  Installing mise (this is the only tool that installs tools)"
 if have mise; then step "already installed"; else curl -fsSL https://mise.run | sh >/dev/null; fi
 PATH="$BIN:$HOME/.local/share/mise/shims:$PATH"; export PATH
 
-say "3/6  Installing chezmoi, sops, age, miniserve and jq"
+say "3/6  Installing chezmoi, sops, age, miniserve, jq and gh"
 step "from $KIT/mise.toml — same versions on every machine"
 ( cd "$KIT" && mise install --yes >/dev/null 2>&1 ) || ( cd "$KIT" && mise install --yes )
 

@@ -22,7 +22,11 @@ Then tell them, in one sentence and no jargon, what it is about to do. If any an
 
 THEN — RUN IT
 
-Run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, five pinned tools, Claude Code if it is missing, and their settings.
+Run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, six pinned tools, Claude Code if it is missing, and their settings.
+
+THEN — FIX YOUR OWN PATH BEFORE YOU CHECK ANYTHING
+
+Your shell was started before any of this existed, so `mwk` is not on your PATH and will be "command not found" even though it installed perfectly. Run `. ~/.mwk-shell.sh` once, in this session, before the checks below. A new window that they open gets it automatically; you do not.
 
 THEN — PROVE IT WORKED, IN THEIR WORDS
 
@@ -38,6 +42,18 @@ Install one plugin and one documentation source, and nothing else. Every extra t
   - claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp — up-to-date documentation for whatever library they end up using. The --scope user matters: without it, it is registered only for the folder you are standing in, and the next thing you do is move them to a different one.
 
 Check each worked before saying it did. If either fails, say so and carry on — neither is load-bearing.
+
+THEN — GET THEM SIGNED IN TO GITHUB
+
+This is where their work gets saved, so it has to happen before the first project rather than in the middle of the first save.
+
+Run `gh auth login --hostname github.com --git-protocol https --skip-ssh-key` in the background and read the code out of its output. It prints a short code and a URL and then waits.
+
+Tell them: open github.com/login/device, type the code, and come back. Their phone is fine. Do not make them type anything into the terminal for this.
+
+Then poll `gh auth status` until it is clean. Two things will bite you: the code expires, so be ready to run it again and give them a fresh one rather than reporting failure; and the waiting must be in the background, because a foreground command will hit your own timeout and look like a failure while the sign-in is still perfectly alive.
+
+If they do not have a GitHub account, walk them through making one first — it is free, and without it nothing they build can be saved anywhere but this computer.
 
 THEN — GIVE THEM SOMEWHERE TO WORK
 

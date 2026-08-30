@@ -21,3 +21,13 @@ specifiers = ["0.35.0"]
 version = "2.72.0"
 backend = "aqua:twpayne/chezmoi"
 specifiers = ["2.72.0"]
+
+[[tools."aqua:jqlang/jq"]]
+version = "1.8.2"
+backend = "aqua:jqlang/jq"
+specifiers = ["1.8.2"]
+
+[[tools."aqua:cli/cli"]]
+version = "2.98.0"
+backend = "aqua:cli/cli"
+specifiers = ["2.98.0"]
