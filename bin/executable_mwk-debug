@@ -1,0 +1,68 @@
+#!/bin/sh
+# mwk-debug — ship a run's output somewhere mate can read it, instead of asking whoever is
+# testing to copy a terminal window between two machines.
+#
+# ⚠ OFF UNLESS EXPLICITLY TURNED ON. It does nothing at all unless MWK_DEBUG holds a token.
+# There is no flag a guest could trip over and no default endpoint: with no token this exits
+# 0 having sent nothing. A stranger running the kit never uploads anything, ever.
+#
+#   MWK_DEBUG=<token> sh install.sh        # the installer ships its own log
+#   MWK_DEBUG=<token> mwk-debug send FILE  # send anything else
+#   MWK_DEBUG=<token> mwk-debug run -- cmd # run something and ship what it printed
+#
+# WHAT IT REDACTS, AND WHY THAT IS NOT OPTIONAL: this uploads a terminal transcript from a
+# machine that has a secret store on it. Anything key-shaped is replaced before it leaves.
+# Redaction is done on the way OUT rather than trusting the log not to contain one, because
+# the whole point of a debug log is that it captured something you did not expect.
+set -eu
+
+ENDPOINT="${MWK_DEBUG_ENDPOINT:-https://debug.matewishkey.com}"
+TOKEN="${MWK_DEBUG:-}"
+
+[ -n "$TOKEN" ] || exit 0          # not in debug mode. Silence is the correct behaviour.
+
+redact() {
+  # $HOME first, so a username cannot survive inside a longer path.
+  sed -e "s|$HOME|~|g" \
+      -e 's/AGE-SECRET-KEY-[A-Z0-9]*/[age-key-redacted]/g' \
+      -e 's/sk-[A-Za-z0-9_-]\{16,\}/[key-redacted]/g' \
+      -e 's/gh[pousr]_[A-Za-z0-9]\{16,\}/[github-token-redacted]/g' \
+      -e 's/xox[abps]-[A-Za-z0-9-]\{10,\}/[slack-token-redacted]/g' \
+      -e 's/eyJ[A-Za-z0-9_.-]\{20,\}/[jwt-redacted]/g' \
+      -e 's/[A-Za-z0-9+/]\{40,\}=\{0,2\}/[long-string-redacted]/g' \
+      -e "s|$TOKEN|[debug-token-redacted]|g"
+}
+
+facts() {
+  printf 'os        %s %s\n' "$(uname -s)" "$(uname -m)"
+  [ "$(uname -s)" = Darwin ] && printf 'macos     %s\n' "$(sw_vers -productVersion 2>/dev/null || echo '?')"
+  [ -r /etc/os-release ] && printf 'distro    %s\n' "$(. /etc/os-release; echo "$PRETTY_NAME")"
+  grep -qi microsoft /proc/version 2>/dev/null && printf 'wsl       yes\n'
+  printf 'shell     %s\n' "${SHELL:-?}"
+  printf 'kit       %s\n' "$(git -C "$HOME/projects/mwk-genie" rev-parse --short HEAD 2>/dev/null || echo 'not a checkout')"
+  for t in mise chezmoi sops age miniserve jq claude mwk; do
+    printf '%-9s %s\n' "$t" "$(command -v "$t" 2>/dev/null || echo '-')"
+  done
+}
+
+send() {
+  run="${MWK_RUN_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+  body=$( { printf '=== %s ===\n' "$run"; facts; printf '\n--- output ---\n'; cat "$1"; } | redact )
+  code=$(printf '%s' "$body" | curl -s -o /dev/null -w '%{http_code}' -m 20 \
+          -X POST "$ENDPOINT/r/$run" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H 'Content-Type: text/plain' --data-binary @- 2>/dev/null || echo 000)
+  case "$code" in
+    200|201) printf '\n  debug log sent: %s/r/%s\n' "$ENDPOINT" "$run" >&2 ;;
+    000) printf '\n  debug log could not be sent (no network?) — kept at %s\n' "$1" >&2 ;;
+    *)   printf '\n  debug log rejected (%s) — kept at %s\n' "$code" "$1" >&2 ;;
+  esac
+}
+
+case "${1:-}" in
+  send) shift; [ -f "${1:-}" ] || { echo "mwk-debug send <file>" >&2; exit 2; }; send "$1" ;;
+  run)  shift; [ "${1:-}" = "--" ] && shift
+        t=$(mktemp); trap 'rm -f "$t"' EXIT
+        "$@" 2>&1 | tee "$t"; send "$t" ;;
+  *) echo "mwk-debug send <file> | run -- <command>" >&2; exit 2 ;;
+esac

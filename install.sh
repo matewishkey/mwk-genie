@@ -47,6 +47,38 @@ have_git() {
   return 0
 }
 
+# ── debug mode ────────────────────────────────────────────────────────────────────────
+# Off unless MWK_DEBUG holds a token. With none, this whole block does nothing and the
+# script behaves exactly as it always has — a guest cannot switch it on by accident and
+# has nowhere to send anything to.
+#
+# The capture is a named pipe rather than `exec > >(tee ...)`, because that is bash-only
+# process substitution and this script is POSIX sh by design.
+#
+# The trap is the point: the run worth reading is the one that FAILED, and `set -e` means
+# a failure exits without reaching the bottom of the file. EXIT fires either way.
+if [ -n "${MWK_DEBUG:-}" ]; then
+  MWK_LOG=$(mktemp 2>/dev/null || echo /tmp/mwk-install.$$)
+  MWK_RUN_ID="install-$(date +%Y%m%d-%H%M%S)-$$"; export MWK_RUN_ID
+  _fifo="${TMPDIR:-/tmp}/mwk-fifo.$$"
+  if mkfifo "$_fifo" 2>/dev/null; then
+    tee -a "$MWK_LOG" < "$_fifo" &
+    _tee=$!
+    exec > "$_fifo" 2>&1
+    ship() {
+      rc=$?
+      exec >&- 2>&- || true
+      wait "$_tee" 2>/dev/null || true
+      rm -f "$_fifo"
+      printf 'exit %s
+' "$rc" >> "$MWK_LOG"
+      [ -x "$HOME/bin/mwk-debug" ] && MWK_DEBUG="$MWK_DEBUG" "$HOME/bin/mwk-debug" send "$MWK_LOG"         || [ -x "$KIT/bin/executable_mwk-debug" ] && MWK_DEBUG="$MWK_DEBUG" sh "$KIT/bin/executable_mwk-debug" send "$MWK_LOG"
+      return $rc
+    }
+    trap ship EXIT
+  fi
+fi
+
 case "$(uname -s)" in
   Darwin|Linux) ;;
   *) printf 'This needs macOS or Linux. On Windows, open your Ubuntu window and run it there.\n' >&2; exit 1 ;;

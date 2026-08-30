@@ -100,6 +100,17 @@ grep -q '\[ -t 0 \] || return 1' uninstall.sh \
   && ok "no keyboard means no consent — it does not assume yes" \
   || no "no keyboard means no consent" "an unattended run could delete their keys"
 
+head_ "Debug mode is off unless it is switched on"
+# The property that matters: a guest must never upload anything. Assert the silence, not
+# the intention — with no token this exits 0 having sent nothing.
+out=$(MWK_DEBUG= sh bin/executable_mwk-debug send /etc/hostname 2>&1); rc=$?
+is "no token: exits 0" "$rc" "0"
+is "no token: says nothing"  "$out" ""
+grep -q 'AGE-SECRET-KEY' bin/executable_mwk-debug && ok "the redactor knows age keys" || no "the redactor knows age keys" "missing"
+grep -q "s|\$HOME|~|g" bin/executable_mwk-debug && ok "and strips \$HOME before anything else" \
+  || no "it strips \$HOME" "a username would survive inside a path"
+grep -q 'debug.matewishkey.com' bin/executable_mwk-debug && ok "endpoint is pinned, not guessed" || no "endpoint is pinned" "missing"
+
 head_ "Colour"
 for f in install.sh uninstall.sh bin/executable_mwk; do
   grep -q '226;52;43' "$f" && ok "$f carries the brand red" || no "$f carries the brand red" "missing"

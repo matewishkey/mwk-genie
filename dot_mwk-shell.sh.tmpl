@@ -84,6 +84,10 @@ elif [ -n "${BASH_VERSION:-}" ]; then
   PS1='\[\033[38;5;203m\]\W\[\033[0m\]$(__mwk_git) \[\033[38;5;203m\]›\[\033[0m\] '
 fi
 
+# Debug mode, for whoever is testing the kit on a machine that is not the one the code
+# lives on. Does nothing at all without a token — see bin/executable_mwk-debug.
+alias mwk-debug-run='mwk-debug run --'
+
 # Colour everywhere else too. macOS ls wants -G and its own variable; GNU ls wants
 # --color, and asking the wrong one produces an error on every single command.
 if ls --color=auto >/dev/null 2>&1; then

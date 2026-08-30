@@ -1,0 +1,18 @@
+# Deploy:  cd debug-worker && wrangler deploy
+# Token:   wrangler secret put MWK_DEBUG_TOKEN
+#
+# The KV namespace id is filled in by `wrangler kv namespace create MWK_GENIE_DEBUG`.
+# Named with the project prefix on purpose: this Cloudflare account holds every project's
+# workers, and the fleet rule is that anything scoped by name can be found and removed by
+# name later.
+name = "mwk-genie-debug"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+routes = [
+  { pattern = "debug.matewishkey.com", custom_domain = true }
+]
+
+[[kv_namespaces]]
+binding = "LOGS"
+id = "d75473e6378b4820938f3ee2959c3d03"
