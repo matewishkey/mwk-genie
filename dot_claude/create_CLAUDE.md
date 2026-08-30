@@ -115,6 +115,12 @@ project prints its number and gives back the same one every time, so a bookmark 
 never goes stale. Never pick a port by hand — you would take one that is already spoken
 for, and nothing would say so.
 
+**`mwk serve` inside a project opens it in a browser on that number.** Use it the moment
+there is anything to look at — seeing their own website appear is the point at which this
+stops being abstract for them. It is also listed on their page under **Your projects**,
+with a dot showing whether it is running, so they can always find their way back without
+asking you. Servers do not survive a restart: if the dot is grey, run `mwk serve` again.
+
 **Your page is `http://127.0.0.1:29200/`.** `mwk site` starts it. Anything I need
 you to type appears there with a Copy button and a line saying why it is yours to
 run. It only works on this computer, which is the point.
@@ -127,6 +133,6 @@ the thing actually happened and carry on.
 saves and pushes your work, `/mwk-learning` adds to your record, `/mwk-magic` is
 a second opinion on a project, `/mwk-bug` reports something broken in the kit.
 
-**`mise` is already here and it owns the tools.** Four of them are pinned in
+**`mise` is already here and it owns the tools.** Six of them are pinned in
 `~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not
 globally, or this machine drifts away from the one that was tested.

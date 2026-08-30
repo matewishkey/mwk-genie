@@ -97,6 +97,110 @@ done
 grep -q 'unset SOPS_AGE_KEY' bin/executable_mwk && ok "the master key is unset before the wrapped command runs" \
   || no "the master key is unset before the wrapped command runs" "it would be inherited"
 
+# ── the add-eats-the-store class ──────────────────────────────────────────────────────
+# Three separate mistakes had to line up for `mwk add` to replace the whole store with one
+# key, and each of these asserts one of them is gone. They are cheap; the functional test
+# further down is the one that would actually catch a new way of doing the same thing.
+if sed -n '/^have_tty()/p' bin/executable_mwk | grep -q '\-t 1'; then
+  no "have_tty does not ask about stdout" "it tests [ -t 1 ], which is false inside every pipeline — so a person reading in one looks like an agent"
+else ok "have_tty does not ask about stdout"; fi
+if sed -n '/^sops_d()/,/^}/p' bin/executable_mwk | grep -q 'locked_msg'; then
+  no "sops_d never exits by itself" "locked_msg does exit 3, and in a pipeline that leaves only the subshell — the caller writes anyway"
+else ok "sops_d never exits by itself, it returns non-zero"; fi
+add_body=$(sed -n '/^cmd_add()/,/^}/p' bin/executable_mwk)
+printf '%s\n' "$add_body" | grep -q 'unlock_once' \
+  && ok "cmd_add unlocks in the main shell, before it reads" \
+  || no "cmd_add unlocks before it reads" "the prompt would land inside a pipeline"
+printf '%s\n' "$add_body" | grep -q 'die "could not read what is already in your store' \
+  && ok "…and a failed read stops it, rather than writing anyway" \
+  || no "a failed read stops cmd_add" "this is the bug that ate the store"
+printf '%s\n' "$add_body" | grep -q 'did not come back right' \
+  && ok "…and it reads the store back and checks the old names survived" \
+  || no "cmd_add asserts its own result" "the one file with no backup deserves a read-back"
+
+head_ "…and the same property, actually run"
+# EVERYTHING ABOVE THIS LINE IS A GREP. This is the property itself: add two keys, and both
+# are still there afterwards. It is the only check in the file that runs mwk against a real
+# store, and it exists because every static check in this section would have passed happily
+# on the day `mwk add` started replacing the store with a single key.
+#
+# It needs sops, age and a pty. On this fleet those tools are mise-managed inside the kit
+# rather than on PATH, so try that before giving up — and if they are genuinely missing,
+# SAY the check did not run rather than counting it as a pass.
+if ! command -v sops >/dev/null 2>&1 && command -v mise >/dev/null 2>&1; then
+  eval "$(mise env -s bash 2>/dev/null)" || true
+fi
+TMO=""; command -v timeout >/dev/null 2>&1 && TMO="timeout 45"
+pty() {   # run "$1" with a controlling terminal. util-linux and BSD `script` differ.
+  if script --version 2>&1 | grep -qi util-linux; then $TMO script -qec "$1" /dev/null
+  else $TMO script -q /dev/null /bin/sh -c "$1"; fi
+}
+if command -v sops >/dev/null 2>&1 && command -v age >/dev/null 2>&1 \
+   && command -v script >/dev/null 2>&1; then
+  T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
+  cp bin/executable_mwk "$T/mwk"; chmod +x "$T/mwk"; mkdir -p "$T/site"
+  # Both overrides, so nothing here can reach the real home. ports.tsv follows MWK_SITE.
+  export MWK_STORE="$T/store" MWK_SITE="$T/site"
+  PW='check-suite-passphrase'
+  printf '\n%s\n%s\n' "$PW" "$PW" | pty "$T/mwk init" >/dev/null 2>&1
+  if [ -f "$T/store/identity.age" ]; then
+    ok "mwk init makes a passphrase-encrypted store"
+    printf '%s\nvalue-a\n' "$PW" | pty "$T/mwk add ALPHA global" >/dev/null 2>&1
+    printf '%s\nvalue-b\n' "$PW" | pty "$T/mwk add BETA global"  >/dev/null 2>&1
+    got=$(printf '%s\n' "$PW" | pty "$T/mwk list" 2>/dev/null \
+          | grep -aoE '^(ALPHA|BETA|GAMMA)' | sort -u | tr '\n' ' ')
+    is "adding a second key keeps the first" "$got" "ALPHA BETA "
+    # And the other half: a wrong password must leave the store exactly as it was. It used
+    # to print "Stored", exit 0, and take both of the keys above with it.
+    printf 'not-the-password\nvalue-c\n' | pty "$T/mwk add GAMMA global" >/dev/null 2>&1
+    after=$(printf '%s\n' "$PW" | pty "$T/mwk list" 2>/dev/null \
+            | grep -aoE '^(ALPHA|BETA|GAMMA)' | sort -u | tr '\n' ' ')
+    is "a wrong password changes nothing at all" "$after" "ALPHA BETA "
+  else
+    no "mwk init makes a store (nothing below it ran)" "no identity.age was written"
+  fi
+  unset MWK_STORE MWK_SITE
+else
+  no "the store's behaviour was tested for real (SKIPPED)" \
+     "needs sops, age and script on PATH — this did not run, and that is not a pass"
+fi
+
+head_ "Showing a project in a browser"
+grep -q 'cmd_serve' bin/executable_mwk && ok "mwk serve exists" \
+  || no "mwk serve exists" "mwk port hands out an address with nothing listening on it"
+grep -qE '^  serve\) shift; cmd_serve' bin/executable_mwk && ok "…and the dispatcher reaches it" \
+  || no "mwk serve is reachable" "the function exists but no argument gets to it"
+serve_body=$(sed -n '/^cmd_serve()/,/^}/p' bin/executable_mwk)
+n=$(printf '%s\n' "$serve_body" | grep -cE 'miniserve -i 127\.0\.0\.1 -P ')
+[ "$n" -ge 2 ] && ok "every miniserve it starts is loopback-only and follows no symlinks ($n)" \
+  || no "mwk serve binds loopback only" "miniserve binds 0.0.0.0 by default — this would be on the wifi"
+for guard in '"\$HOME")' '"\$HOME/projects")' 'inside your key store'; do
+  printf '%s\n' "$serve_body" | grep -q -- "$guard" && ok "it refuses to serve: ${guard}" \
+    || no "it refuses to serve ${guard}" "one folder is the deal; everything at once is 'mwk files'"
+done
+grep -q 'write_projects_json' bin/executable_mwk && ok "mwk writes projects.json" \
+  || no "mwk writes projects.json" "the page would have a reader and no writer, again"
+grep -q "projects.json" mwk/site/index.html && ok "…and the page reads it" \
+  || no "the page reads projects.json" "missing"
+grep -q 'jq -Rs' bin/executable_mwk && ok "…built with jq, not by hand" \
+  || no "projects.json is built with jq" "a folder name with a quote in it would break the page silently"
+# Liveness must be asked of the port, not remembered from a file: a "running" flag is wrong
+# the moment the laptop sleeps, and it is wrong in the reassuring direction.
+grep -q "mode:'no-cors'" mwk/site/index.html && ok "the running dot asks the port, not a stored flag" \
+  || no "the running dot asks the port" "a remembered flag goes green-and-wrong after a reboot"
+
+head_ "The password page's Copy button"
+# It shipped carrying index.html's script verbatim: that script looks up #queue, which is
+# not on that page, and binds handlers only to buttons it builds itself. So the one command
+# on the page — mwk rekey — could not be copied, and nothing said so.
+n=$(grep -c 'data-c=' mwk/site/password.html || true)
+[ "$n" -ge 1 ] && ok "it has $n command button(s)" || no "it has a command button" "none found"
+grep -q 'querySelectorAll' mwk/site/password.html \
+  && ok "…and something is actually bound to them" \
+  || no "something is bound to the Copy button" "the button is decorative — this exact bug shipped"
+q=$(grep -c "getElementById('queue')" mwk/site/password.html || true)
+is "it does not look for #queue, which is not on this page" "$q" "0"
+
 head_ "Only the right things reach a stranger's home directory"
 # .chezmoiignore is an ALLOW-list and its patterns match TARGET names, not source names —
 # get that wrong and it places NOTHING while looking correct. Assert both directions.
@@ -106,7 +210,7 @@ for want in .claude/CLAUDE.md .claude/settings.json .claude/skills/mwk-save/SKIL
   printf '%s\n' "$managed" | grep -qx "$want" && ok "placed: $want" || no "placed: $want" "MISSING"
 done
 for never in debug-worker uninstall.sh README.md CLAUDE.md install.sh mise.toml mise.lock \
-             test prompts docs mwk/site/queue.json; do
+             test prompts docs mwk/site/queue.json mwk/site/projects.json; do
   printf '%s\n' "$managed" | grep -q "^$never" \
     && no "never placed: $never" "it is being copied into their home" || ok "never placed: $never"
 done

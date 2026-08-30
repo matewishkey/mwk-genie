@@ -39,7 +39,10 @@ PORT_SITE=29200      # their page
 PORT_FILES=29201     # the file browser over ~/projects
 PORT_MIN=29202       # projects, one each, from here up
 PORT_MAX=29299
-PORTS="$HOME/mwk/ports.tsv"      # <port>\t<absolute project path>
+# Derived from $SITE rather than hard-coded to $HOME, so MWK_SITE moves the whole set
+# together. It was $HOME/mwk/ports.tsv literally, which meant a test pointed at a scratch
+# directory still wrote into the real home — the one place a test must never reach.
+PORTS="$(dirname "$SITE")/ports.tsv"      # <port>\t<absolute project path>
 
 port_free() { ! (command -v nc >/dev/null 2>&1 && nc -z 127.0.0.1 "$1" >/dev/null 2>&1); }
 
@@ -49,16 +52,44 @@ cmd_port() {
   here=$(pwd -P)
   mkdir -p "$(dirname "$PORTS")"; [ -f "$PORTS" ] || : > "$PORTS"
   mine=$(awk -F'\t' -v d="$here" '$2==d{print $1; exit}' "$PORTS")
-  if [ -n "$mine" ]; then printf '%s\n' "$mine"; return 0; fi
+  if [ -n "$mine" ]; then write_projects_json; printf '%s\n' "$mine"; return 0; fi
   n=$PORT_MIN
   while [ "$n" -le "$PORT_MAX" ]; do
     if ! grep -q "^$n	" "$PORTS" && port_free "$n"; then
       printf '%s\t%s\n' "$n" "$here" >> "$PORTS"
+      # So a project appears on their page the moment it HAS an address, not only once
+      # somebody remembers to serve it.
+      write_projects_json
       printf '%s\n' "$n"; return 0
     fi
     n=$((n+1))
   done
   die "every port from $PORT_MIN to $PORT_MAX is taken — 99 projects is a lot"
+}
+
+# The page's second producer, and it exists for the same reason the first one does: the
+# page could show a list of their projects, and nothing anywhere wrote one.
+#
+# ports.tsv is the record, but it sits one directory ABOVE the served root, which is
+# deliberate and stays that way — so the record is copied into the one place the page can
+# actually fetch. Same shape as queue.json: mwk writes, the page reads, nothing else.
+#
+# jq, not a hand-built string: a folder called `mate's site` would otherwise produce JSON
+# the page silently fails to parse, and a page showing nothing looks exactly like a person
+# with no projects.
+write_projects_json() {
+  [ -d "$SITE" ] || return 0
+  [ -f "$PORTS" ] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  t="$SITE/projects.json.tmp.$$"
+  if jq -Rs 'split("\n") | map(select(length > 0) | split("\t")
+             | {port: (.[0] | tonumber), path: .[1], name: (.[1] | split("/") | last)})
+             | {projects: .}' < "$PORTS" > "$t" 2>/dev/null; then
+    mv "$t" "$SITE/projects.json"
+  else
+    rm -f "$t"
+  fi
+  return 0
 }
 
 ID_ENC="$STORE/identity.age"
@@ -85,7 +116,20 @@ note() { printf '%s\n' "$*" >&2; }
 good() { printf '%s%s%s\n' "$GRN" "$*" "$R" >&2; }
 
 # The one boundary. Everything that touches a plaintext value goes through this.
-have_tty() { [ -t 0 ] && [ -t 1 ] && (exec 3<>/dev/tty) 2>/dev/null; }
+#
+# ⚠ IT DOES NOT TEST STDOUT, AND THAT IS THE WHOLE POINT. It used to say `[ -t 1 ]` as
+# well, which asks "does my stdout happen to be a terminal right now" — a property of the
+# CURRENT REDIRECTION, not of whether a person is sitting there. Measured 2026-08-30: the
+# same function answers "a human is here" at the top of a command and "nobody is here" one
+# pipe later, and `cmd_add` reads inside a pipeline. So every single `mwk add` took the
+# no-human path: a 6-second bound on a person typing a password, and sops's errors thrown
+# away. See sops_d for what that then cost.
+#
+# The property that actually holds is whether the controlling terminal can be OPENED.
+# Positive control, run from an agent's shell with no terminal: /dev/tty is not openable,
+# stdin is not a tty, stdout is not a tty. So `require_tty` still refuses there, which is
+# the enforcement this file exists for.
+have_tty() { [ -t 0 ] && (exec 3<>/dev/tty) 2>/dev/null; }
 require_tty() {
   have_tty && return 0
   cat >&2 <<'EOF'
@@ -146,23 +190,51 @@ EOF
 preflight_read() {
   have_tty && { unlock_once; return 0; }
   [ -f "$GLOBAL" ] || return 0
+  # No terminal AND nothing to bound the wait with. On a Mac there is no `timeout` and
+  # nothing is holding the passphrase, so sops would sit on a /dev/tty it cannot open
+  # until something else killed it. "Locked" is the honest answer and it is instant.
+  [ -n "$TIMEOUT" ] || locked_msg
   SOPS_AGE_KEY_FILE="$ID_ENC" $TIMEOUT \
     sops -d --input-type dotenv --output-type dotenv "$GLOBAL" >/dev/null 2>&1 || locked_msg
 }
 
+# Reading is the dangerous direction, for three reasons found by testing, not reasoning:
+#
+#  1. PREFER THE KEY THIS PROCESS ALREADY HOLDS. Setting SOPS_AGE_KEY_FILE as well as
+#     SOPS_AGE_KEY asks sops to open the ENCRYPTED identity all over again — a second
+#     passphrase prompt for a key we are already carrying (pinentry on Linux, /dev/tty on
+#     a Mac). `unlock_once` exists precisely so that prompt happens exactly once.
+#
+#  2. With no key and no TTY, sops does not fail — it HANGS on a pinentry that can never
+#     appear. Measured: a bare `sops -d` sat there until a 2-minute timeout killed it. So
+#     that path stays bounded, and a timeout there means "locked".
+#
+#  3. ⚠ THIS FUNCTION NEVER EXITS. It returns non-zero and lets the caller decide. It used
+#     to call locked_msg, which does `exit 3` — and its callers run it inside a PIPELINE,
+#     where `exit` leaves the subshell and the script carries calmly on with empty output.
+#     That is how `mwk add` came to replace the whole store with a single key: measured
+#     2026-08-30, three adds with the CORRECT password each time left exactly one key, and
+#     each one printed a green "Stored". Aborting is the caller's job because only the
+#     caller is running in the main shell where `exit` means anything.
 sops_d() {
   [ -f "$1" ] || return 0
-  if have_tty; then
-    SOPS_AGE_KEY_FILE="$ID_ENC" sops -d --input-type dotenv --output-type dotenv "$1"
+  if [ -n "${SOPS_AGE_KEY:-}" ]; then
+    sops -d --input-type dotenv --output-type dotenv "$1"
   else
     SOPS_AGE_KEY_FILE="$ID_ENC" $TIMEOUT \
-      sops -d --input-type dotenv --output-type dotenv "$1" 2>/dev/null || locked_msg
+      sops -d --input-type dotenv --output-type dotenv "$1" 2>/dev/null
   fi
 }
 
+# Encrypting needs a RECIPIENT, never an identity — so SOPS_AGE_KEY_FILE is deliberately
+# not set here. It was, and pointing sops at a passphrase-encrypted identity for an
+# operation that has no use for it is an invitation to prompt, or to hang, for nothing.
+#
+# `sops -e ... > "$f"` truncates $f before sops runs, so a failed encrypt would DELETE the
+# store. Write to a temp and move it into place.
 sops_e() {
   t="$1.tmp.$$"
-  if SOPS_AGE_KEY_FILE="$ID_ENC" sops -e --age "$(recipient)" \
+  if sops -e --age "$(recipient)" \
        --input-type dotenv --output-type dotenv /dev/stdin > "$t" 2>/dev/null; then
     mv "$t" "$1"
   else
@@ -170,7 +242,12 @@ sops_e() {
   fi
 }
 
-names_of() { sops_d "$1" | grep -oE '^[A-Za-z_][A-Za-z_0-9]*' || true; }
+# Propagates failure instead of swallowing it: an unreadable file used to yield an empty
+# list, which looks exactly like a file with nothing in it.
+names_of() {
+  _n=$(sops_d "$1") || return 1
+  printf '%s\n' "$_n" | grep -oE '^[A-Za-z_][A-Za-z_0-9]*' || true
+}
 
 cmd_init() {
   require_tty
@@ -220,6 +297,9 @@ EOF
   good "Your keys live in $STORE"
 }
 
+# Adding a key REPLACES the file it lives in, so every other key in that file has to
+# survive the trip. It did not: measured 2026-08-30, three adds with the correct password
+# left one key. See sops_d. The shape below is the fix, and each line of it is load-bearing.
 cmd_add() {
   require_tty
   store_exists || die "no store yet — run 'mwk init' first"
@@ -227,20 +307,63 @@ cmd_add() {
   [ -n "$name" ] || die "usage: mwk add NAME [global|project]"
   printf '%s' "$name" | grep -qE '^[A-Za-z_][A-Za-z_0-9]*$' || die "a name must look like OPENAI_API_KEY"
   case "$scope" in global) f="$GLOBAL";; project) f="$(scope_file "$(slug)")";; *) die "scope is 'global' or 'project'";; esac
+
+  # Unlock HERE, in the main shell, BEFORE anything is read or written. Everything below
+  # runs inside a $() or a pipeline, where a password prompt is fighting for a terminal it
+  # cannot see. One prompt, at the top, where a person is plainly being asked.
+  unlock_once
   [ -f "$f" ] || { mkdir -p "$(dirname "$f")"; : | sops_e "$f"; }
+
+  # Read BEFORE asking for the value, and refuse to go on if the read failed. A failed
+  # read used to mean "carry on and write the file anyway", which is the whole bug.
+  old=$(sops_d "$f") || die "could not read what is already in your store — nothing was changed"
+
   printf 'Paste the value for %s (it will not appear on screen): ' "$name" >&2
   IFS= read -rs value; printf '\n' >&2
   [ -n "$value" ] || die "nothing pasted — no change made"
-  { sops_d "$f" | grep -vE "^${name}=" || true; printf '%s=%s\n' "$name" "$value"; } | sops_e "$f"
+
+  # Keep the old ciphertext until the new one is PROVED good. This is a password store:
+  # the failure that matters is not "the write failed", it is "the write succeeded and
+  # took the rest of the file with it".
+  if [ -s "$f" ]; then cp "$f" "$f.prev"; fi
+  new=$(
+    if [ -n "$old" ]; then
+      printf '%s\n' "$old" | grep -vE "^${name}=" | grep -v '^[[:space:]]*$' || true
+    fi
+    printf '%s=%s\n' "$name" "$value"
+  )
+  printf '%s\n' "$new" | sops_e "$f"
+
+  # Read it back and ASSERT THE RESULT. This is the defence this repo settled on after the
+  # third silent no-op, applied to the one file that has no backup and no reset: every name
+  # that was in there must still be in there, and the new one must have arrived.
+  now=$(sops_d "$f") || now=""
+  lost=""
+  for n in $(printf '%s\n' "$old" | grep -oE '^[A-Za-z_][A-Za-z_0-9]*' || true); do
+    printf '%s\n' "$now" | grep -qE "^$n=" || lost="$lost $n"
+  done
+  if [ -n "$lost" ] || ! printf '%s\n' "$now" | grep -qE "^$name="; then
+    if [ -f "$f.prev" ]; then mv "$f.prev" "$f"; fi
+    [ -n "$lost" ] && die "your store did not come back right, so I put it back as it was. Nothing changed. Missing:$lost"
+    die "your store did not come back right, so I put it back as it was. Nothing changed."
+  fi
+  rm -f "$f.prev"
   good "Stored $name ($scope). It is not on screen and not in your history."
 }
 
+# Both lists are gathered BEFORE anything is printed. Gathering them inside the printing
+# pipeline meant a failed read produced an empty table, which reads exactly like a store
+# with nothing in it — the most alarming possible lie to tell someone about their keys.
 cmd_list() {
   store_exists || die "no store yet — run 'mwk init' first"
   preflight_read
+  s=$(slug)
+  g=$(names_of "$GLOBAL") || die "could not read your keys — nothing was changed"
+  p=$(names_of "$(scope_file "$s")") || die "could not read this project's keys"
   printf '%s%-34s %s%s\n' "$DIM" NAME SCOPE "$R"
-  names_of "$GLOBAL" | while read -r n; do printf '%-34s %s\n' "$n" global; done
-  names_of "$(scope_file "$(slug)")" | while read -r n; do printf '%-34s %s\n' "$n" "project($(slug))"; done
+  if [ -n "$g" ]; then printf '%s\n' "$g" | while read -r n; do printf '%-34s %s\n' "$n" global; done; fi
+  if [ -n "$p" ]; then printf '%s\n' "$p" | while read -r n; do printf '%-34s %s\n' "$n" "project($s)"; done; fi
+  return 0
 }
 
 cmd_run() {
@@ -249,7 +372,10 @@ cmd_run() {
   [ "${1:-}" = "--" ] && shift
   [ $# -gt 0 ] || die "usage: mwk run -- <command>"
   tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
-  { sops_d "$GLOBAL"; sops_d "$(scope_file "$(slug)")"; } > "$tmp"
+  # A `{ }` group, not a subshell, so `die` here actually stops the command from running
+  # with half its keys — which is a far worse outcome than not running at all.
+  { sops_d "$GLOBAL" || die "could not read your keys"
+    sops_d "$(scope_file "$(slug)")" || die "could not read this project's keys"; } > "$tmp"
   set -a; . "$tmp"; set +a; rm -f "$tmp"
   unset SOPS_AGE_KEY          # never hand the master key to the command being wrapped
   exec "$@"
@@ -258,8 +384,12 @@ cmd_run() {
 cmd_needs() {
   store_exists || die "no store yet — run 'mwk init' first"
   preflight_read
-  { names_of "$GLOBAL" | sed 's/$/ global/'
-    names_of "$(scope_file "$(slug)")" | sed 's/$/ project/'; } | sort > "$NEEDS_FILE"
+  # Gathered first, written second. Written straight from a pipeline, a failed read would
+  # have produced an empty .mwk-keys — a committed file saying this project needs nothing.
+  g=$(names_of "$GLOBAL") || die "could not read your keys — nothing was written"
+  p=$(names_of "$(scope_file "$(slug)")") || die "could not read this project's keys"
+  { if [ -n "$g" ]; then printf '%s\n' "$g" | sed 's/$/ global/'; fi
+    if [ -n "$p" ]; then printf '%s\n' "$p" | sed 's/$/ project/'; fi; } | sort > "$NEEDS_FILE"
   note "Wrote $NEEDS_FILE — names only, no values. Safe to commit."
 }
 
@@ -299,6 +429,59 @@ cmd_site() {
   fi
   sleep 1
   good "Their page is open: http://127.0.0.1:29200/"
+}
+
+# Show one project in a browser, on the number `mwk port` already gave it.
+#
+# WHY IT EXISTS: `mwk port` handed out an address that nothing ever answered on. Measured
+# 2026-08-30 — two folders got 29202 and 29203, the same numbers on every run, and nothing
+# was listening on either. Meanwhile site-templates/README.md told them "any project folder
+# can be served on its own address". A promise with no server behind it is worse than no
+# promise, because the person concludes they broke it.
+#
+# WHY NO PASSWORD, WHEN `mwk files` HAS ONE: `mwk files` serves ALL of ~/projects — every
+# folder they have ever made, which is worth defending from a rebinding attack. This serves
+# ONE folder they are actively turning into a website: the same content they intend to put
+# on the internet. That is the same trade 29200 makes, for the same reason.
+cmd_serve() {
+  d="${1:-$(pwd -P)}"
+  [ -d "$d" ] || die "there is no folder at $d"
+  d=$(cd "$d" && pwd -P)
+  # Serving either of these would quietly turn one project's preview into "everything I
+  # own, on the network of my own browser". They each have a right answer already.
+  case "$d" in
+    "$HOME")          die "that is your whole home folder — 'mwk files' is the one for looking around" ;;
+    "$HOME/projects") die "that is all of your projects at once — try 'mwk files' instead" ;;
+  esac
+  b=$(cd "$STORE" 2>/dev/null && pwd -P) || b="$STORE"
+  case "$d/" in "$b/"*) die "refusing: that folder is inside your key store ($b)";; esac
+  case "$b/" in "$d/"*) die "refusing: your key store is inside that folder";; esac
+
+  p=$(cd "$d" && cmd_port)
+  write_projects_json
+  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 "http://127.0.0.1:$p/"; then
+    note "Already open: http://127.0.0.1:$p/"; return 0
+  fi
+  # Only pass --index when there is one. miniserve given --index for a file that does not
+  # exist serves an error page instead of the directory listing, and a folder that is not
+  # a website yet is a perfectly normal thing to want to look at.
+  idx=""
+  if [ -f "$d/index.html" ]; then idx="--index index.html"; fi
+  # Same three non-defaults as the page: loopback only, no symlinks followed, nothing
+  # hidden served — which is also what keeps .git and .mwk-keys out of it.
+  if have_tty; then
+    note "Your project: http://127.0.0.1:$p/   (Ctrl+C here stops it)"
+    # shellcheck disable=SC2086 — $idx is deliberately word-split: empty means no flag.
+    exec miniserve -i 127.0.0.1 -P $idx --port "$p" --title "$(basename "$d")" "$d"
+  fi
+  if command -v setsid >/dev/null 2>&1; then
+    setsid miniserve -i 127.0.0.1 -P $idx --port "$p" --title "$(basename "$d")" "$d" >/dev/null 2>&1 < /dev/null &
+  else
+    nohup miniserve -i 127.0.0.1 -P $idx --port "$p" --title "$(basename "$d")" "$d" >/dev/null 2>&1 < /dev/null &
+  fi
+  sleep 1
+  good "$(basename "$d") is open: http://127.0.0.1:$p/"
+  note "It is on their page too, under Your projects."
 }
 
 # The page's producer. It existed only as a sentence in a JavaScript comment: the site
@@ -401,6 +584,7 @@ mwk — your keys, in one place, behind one password.
   mwk                      (on your own terminal) a menu of the things you can do
   mwk init                 make the store (asks for a master password, once)
   mwk site                 open your page at http://127.0.0.1:29200/
+  mwk serve [folder]       show a project in a browser, on its own address
   mwk queue "why" "cmd"    put a command on their page (for the agent, not them)
   mwk add NAME [scope]     add a key. scope is 'project' (default) or 'global'
   mwk list                 what you have — names only, never values
@@ -451,6 +635,7 @@ EOF
 case "${1:-}" in
   init) shift; cmd_init "$@";;
   site) shift; cmd_site "$@";;
+  serve) shift; cmd_serve "$@";;
   queue) shift; cmd_queue "$@";;
   port) shift; cmd_port "$@";;
   files) shift; cmd_files "$@";;

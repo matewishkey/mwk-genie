@@ -43,6 +43,18 @@
   ul.kit span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
   footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
   .empty{color:var(--muted);font-size:15px;padding:18px;border:1px dashed var(--line);border-radius:11px;text-align:center}
+  /* Your projects. One row each: what it is called, where it is, and whether it answers. */
+  ul.proj{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px}
+  ul.proj li{background:var(--card);border:1px solid var(--line);border-radius:9px;
+             padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  ul.proj .nm{font-weight:600;font-size:15px}
+  ul.proj .ad{font-family:var(--mono);font-size:13.5px;margin-left:auto}
+  ul.proj .pa{color:var(--muted);font-size:13px;flex-basis:100%;margin:-4px 0 0;
+              font-family:var(--mono);word-break:break-all}
+  .dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;background:var(--muted);opacity:.35}
+  .dot.up{background:#2a9d5c;opacity:1}
+  .dot.down{background:var(--muted);opacity:.35}
+  .st{color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
@@ -62,12 +74,22 @@
 each one says why. Press <b>Copy</b>, paste it into your terminal, press Enter.</p>
 <div id="queue"><p class="empty">Nothing waiting for you right now.</p></div>
 
+<!-- Hidden until there is at least one project. An empty box headed "Your projects" is a
+     question a beginner cannot answer; no box at all is simply not yet true. -->
+<section id="projects-section" hidden>
+  <h2>Your projects</h2>
+  <p class="lede">Each one has its own address on this computer, and it is the same address
+  every time. A green dot means it is running right now — if it is grey, ask me to start it.</p>
+  <ul class="proj" id="projects"></ul>
+</section>
+
 <h2>What you can type</h2>
 <ul class="kit">
   <li><b>ccc</b><span>start me, anywhere</span></li>
   <li><b>mwk list</b><span>your keys, names only</span></li>
   <li><b>mwk run -- …</b><span>run something with your keys</span></li>
   <li><b>mwk port</b><span>this project's address, 292xx</span></li>
+  <li><b>mwk serve</b><span>show this project in a browser</span></li>
   <li><b><a href="http://127.0.0.1:29201/">mwk files</a></b><span>click through everything in ~/projects</span></li>
   <li><b>mwk lock</b><span>lock your keys again</span></li>
   <li><b><a href="password.html">Your one password</a></b><span>where to keep it, and what if it goes wrong</span></li>
@@ -128,6 +150,67 @@ async function poll(){
   }catch(e){ /* file not there yet is the normal state, not an error */ }
 }
 poll(); setInterval(poll, 2000);
+
+// ── Your projects ────────────────────────────────────────────────────────────────────
+// `mwk port` hands each project folder a fixed number and writes projects.json beside
+// this page. This is the reader. The list is re-rendered only when the JSON actually
+// changes, so the rows do not flicker every two seconds.
+const projSection = document.getElementById('projects-section');
+const projList = document.getElementById('projects');
+let lastProjects = '';
+
+// Whether a project is RUNNING is asked of the port itself, never remembered from a file.
+// A "running" flag written at start time is wrong the moment a laptop sleeps or reboots,
+// and green-and-wrong is the failure worth avoiding here. no-cors gives us no response to
+// read, but it settles: it resolves when something answered and rejects when nothing did,
+// which is the entire question.
+async function reachable(port){
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 1500);
+  try { await fetch('http://127.0.0.1:' + port + '/', {mode:'no-cors', cache:'no-store', signal:ctl.signal});
+        return true; }
+  catch(e){ return false; }
+  finally { clearTimeout(t); }
+}
+
+function renderProjects(items){
+  projList.innerHTML = '';
+  for (const it of items){
+    const url = 'http://127.0.0.1:' + it.port + '/';
+    const li = document.createElement('li');
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.dataset.port = it.port;
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = it.name;
+    const st = document.createElement('span'); st.className = 'st'; st.textContent = 'checking…';
+    const a = document.createElement('a'); a.className = 'ad'; a.href = url; a.textContent = url;
+    const pa = document.createElement('p'); pa.className = 'pa'; pa.textContent = it.path;
+    li.append(dot, nm, st, a, pa); projList.append(li);
+  }
+}
+
+async function refreshDots(){
+  for (const dot of projList.querySelectorAll('.dot')){
+    const up = await reachable(dot.dataset.port);
+    dot.classList.toggle('up', up); dot.classList.toggle('down', !up);
+    const st = dot.parentElement.querySelector('.st');
+    if (st) st.textContent = up ? 'running' : 'not running';
+  }
+}
+
+async function pollProjects(){
+  let txt;
+  try{
+    const r = await fetch('projects.json?t=' + Date.now(), {cache:'no-store'});
+    if (!r.ok){ projSection.hidden = true; return; }
+    txt = await r.text();
+  }catch(e){ projSection.hidden = true; return; }   // no projects yet is the normal state
+  let items = [];
+  try { items = JSON.parse(txt).projects || []; } catch(e){ return; }
+  if (!items.length){ projSection.hidden = true; return; }
+  projSection.hidden = false;
+  if (txt !== lastProjects){ lastProjects = txt; renderProjects(items); }
+  refreshDots();
+}
+pollProjects(); setInterval(pollProjects, 5000);
 </script>
 </body>
 </html>

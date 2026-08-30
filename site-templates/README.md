@@ -50,5 +50,11 @@ from does not have to work out how.
 
 ## Seeing it
 
-Any project folder can be served on its own address — `mwk port` inside the folder gives its
-number, and it is the same number every time.
+`mwk serve` inside the project folder opens it in a browser on its own address, and it is the
+same address every time — `mwk port` prints that number without starting anything. Every project
+that has an address is listed on their page at `http://127.0.0.1:29200/`, with a dot saying
+whether it is running right now.
+
+Opening `index.html` straight off disk still works and always will. `mwk serve` is worth reaching
+for anyway: a page opened with `file://` is not a secure context, so clipboard access and anything
+fetched by the page behave differently there than they will on a real website.

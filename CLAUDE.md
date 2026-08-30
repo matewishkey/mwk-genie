@@ -74,6 +74,9 @@ download or a temp file to `install.sh`, update the list in the same commit.
 | Binding to `127.0.0.1` does **not** stop a web page | A site can point its own domain at loopback and read the server same-origin. `mwk files` exposes all of `~/projects`, so it carries per-run basic auth; a browser will not send credentials cross-origin |
 | `.chezmoiignore` patterns match the **target** name | `dot_claude/**` matches nothing — the target is `.claude/**`. Writing the source name places NOTHING while reading correctly |
 | `A && B \|\| C && D` groups as `((A && B) \|\| C) && D` | A successful first branch still ran the second. Use `if/elif` |
+| `[ -t 1 ]` is false inside **every** pipeline and every `$()` | It asks about the current redirection, not about whether a person is there. `have_tty` used to test it, so `mwk add` — which reads inside a pipeline — took the no-human path on every run. Ask whether `/dev/tty` **opens** |
+| `exit` from a pipeline stage leaves the **subshell**, not the script | `sops_d` called `locked_msg` (which does `exit 3`); the caller carried on with empty output and wrote it back. Three adds with the correct password left one key. A function that reads must `return` non-zero and let the main shell decide |
+| Setting `SOPS_AGE_KEY_FILE` **and** `SOPS_AGE_KEY` re-opens the encrypted identity | A second passphrase prompt for a key already in hand — and with no TTY it hangs rather than failing. Prefer the key already unlocked; encryption needs a recipient, never an identity |
 
 ## The store
 
@@ -102,6 +105,16 @@ asserting the result: after an edit, read back the thing that should have change
 now compares the menu's printed digits against its `case` arms, and asserts the placed-file list by
 name in both directions.
 
+**The same shape reached the store, and there it cost data.** `mwk add` replaced the whole file
+with the single key being added — measured 2026-08-30, three adds with the *correct* password
+each time left one key, each printing a green `Stored` and exiting 0. Two of the three rows added
+to the table above are its mechanism; the third is why the fix does not merely move the prompt.
+`cmd_add` now unlocks in the main shell, refuses to continue on a failed read, keeps the old
+ciphertext until the new one is proved, and **reads the store back to confirm every previous name
+survived**. Note where the static checks stood: 129 of them passed on the day this shipped. The
+check that catches it runs `mwk` against a real store — and it was confirmed red against the
+pre-fix binary before being trusted green against this one.
+
 ## Debug mode
 
 `MWK_DEBUG=1` sends a run's log to `debug.matewishkey.com` — a Cloudflare Worker, KV, 30-day
@@ -129,6 +142,21 @@ Everything served lives in **292xx**: `29200` is their page, `29201` browses `~/
 `mwk port` gives each project the next number up from `29202` — the same one every time. One fixed
 port breaks the moment there are two projects.
 
+**`mwk port` allocates; `mwk serve` is what answers on it.** For a while only the first existed,
+so the number was an address with nothing behind it — and `site-templates/README.md` told people
+"any project folder can be served on its own address", which is worse than saying nothing, because
+they conclude they broke it. `mwk serve` refuses `$HOME` and `~/projects` (that is what `mwk files`
+is for) and refuses anything overlapping the store, and is loopback-only with symlinks off like
+everything else here. It carries **no** basic auth, unlike `mwk files`: one folder they intend to
+publish is a different proposition from every folder they have ever made.
+
+`ports.tsv` is the record and lives **beside** `~/mwk/site`, not inside it. `write_projects_json`
+copies it to `site/projects.json`, which is the only version the page can fetch — same
+writer/reader shape as `queue.json`, and it is in `.chezmoiignore` for the same reason. Whether a
+project is *running* is asked of the port by the page itself (`fetch` with `no-cors`, which settles
+either way), never read from a stored flag: a flag written at start time is wrong after a reboot,
+and wrong in the reassuring direction.
+
 ## The page
 
 `~/mwk/site/index.html`, chezmoi-managed. It polls `queue.json`, which `mwk queue` writes — **the
@@ -138,6 +166,15 @@ a sentence in a JavaScript comment.
 **The page is one-way.** It cannot tell the agent anything, so the agent must never wait on it —
 it checks the world instead. And every queued command is printed in chat too, because a page that
 is not running is nothing at all.
+
+It also lists **Your projects** from `projects.json`, hidden entirely until there is one — an empty
+box under that heading is a question a beginner cannot answer.
+
+**`password.html` shipped with `index.html`'s script copied into it verbatim**, which looks up
+`#queue` (not on that page) and binds handlers only to buttons it builds itself. So its one
+command — `mwk rekey`, on the page someone reaches at the moment they think their password has
+been seen — had a Copy button attached to nothing. It looked perfect. If a second page ever gets a
+Copy button, it wants the `data-c` handler, not the queue poller.
 
 ## The cross-repo coupling — editing a prompt here changes the live website
 

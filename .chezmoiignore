@@ -24,6 +24,7 @@
 !.chezmoiscripts
 !.chezmoiscripts/**
 
-# …except the queue, which the agent writes at runtime. chezmoi must not own it, or an
-# apply would wipe whatever is waiting on their page.
+# …except the two files mwk writes at RUNTIME. chezmoi must not own either, or an apply
+# would wipe whatever is waiting on their page, and forget every project's address.
 mwk/site/queue.json
+mwk/site/projects.json
