@@ -63,6 +63,10 @@ if [ -n "${MWK_DEBUG:-}" ]; then
   MWK_RUN_ID="install-$(date +%Y%m%d-%H%M%S)-$$"; export MWK_RUN_ID
   _fifo="${TMPDIR:-/tmp}/mwk-fifo.$$"
   if mkfifo "$_fifo" 2>/dev/null; then
+    # Keep the REAL stderr on fd 3. Everything below is about to be redirected into the
+    # pipe, and the run code has to come back to a screen the person is looking at — a
+    # confirmation written into the log it is confirming is no confirmation at all.
+    exec 3>&2
     tee -a "$MWK_LOG" < "$_fifo" &
     _tee=$!
     exec > "$_fifo" 2>&1
@@ -71,9 +75,17 @@ if [ -n "${MWK_DEBUG:-}" ]; then
       exec >&- 2>&- || true
       wait "$_tee" 2>/dev/null || true
       rm -f "$_fifo"
-      printf 'exit %s
-' "$rc" >> "$MWK_LOG"
-      [ -x "$HOME/bin/mwk-debug" ] && MWK_DEBUG="$MWK_DEBUG" "$HOME/bin/mwk-debug" send "$MWK_LOG"         || [ -x "$KIT/bin/executable_mwk-debug" ] && MWK_DEBUG="$MWK_DEBUG" sh "$KIT/bin/executable_mwk-debug" send "$MWK_LOG"
+      printf 'exit %s\n' "$rc" >> "$MWK_LOG"
+      # if/elif, NOT `A && B || C && D`. That chain groups as ((A && B) || C) && D, so a
+      # successful first send would still run the second one — two uploads for one run.
+      if [ -x "$HOME/bin/mwk-debug" ]; then
+        MWK_DEBUG="$MWK_DEBUG" "$HOME/bin/mwk-debug" send "$MWK_LOG" 2>&3
+      elif [ -x "$KIT/bin/executable_mwk-debug" ]; then
+        MWK_DEBUG="$MWK_DEBUG" sh "$KIT/bin/executable_mwk-debug" send "$MWK_LOG" 2>&3
+      else
+        printf '\n  Debug log kept at %s (nothing to send it with)\n' "$MWK_LOG" >&3
+      fi
+      exec 3>&- || true
       return $rc
     }
     trap ship EXIT
