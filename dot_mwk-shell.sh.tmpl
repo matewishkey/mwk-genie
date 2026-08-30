@@ -1,0 +1,44 @@
+# ~/.mwk-shell.sh — written by chezmoi from mwk-genie. Do not edit; edit the kit and
+# run `chezmoi apply`. Their .zshrc/.bashrc holds ONE line that sources this file.
+#
+# WHY IT IS A SEPARATE FILE. v1 fenced a block inside ~/.zshrc with markers and told the
+# agent to replace between them. Appending twice instead left two `alias ccc=` pairs, and
+# the instruction for changing your mind — move the `#` — then edited the first pair while
+# the second silently won. They asked for the safe option and got the dangerous one. A file
+# chezmoi owns cannot be appended to twice: there is one file and it has one content.
+
+# The Claude Code installer writes here and touches no startup file at all — it just prints
+# a note telling you to fix PATH yourself. Without this line `ccc` works in a login shell
+# and is `command not found` in every other one.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) PATH="$HOME/.local/bin:$PATH" ;;
+esac
+case ":$PATH:" in
+  *":$HOME/.local/share/mise/shims:"*) ;;
+  *) PATH="$HOME/.local/share/mise/shims:$PATH" ;;
+esac
+export PATH
+
+{{ if eq .ccc_mode "fast" -}}
+# They chose FAST at setup: agree to the work in conversation, then get on with it.
+# To change your mind, swap which of these two lines is commented out.
+alias ccc='claude --dangerously-skip-permissions'
+# alias ccc='claude'
+{{- else -}}
+# They chose CAREFUL at setup: Claude asks before every command.
+# To change your mind, swap which of these two lines is commented out.
+alias ccc='claude'
+# alias ccc='claude --dangerously-skip-permissions'
+{{- end }}
+
+# Everything they can run. `mwk` is the key store; `mwk-site` is the page they keep.
+alias mwk-site='miniserve --index index.html --port 29292 "$HOME/projects/mwk-genie-site"'
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit 2>/dev/null && compinit -u 2>/dev/null
+  zstyle ':completion:*' menu select
+  zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'   # case-insensitive TAB
+  setopt AUTO_CD 2>/dev/null || true
+  unsetopt BEEP 2>/dev/null || true
+fi

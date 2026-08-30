@@ -1,0 +1,16 @@
+# Everything in this repo that is NOT a thing to place in their home directory.
+# Without this, chezmoi cheerfully copies the whole kit into $HOME.
+README.md
+SETUP.md
+CLAUDE.md
+LICENSE
+install.sh
+mise.toml
+mise.lock
+docs/**
+test/**
+prompts/**
+templates/**
+.github/**
+.gitignore
+site/**

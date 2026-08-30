@@ -1,0 +1,30 @@
+# Every tool the kit installs, on every machine, from one file.
+#
+# WHY THIS IS ONE FILE AND NOT TWO PACKAGE MANAGERS (measured 2026-08-30):
+#   Homebrew on the Mac + apt on Ubuntu/WSL means two lists, two names per tool, two
+#   failure modes, forever. mise removes the question: the `aqua:` backend installs a
+#   pinned binary from the project's own GitHub release, picking the right one per
+#   platform at install time. Same file, same versions, macOS and Linux and WSL.
+#
+# WHY `aqua:` AND NOT `ubi:` OR `github:` — all three were tried here:
+#   ubi:     DEPRECATED. mise says so on use: "Use the github backend instead …
+#            This will be removed in mise 2027.1.0." Do not build on it.
+#   github:  extracts the whole archive (so age-keygen comes along, which ubi dropped —
+#            and `mwk init` needs it), but exposes whatever the asset is NAMED. sops
+#            ships a bare `sops-v3.13.3.linux.amd64`, so no `sops` command appears.
+#   aqua:    the curated registry knows each project's naming, so the commands land as
+#            `sops`, `age`, `age-keygen`, `miniserve`. It also verifies SLSA provenance
+#            on the way in, which no package manager here was doing before.
+#
+# NOT IN THIS FILE, and each for a stated reason:
+#   claude    — its own installer, self-updates on launch. Never a package manager.
+#   mise      — bootstraps itself (https://mise.run). It is the thing reading this file.
+#   iTerm2    — a Mac GUI app, and OPTIONAL: Ctrl+J makes a new line in every terminal
+#               including Apple's. If it is ever wanted, iterm2.com/downloads/stable/latest
+#               302s straight to a versioned .zip — still no Homebrew.
+
+[tools]
+"aqua:twpayne/chezmoi"     = "latest"   # applies this repo to their home directory
+"aqua:getsops/sops"        = "latest"   # the store's encryption
+"aqua:FiloSottile/age"     = "latest"   # …and its key. Brings age-keygen
+"aqua:svenstaro/miniserve" = "latest"   # the local site on :29292
