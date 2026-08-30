@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- These two lines are what people see in a search result and when they share a link.
+     Change them before you show anyone. -->
+<title>What this is — Your Name</title>
+<meta name="description" content="One sentence about what this is and who it is for.">
+
+<link rel="stylesheet" href="mwk.css">
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <div class="block" aria-hidden="true"></div>
+    <strong>Your Name</strong>
+    <div class="links">
+      <a href="#what">What</a>
+      <a href="#who">Who</a>
+      <a href="#talk">Get in touch</a>
+    </div>
+  </nav>
+</div>
+
+<section>
+  <div class="wrap narrow">
+    <h1>Say the thing you do, in about six words.</h1>
+    <p class="lede">Then one sentence saying who it is for and why they should care. Resist
+      explaining how it works — nobody has asked yet.</p>
+    <p><a class="btn" href="#talk">Get in touch</a>
+       <a class="btn ghost" href="#what">See what I do</a></p>
+  </div>
+</section>
+
+<section id="what">
+  <div class="wrap">
+    <h2>What I do</h2>
+    <p class="lede narrow">Three things, not seven. If everything is important then nothing is.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>The first thing</h3>
+        <p>A couple of sentences. Say what someone gets, not what you use to make it.</p>
+      </div>
+      <div class="card">
+        <h3>The second thing</h3>
+        <p>Same again. Keep them roughly the same length — it looks deliberate.</p>
+      </div>
+      <div class="card">
+        <h3>The third thing</h3>
+        <p>If you only have two, delete this one. Three is not a rule.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="who">
+  <div class="wrap narrow">
+    <h2>Who I am</h2>
+    <p>A short paragraph in your own voice. This is the part people actually read, and the part
+      that is hardest to fake, so it is worth more than the rest of the page put together.</p>
+    <p>Say where you are. Say what you did before. One human detail beats three credentials.</p>
+  </div>
+</section>
+
+<section id="talk">
+  <div class="wrap narrow">
+    <h2>Get in touch</h2>
+    <p class="lede">Say exactly how, and how quickly you answer. A form nobody trusts is worse
+      than an email address.</p>
+    <p><a class="btn" href="mailto:you@example.com">you@example.com</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>© <span id="year">2026</span> Your Name.</p>
+    <!-- Where this design came from. Uncomment it if you would like to say so — it is
+         genuinely optional and nothing here checks whether you did.
+    <p>Built with <a href="https://matewishkey.com">Mate Wish Key</a>.</p>
+    -->
+  </div>
+</footer>
+
+<script>
+  // The only script on the page: keep the year right without anyone having to remember.
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

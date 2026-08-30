@@ -131,6 +131,35 @@ grep -q "s|\$HOME|~|g" bin/executable_mwk-debug && ok "and strips \$HOME before 
   || no "it strips \$HOME" "a username would survive inside a path"
 grep -q 'debug.matewishkey.com' bin/executable_mwk-debug && ok "endpoint is pinned, not guessed" || no "endpoint is pinned" "missing"
 
+head_ "The starter websites"
+for f in site-templates/one-page/index.html site-templates/pages/index.html \
+         site-templates/pages/work.html site-templates/pages/about.html; do
+  [ -f "$f" ] && ok "$f exists" || no "$f exists" "missing"
+  grep -q 'href="mwk.css"' "$f" && ok "$(basename $(dirname "$f"))/$(basename "$f") loads the stylesheet beside it" \
+    || no "$f loads mwk.css" "a template that renders unstyled is worse than none"
+done
+for d in one-page pages; do
+  [ -f "site-templates/$d/mwk.css" ] && ok "$d ships its own copy of mwk.css" \
+    || no "$d ships mwk.css" "copying the folder would give an unstyled site"
+done
+# The credit must stay commented. Putting our name on a stranger's site by default is the
+# thing the README promises we do not do.
+live=$(grep -h 'matewishkey' site-templates/*/*.html | grep -vc '^\s*<!--\|-->' || true)
+is "the Mate Wish Key credit is commented out, not live" "$live" "0"
+grep -q 'site-templates' dot_claude/skills/mwk-new/SKILL.md \
+  && ok "/mwk-new knows the templates exist" || no "/mwk-new knows the templates exist" "nothing would ever reach for them"
+managed=$(chezmoi managed --source . 2>/dev/null)
+printf '%s\n' "$managed" | grep -q 'site-templates' \
+  && no "templates are NOT copied into their home" "they live in the kit folder" \
+  || ok "templates are not copied into their home"
+
+head_ "The file browser"
+grep -q 'cmd_files' bin/executable_mwk && ok "mwk files exists" || no "mwk files exists" "missing"
+grep -q 'PORT_FILES=29201' bin/executable_mwk && ok "it is on 29201, beside the page" || no "it is on 29201" "wrong port"
+grep -q 'upload-files\|--mkdir' bin/executable_mwk \
+  && no "the browser is read-only" "upload or mkdir is enabled — a delete button over their own work" \
+  || ok "the browser is read-only"
+
 head_ "Colour"
 for f in install.sh uninstall.sh bin/executable_mwk; do
   grep -q '226;52;43' "$f" && ok "$f carries the brand red" || no "$f carries the brand red" "missing"

@@ -99,6 +99,16 @@ anything you typed to me would be saved in our conversation. When one of those i
 needed I put it on your page and you run it in a second tab. **Never tell me to
 quit** — the tab stays open.
 
+**`mwk files` browses `~/projects` in a web page**, at `http://127.0.0.1:29201/`. It is
+read-only on purpose — looking is the point, changing is your job or their editor's. It is
+the fastest way to answer "where did that go?" for someone to whom a file system is a new
+idea, so reach for it rather than pasting a directory listing into the chat.
+
+**There are two starter websites in the kit**, at `~/projects/mwk-genie/site-templates/` —
+`one-page/` and `pages/`. If they want a website, copy one in and change the words with
+them rather than writing a page from an empty file. Plain HTML, one stylesheet, no build
+step; the colours are named at the top of `mwk.css` and changing one changes the site.
+
 **Everything served on this computer lives in 292xx, and the rule is one sentence: `29200`
 is always their page, and each project gets the next number up.** `mwk port` inside a
 project prints its number and gives back the same one every time, so a bookmark or a note

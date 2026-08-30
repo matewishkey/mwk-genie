@@ -28,14 +28,16 @@ SITE="${MWK_SITE:-$HOME/mwk/site}"
 
 # ── ports ──────────────────────────────────────────────────────────────────────────────
 # Everything Mate Wish Key serves lives in 292xx, and one sentence explains the whole
-# scheme: 29200 is always your page, and every project you make gets the next number up.
+# scheme: 29200 is always your page, 29201 browses your files, and every project you make
+# gets the next number up.
 #
 # One fixed port per machine was the obvious first idea and it is wrong the moment there
 # are two projects — the second one either takes the first's port or picks something
 # random, and now nobody knows which address is which. A range removes the question
 # instead of answering it.
-PORT_SITE=29200
-PORT_MIN=29201
+PORT_SITE=29200      # their page
+PORT_FILES=29201     # the file browser over ~/projects
+PORT_MIN=29202       # projects, one each, from here up
 PORT_MAX=29299
 PORTS="$HOME/mwk/ports.tsv"      # <port>\t<absolute project path>
 
@@ -330,6 +332,35 @@ cmd_uninstall() {
   exec sh "$u" "$@"
 }
 
+# Browse ~/projects in a web page — the same idea, and the same program, as the file
+# browser we use ourselves. Being able to click through your own folders is the fastest
+# way to understand where things are when "the file system" is a new concept.
+#
+# READ-ONLY on purpose: no --upload-files, no --mkdir. The web UI can do both, and handing
+# a beginner a delete button over their own work, in a browser tab they will forget is
+# open, is not a kindness. Files are for looking at here; changing them is the agent's job
+# or their editor's.
+cmd_files() {
+  d="$HOME/projects"
+  [ -d "$d" ] || die "no ~/projects yet"
+  # Same three non-defaults as the page: loopback only (miniserve binds every interface),
+  # no symlink following (it follows them), and nothing hidden is served.
+  if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 "http://127.0.0.1:$PORT_FILES/"; then
+    note "Already open: http://127.0.0.1:$PORT_FILES/"; return 0
+  fi
+  if have_tty; then
+    note "Your files: http://127.0.0.1:$PORT_FILES/   (Ctrl+C here stops it)"
+    exec miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d"
+  fi
+  if command -v setsid >/dev/null 2>&1; then
+    setsid miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
+  else
+    nohup miniserve -i 127.0.0.1 -P --port "$PORT_FILES" --title "Your projects" "$d" >/dev/null 2>&1 < /dev/null &
+  fi
+  sleep 1
+  good "Their files are browsable: http://127.0.0.1:$PORT_FILES/"
+}
+
 cmd_lock() { gpg-connect-agent reloadagent /bye >/dev/null 2>&1 || true; note "Locked. The next command will ask for your master password."; }
 
 cmd_rekey() {
@@ -372,6 +403,7 @@ cmd_menu() {
 
     1  Start something new         a folder for it, and me in it
     2  Open your page              the buttons and the commands
+    3  Look through your files     everything in ~/projects, in a web page
     3  Keep a key safe             a password or an API key
     4  See what keys you have      names only, never the values
     5  Lock your keys
@@ -383,13 +415,14 @@ EOF
   case "$choice" in
     1) note "Not built yet — ask me in the chat and I'll make it for you.";;
     2) cmd_site;;
-    3) printf '  What should it be called (e.g. OPENAI_API_KEY)? '; IFS= read -r n
+    3) cmd_files;;
+    4) printf '  What should it be called (e.g. OPENAI_API_KEY)? '; IFS= read -r n
        printf '  Just this project, or everywhere? [project/global] '; IFS= read -r sc
        cmd_add "$n" "${sc:-project}";;
-    4) cmd_list;;
-    5) cmd_lock;;
-    6) usage;;
-    7) cmd_uninstall;;
+    5) cmd_list;;
+    6) cmd_lock;;
+    7) usage;;
+    8) cmd_uninstall;;
     *) note "I didn't catch that. Run mwk again and type a number.";;
   esac
 }
@@ -399,6 +432,7 @@ case "${1:-}" in
   site) shift; cmd_site "$@";;
   queue) shift; cmd_queue "$@";;
   port) shift; cmd_port "$@";;
+  files) shift; cmd_files "$@";;
   uninstall) shift; cmd_uninstall "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;

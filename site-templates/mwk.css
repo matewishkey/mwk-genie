@@ -1,0 +1,69 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   The whole look, in one file. Change the numbers at the top and the whole site
+   changes with them — that is the point of having them in one place.
+
+   These are Mate Wish Key's own values. They are a starting point, not a rule:
+   make it yours. The one thing worth keeping is the HABIT — colours and sizes
+   named once at the top, used by name everywhere else.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --brand:      #e2342b;   /* the one loud colour. Use it once per screen */
+  --brand-deep: #c9251d;   /* the same red, dark enough to read as a link */
+  --bg:         #faf7f7;
+  --fg:         #131313;
+  --muted:      #8a848e;   /* second-line text: dates, captions, small print */
+  --line:       #e3dbdb;
+  --card:       #ffffff;
+
+  --wide:  1080px;         /* how wide the page gets before it stops growing */
+  --text:  680px;          /* how wide a paragraph gets. Long lines are hard to read */
+  --gap:   clamp(48px, 8vw, 96px);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Dark mode for free. Only the colours change; nothing else has to know. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) {
+    --bg:#131313; --fg:#faf7f7; --muted:#a8a2b0; --line:#2b2b2b; --card:#1b1b1b;
+    --brand-deep:#f0524a;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 var(--font);
+       -webkit-font-smoothing:antialiased; }
+img, video { max-width:100%; height:auto; display:block; }
+a { color:var(--brand-deep); text-underline-offset:2px; }
+
+.wrap  { max-width:var(--wide); margin:0 auto; padding:0 24px; }
+.narrow{ max-width:var(--text); }
+section{ padding:var(--gap) 0; }
+section + section { border-top:1px solid var(--line); }
+
+h1 { font-size:clamp(34px,6vw,58px); line-height:1.08; letter-spacing:-.03em; margin:0 0 18px; font-weight:680; }
+h2 { font-size:clamp(24px,3.4vw,32px); line-height:1.18; letter-spacing:-.02em; margin:0 0 14px; font-weight:660; }
+h3 { font-size:19px; margin:0 0 8px; font-weight:640; }
+p  { margin:0 0 16px; }
+.lede { font-size:clamp(18px,2.2vw,21px); color:var(--muted); }
+
+/* The block. It is the logo shape and the one place the loud colour is spent. */
+.block { width:44px; height:44px; border-radius:9px; background:var(--brand); flex:0 0 44px; }
+
+nav { display:flex; align-items:center; gap:16px; padding:22px 0; }
+nav .links { margin-left:auto; display:flex; gap:22px; font-size:15.5px; }
+nav a { color:var(--fg); text-decoration:none; }
+nav a:hover { color:var(--brand-deep); }
+
+.btn { display:inline-block; background:var(--fg); color:var(--bg); text-decoration:none;
+       padding:13px 22px; border-radius:9px; font-weight:620; font-size:16px; }
+.btn:hover { opacity:.9; }
+.btn.ghost { background:transparent; color:var(--fg); border:1px solid var(--line); }
+
+.grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:13px; padding:22px; }
+
+footer { border-top:1px solid var(--line); padding:32px 0 60px; color:var(--muted); font-size:14.5px; }
+
+/* Anything that should not be read out by a screen reader but must exist for one */
+.visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }

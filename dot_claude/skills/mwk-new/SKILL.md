@@ -90,6 +90,24 @@ they will use it every day.
 somewhere safe. Tell them they can also just say "save my work" — the slash
 command and the sentence do the same thing.
 
+## If it is a website, do not start from an empty file
+
+Two starter sites ship with the kit, at `~/projects/mwk-genie/site-templates/`:
+
+- **`one-page/`** — everything on one scrolling page. Almost every first website is this.
+- **`pages/`** — a small site with a menu, when there is genuinely more than one thing to say.
+
+Copy one into their project rather than writing a page from scratch, then change the words
+with them. Start with `one-page/` unless they say otherwise; splitting it later is five
+minutes and starting with too much is where people stall.
+
+**Then say what the structure is, in about three lines:** plain HTML with one stylesheet,
+no build step and nothing to install, so opening the file in a browser just works. The
+colours and sizes are all named at the top of `mwk.css` — change one there and the whole
+site changes. That is the only thing they need to know to start editing it.
+
+`~/projects/mwk-genie/site-templates/README.md` has the longer version if they ask.
+
 ## 9. Then get on with it — over there, not here
 
 Once they are running in the new window, that session asks what they actually
