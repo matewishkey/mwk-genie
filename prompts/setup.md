@@ -1,60 +1,60 @@
-# Step two — paste this into the agent on your computer
+# Prompt two — paste this into Claude Code
 
-By now the agent is running in a terminal window on your own machine and you are logged in. This is
-the only thing you have to paste into it.
+This is the whole setup. The person pastes it once, into a fresh Claude Code
+session, and watches. **It asks them nothing.**
+
+The fenced block below is what gets published to the website and pasted. Everything
+outside the fence is for whoever is reading this on GitHub.
 
 ```
-Set me up on this computer. I am not a developer and I
-have never used a terminal.
+You are Claude Code, running on somebody's own
+computer. They have never used a terminal, and
+they are watching you work. Set their computer up.
 
-First, download the kit. It is a public repo, so this
-needs no GitHub account and no login:
+1. Put the kit in ~/projects/mwk-genie, from
+   github.com/matewishkey/mwk-genie
+   On a Mac download the tar.gz — do NOT use git.
+   /usr/bin/git there is a shim that opens an
+   Xcode dialog and fails.
 
-  https://github.com/matewishkey/mwk-genie
+2. Run the kit's install.sh and let it finish.
+   It asks nothing and needs no password.
 
-Put it in ~/projects/mwk-genie. Use git if this
-machine has it, or curl and tar if it does not. Tell me
-which one you used and why.
+3. Prove it worked, and say so in plain words:
+     - mwk        answers with a menu
+     - mwk site   serves 127.0.0.1:29292
+     - a NEW terminal window knows ccc
 
-Then read ~/projects/mwk-genie/SETUP.md and do
-exactly what it says, in order, one step at a time.
-Wait for me to say a step worked before you start the
-next one.
+4. Make them one folder to work in, inside
+   ~/projects, named after what they want to do.
 
-The first thing I should be able to do is close the
-terminal, open a new one, type ccc, and have you start.
-Get me to that point before you ask me for anything.
+5. Show them their page and tell them the two
+   things they can type: ccc, and mwk.
 
-This is an opinionated setup and I would rather know
-that than have it feel like magic. Where it makes a
-choice for me, say so in passing. Where the choice is
-mine (how ccc starts you, admin access, which model),
-ask me, once, in one short question, and then move on.
-
-Then check that ccc really worked rather than telling
-me it did: the version of this that failed on show 001
-failed silently.
+Rules for all of it:
+  - Do it for them. Never hand them a command to
+    run unless only they can run it.
+  - If something needs their own keyboard, put it
+    on their page with mwk queue, and say why.
+  - One line about what each step is for, then do
+    it, then show them it worked.
+  - No jargon. If a word needs explaining, it was
+    the wrong word.
 ```
 
-## What it does, in order
+## What it does not do
 
-**Stage zero — the download.** No account, no login, no keys.
+**It does not ask them anything.** Not which model, not whether to skip
+permissions, not whether it can use admin. Those were three questions once; the
+first two are decided in the kit and the third was deleted by choosing the option
+that never needs a password.
 
-**Stage one — the part that makes it yours.** A `~/projects` folder, the `ccc` command, and
-`~/.claude/CLAUDE.md`. **Nothing here needs a password or an install.** There is one question in it
-— whether `ccc` should stop and ask you before every command, or get on with the work — and it
-costs you nothing to answer. You should be typing `ccc` and having the agent start within a couple
-of minutes, and it will already be behaving the way `CLAUDE.md` asks.
+**It does not need their password.** Nothing in the flow uses `sudo`.
 
-**Stage two — everything that costs you something.** Your computer password once, so it can install
-without stopping at every step. A GitHub account — **this is the first point you need one**. The
-commands for starting a project, finishing one, reviewing one, keeping a page of what you have
-learnt, and reporting a bug. Your pick of model, plus three of Anthropic's own plugins and a
-documentation lookup so the agent stops guessing at commands. `mise`, so tools never get installed
-over the whole machine. A status bar showing how full the agent's memory is. And your terminal made
-readable, in colours somebody actually chose, on both Windows and a Mac.
+## Why the command is not in the fence
 
-**It ends with a page you can bookmark**, with every command on it and a copy button on each, so
-none of the above lives only in a terminal window you are about to close.
-
-That order is deliberate: you see the thing work before you are asked for anything.
+The install one-liner is 87 characters and this fence is capped at 60 — the
+website's build measures it and fails rather than publishing a wrapped line. So
+the fence names the repo (32 characters) and lets the agent type the long thing
+itself. That only works because the installer asks nothing: chezmoi's prompts need
+a TTY, and an agent has none.

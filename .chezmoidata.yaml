@@ -1,0 +1,17 @@
+# The decisions that used to be questions. Fleet-wide defaults, no prompt — the dotfiles-cz
+# pattern for "a value that is a project decision, not a property of the machine".
+
+# FAST: they agree to the work in conversation and the agent gets on with it. Setting up a
+# computer is hundreds of commands, and approving them one at a time means a person stops
+# reading and starts pressing enter, which is worse than not being asked.
+#
+# ⚠ This used to be a question, and the repo argued hard that it should stay one. It is now
+# decided for them — mate's call. The escape hatch is kept and it is one character:
+# ~/.mwk-shell.sh ships both alias lines with one commented out, and the page they keep
+# says which to swap. That is the whole reason this is survivable as a default.
+ccc_mode: fast
+
+# iTerm2 goes to ~/Applications, which never needs a password. /Applications would have
+# needed one, and needing one is what the admin question existed to ask about. Choosing the
+# location that needs nothing deletes the question rather than answering it.
+iterm_dest: user

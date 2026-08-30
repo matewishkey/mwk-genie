@@ -21,14 +21,10 @@
 set -eu
 [ "$(uname -s)" = Darwin ] || exit 0
 
-{{ if .admin -}}
-DEST="/Applications"
-{{- else -}}
-# /Applications is group-admin-writable, so it needs the admin answer. ~/Applications
-# always works and never prompts — which is why the question is asked once, at the start,
-# and reused here rather than becoming a second one.
+# ~/Applications always works and never prompts. /Applications is group-admin-writable, so
+# it would need a password — and needing one is exactly what the admin question existed to
+# ask about. Picking the location that needs nothing deletes the question.
 DEST="$HOME/Applications"
-{{- end }}
 
 if [ -d "$DEST/iTerm.app" ] || [ -d "/Applications/iTerm.app" ] || [ -d "$HOME/Applications/iTerm.app" ]; then
   exit 0

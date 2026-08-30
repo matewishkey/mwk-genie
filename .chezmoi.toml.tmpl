@@ -1,28 +1,16 @@
-{{/* Runs ONCE, at `chezmoi init`. Writes ~/.config/chezmoi/chezmoi.toml on their machine —
-     never in this repo. Their answers survive every later `chezmoi update`.
+{{/* Written once per machine at `chezmoi init`. It asks NOTHING.
 
-     THIS FILE IS THE QUESTION COUNT. In v1 the rule "three things are theirs to decide" was a
-     paragraph asking an agent to count correctly; here it is the length of a list you can read.
-     Adding a prompt here is the regression — do it deliberately or not at all.
+     Mate's call, 2026-08-30: "don't ask any questions whatsoever. Just ask if it's Windows
+     or Mac." The platform question belongs in the browser prompt, before any of this
+     exists, because that is the one place the two paths genuinely differ (WSL). By the
+     time this file runs, `uname` already knows.
 
-     TWO questions, both of which cost them a decision rather than a password:
+     Removing the last two prompts is not just less friction — it changes what is possible.
+     chezmoi's prompts need a TTY, which is why the agent could not run the installer.
+     With no prompts there is no TTY requirement, so the agent runs the whole thing and the
+     person pastes one line and watches. It also means the install command never has to
+     appear inside prompts/setup.md, which is capped at 60 columns by the website's build
+     and could not have held it.
 
-       ccc_mode — the one genuinely personal call. Shipping skip-permissions without asking is
-                  what made the site's copy wrong once already; deciding it FOR them is the bug.
-       admin    — gates everything that needs sudo later (brew, apt, chsh). Asked once, here,
-                  so no later step has to ask again.
-
-     The model question is GONE. Opus is the default because it was already decided on
-     2026-08-11 after testing on sonnet ("it was not working really well"). A question whose
-     recommended answer is fixed, and whose wrong answer quietly degrades the product, is not a
-     decision — it is a trap with a default. Sonnet is mentioned on the page they keep, as the
-     way to stretch the allowance. */}}
-
-{{- $cccMode := promptChoiceOnce . "ccc_mode" "Should I ask before every command? (fast = no, careful = yes)" (list "fast" "careful") "fast" -}}
-{{- $admin   := promptBoolOnce   . "admin"    "Can I use admin (your password) on this computer when something needs installing?" true -}}
-
+     The two answers that used to be questions now live in .chezmoidata.yaml. */}}
 sourceDir = "{{ .chezmoi.homeDir }}/projects/mwk-genie"
-
-[data]
-    ccc_mode = {{ $cccMode | quote }}
-    admin    = {{ $admin }}
