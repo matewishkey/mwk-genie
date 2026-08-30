@@ -1,274 +1,78 @@
 #!/usr/bin/env bash
-# Walk the kit through a machine that has never seen it.
+# The real thing, in a clean container: ubuntu:24.04 with no curl, no git, nothing —
+# running the actual one-liner against the actual GitHub branch.
 #
-# A clean Ubuntu container, a normal non-root user, and deliberately no `git`
-# and no `curl` to start with — because that is the machine SETUP.md warns
-# about, and because "it works on the box I wrote it on" is not evidence.
+#   bash test/rehearse.sh            # tests main
+#   bash test/rehearse.sh v2         # tests a branch
+#   bash test/rehearse.sh <sha>      # tests one commit — USE THIS after a push
 #
-#   bash test/rehearse.sh
+# ⚠ USE A COMMIT SHA WHEN YOU HAVE JUST PUSHED. raw.githubusercontent.com serves a stale
+# copy of a branch path for a few minutes after a push; that cost two confusing runs where
+# the fix was in and the test was still fetching the old file. A SHA path is never stale.
 #
-# Three phases:
-#   A  stage zero, against the PUBLISHED repo — both download paths
-#   B  stage one, against YOUR WORKING TREE — the shell files, in a fresh shell
-#   C  stage two, the plugin — real Claude Code, installed the way we tell them
+# NOTHING IS PRE-PLACED. A test that arranges the precondition it is meant to prove is
+# worse than no test — this repo has three logged instances of exactly that, all green for
+# months. If you find yourself adding a step here to make it pass, the bug is in the thing
+# being tested.
 #
-# Phase A tests `main`, so it can pass while your uncommitted changes are
-# broken; phases B and C are the ones that test what you are about to push.
-#
-# What this does NOT cover is in test/MANUAL.md. Read it.
+# ⚠ WRITTEN, NOT YET RUN in this form.
+set -euo pipefail
+REF="${1:-main}"
+echo "Rehearsing ref: $REF"
 
-set -uo pipefail
-cd "$(dirname "$0")/.."
-REPO=$PWD
-IMAGE=ubuntu:24.04
-NAME=mwk-rehearse-$$
+docker run --rm ubuntu:24.04 bash -euc "
+  apt-get update -qq >/dev/null && apt-get install -y -qq curl ca-certificates zsh >/dev/null
+  useradd -m -s /bin/bash guest
 
-pass=0 fail=0
-ok()    { printf '  \033[32m✓\033[0m %s\n' "$1"; pass=$((pass + 1)); }
-bad()   { printf '  \033[31m✗\033[0m %s\n' "$1"; fail=$((fail + 1)); }
-head_() { printf '\n\033[1m%s\033[0m\n' "$1"; }
-# Run as the beginner, not as root. `bash -ic` with no TTY warns about job
-# control on every call; that is docker, not us, so it does not reach asserts.
-u()     { docker exec -u newbie -w /home/newbie "$NAME" bash -c "$1" 2>&1 \
-            | grep -vE 'cannot set terminal process group|no job control in this shell'; }
-root()  { docker exec "$NAME" bash -c "$1" >/dev/null 2>&1; }
+  su - guest -c 'curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-genie/$REF/install.sh | MWK_REF=$REF sh' \
+    || { echo 'INSTALL FAILED'; exit 1; }
 
-command -v docker >/dev/null || { echo "docker is not installed"; exit 1; }
-cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
-trap cleanup EXIT
+  echo; echo '===== ASSERTIONS ====='
+  FAILED=0
+  ok(){ printf '  %-54s %s\n' \"\$1\" \"\$2\"; }
+  chk(){ if su - guest -c \"\$2\" >/dev/null 2>&1; then ok \"\$1\" PASS; else ok \"\$1\" FAIL; FAILED=1; fi; }
 
-printf 'Starting a clean %s…\n' "$IMAGE"
-docker run -d --name "$NAME" "$IMAGE" sleep 3600 >/dev/null || exit 1
-root "useradd -m -s /bin/bash newbie"
+  chk 'kit is at ~/projects/mwk-genie'          'test -f ~/projects/mwk-genie/mise.toml'
+  chk 'mise installed'                          'test -x ~/.local/bin/mise'
+  chk 'sops on PATH'                            '. ~/.mwk-shell.sh; command -v sops'
+  chk 'age AND age-keygen on PATH'              '. ~/.mwk-shell.sh; command -v age && command -v age-keygen'
+  chk 'miniserve on PATH'                       '. ~/.mwk-shell.sh; command -v miniserve'
+  chk 'chezmoi on PATH'                         '. ~/.mwk-shell.sh; command -v chezmoi'
+  chk 'jq on PATH (settings merge + mwk queue)' '. ~/.mwk-shell.sh; command -v jq'
+  chk '~/.mwk-shell.sh placed'                  'test -f ~/.mwk-shell.sh'
+  chk '~/.claude/CLAUDE.md placed'              'test -f ~/.claude/CLAUDE.md'
+  chk '~/.claude/settings.json placed'          'test -f ~/.claude/settings.json'
+  chk 'settings.json says opus'                 'grep -q opus ~/.claude/settings.json'
+  chk 'skills placed'                           'test -f ~/.claude/skills/mwk-save/SKILL.md'
+  chk 'the page was placed'                     'test -f ~/mwk/site/index.html'
 
-# =============================================================================
-head_ "A. Stage zero — getting the kit onto a bare machine (published main)"
-# =============================================================================
+  # Existing is not the same as usable. v2 shipped a green 'test -x ~/bin/mwk' for a day
+  # while ~/bin was on nobody's PATH and the first command a person is told to run did not
+  # exist. Ask whether it RUNS.
+  chk 'mwk RUNS in a fresh interactive shell'   'bash -ic \"command -v mwk\"'
+  chk 'ccc exists in a fresh interactive shell' 'bash -ic \"alias ccc\"'
+  chk 'mwk with no args + no tty prints usage'  'mwk </dev/null | grep -q \"mwk init\"'
 
-# SETUP.md says: check before you run one, because a minimal image ships with
-# neither guaranteed. If this ever starts passing, that warning has gone stale.
-u 'command -v git' >/dev/null && bad "image already has git — the no-tools branch is untested" \
-                              || ok "bare image has no git, as SETUP.md assumes"
-u 'command -v curl' >/dev/null && bad "image already has curl" \
-                               || ok "bare image has no curl, as SETUP.md assumes"
+  echo '  --- the bug that shipped live in v1 ---'
+  n=\$(su - guest -c 'grep -c mwk-shell.sh ~/.bashrc' 2>/dev/null || echo 0)
+  ok 'source line in ~/.bashrc appears exactly once' \"\$([ \"\$n\" = 1 ] && echo PASS || echo \"FAIL (n=\$n)\")\"
+  [ \"\$n\" = 1 ] || FAILED=1
+  su - guest -c '. ~/.mwk-shell.sh; chezmoi apply --source ~/projects/mwk-genie' >/dev/null 2>&1 || true
+  n2=\$(su - guest -c 'grep -c mwk-shell.sh ~/.bashrc' 2>/dev/null || echo 0)
+  ok 'still exactly once after a second apply' \"\$([ \"\$n2\" = 1 ] && echo PASS || echo \"FAIL (n=\$n2)\")\"
+  [ \"\$n2\" = 1 ] || FAILED=1
 
-printf '  … installing curl (this is the one thing stage zero may need a password for)\n'
-root "apt-get update -qq && apt-get install -y -qq curl ca-certificates"
+  echo '  --- settings.json is merged, never replaced ---'
+  # The failure this guards: a plain managed file reverts Claude Code's own writes on the
+  # next apply, silently uninstalling the person's plugins.
+  su - guest -c 'python3 - <<PY 2>/dev/null || true
+import json,os
+p=os.path.expanduser(\"~/.claude/settings.json\")
+d=json.load(open(p)); d[\"enabledPlugins\"]={\"someone/thing\":True}; json.dump(d,open(p,\"w\"))
+PY'
+  su - guest -c '. ~/.mwk-shell.sh; chezmoi apply --source ~/projects/mwk-genie' >/dev/null 2>&1 || true
+  chk 'a key Claude Code wrote survives an apply'  'grep -q someone/thing ~/.claude/settings.json'
+  chk 'and ours is still asserted'                 'grep -q opus ~/.claude/settings.json'
 
-# The tarball path, exactly as SETUP.md writes it -- and it has to be EXACTLY,
-# with nothing added here. This block used to prepend its own `mkdir -p
-# ~/projects`, which SETUP.md did not have, so the test supplied the one thing
-# that made it work and reported a pass on a command that failed for everyone
-# else. If you find yourself adding a step to make this go green, the bug is in
-# SETUP.md.
-u 'mkdir -p ~/projects/mwk-genie
-   curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
-   | tar xz --strip-components=1 -C ~/projects/mwk-genie' >/dev/null 2>&1
-if [ "$(u 'test -f ~/projects/mwk-genie/SETUP.md && echo yes')" = yes ]; then
-  ok "curl + tar puts the kit in ~/projects/mwk-genie"
-else
-  bad "curl + tar path failed"
-fi
-
-# Running it twice is a retry after an interrupted download. It must not nest a
-# second copy of the kit inside the first, which the old `mv` did, silently.
-u 'curl -fL https://github.com/matewishkey/mwk-genie/archive/refs/heads/main.tar.gz \
-   | tar xz --strip-components=1 -C ~/projects/mwk-genie' >/dev/null 2>&1
-if [ "$(u 'test -e ~/projects/mwk-genie/mwk-genie-main && echo nested')" = nested ]; then
-  bad "a second download nested a duplicate copy inside ~/projects/mwk-genie"
-else
-  ok "downloading twice does not nest a duplicate copy"
-fi
-u 'rm -rf ~/projects/mwk-genie' >/dev/null
-
-printf '  … installing git\n'
-root "apt-get install -y -qq git"
-
-u 'git clone -q https://github.com/matewishkey/mwk-genie.git ~/projects/mwk-genie' >/dev/null
-if [ "$(u 'test -f ~/projects/mwk-genie/SETUP.md && echo yes')" = yes ]; then
-  ok "git clone puts the kit in ~/projects/mwk-genie"
-else
-  bad "git clone path failed"
-fi
-
-# From here on, test what is about to be pushed — not what is already on main.
-# Never run git commands against this copy: your changes are uncommitted, and a
-# stray `stash` or `checkout` silently reverts the container to published main.
-u 'rm -rf ~/projects/mwk-genie' >/dev/null
-docker cp "$REPO/." "$NAME:/home/newbie/projects/mwk-genie" >/dev/null
-root "chown -R newbie:newbie /home/newbie/projects"
-# No python3 in a base Ubuntu image — that is the point of testing on one.
-want=$(python3 -c 'import json;print(json.load(open("plugin/.claude-plugin/plugin.json"))["version"])')
-got=$(u "grep -o '\"version\": *\"[^\"]*\"' /home/newbie/projects/mwk-genie/plugin/.claude-plugin/plugin.json \
-         | head -1 | sed 's/.*\"\\([0-9][^\"]*\\)\"/\\1/'" | tr -d '\r')
-[ "$want" = "$got" ] \
-  && ok "swapped in your working tree (version $got, not published main)" \
-  || bad "the container is running version '$got' but your tree is '$want' — the copy did not take"
-
-# =============================================================================
-head_ "B. Stage one — the shell files, in a genuinely fresh shell"
-# =============================================================================
-
-# A stub `claude` that just reports how it was called. This is the whole point:
-# `ccc` existing is not the same as `ccc` starting the agent the right way, and
-# the difference is invisible to a beginner. It is what failed on show 001.
-#
-# NOTE: this deliberately does NOT put ~/.local/bin on PATH. It used to, and
-# that hid a real bug for months -- the installer does not touch any startup
-# file, so `ccc` was command-not-found in any non-login shell and this phase
-# could never see it. ccc.sh now sets PATH itself. If you add the export back
-# here, you are testing your own line instead of the kit's.
-u 'mkdir -p ~/.local/bin && printf "%s\n" "#!/bin/sh" "echo STUB-CLAUDE \$*" > ~/.local/bin/claude \
-   && chmod +x ~/.local/bin/claude' >/dev/null
-
-u 'cat ~/projects/mwk-genie/templates/ccc.sh    >> ~/.bashrc
-   cat ~/projects/mwk-genie/templates/prompt.sh >> ~/.bashrc' >/dev/null
-ok "appended ccc.sh and prompt.sh to ~/.bashrc"
-
-# A new terminal window is an interactive shell reading .bashrc. Nothing else
-# counts — the whole failure mode is a shell that has not re-read that file.
-out=$(u 'bash -ic ccc' | tr -d '\r')
-case "$out" in
-  *"STUB-CLAUDE --dangerously-skip-permissions"*)
-    ok "fresh shell: ccc starts the agent with --dangerously-skip-permissions" ;;
-  *STUB-CLAUDE*)
-    bad "fresh shell: ccc ran but without the flag (got: $out)" ;;
-  *)
-    bad "fresh shell: ccc did not run at all (got: ${out:-nothing})" ;;
-esac
-
-# The swap we tell them about in howto.html has to actually work.
-u "sed -i \"s|^alias ccc=|# alias ccc=|; s|^# alias ccc='claude'$|alias ccc='claude'|\" ~/.bashrc" >/dev/null
-out=$(u 'bash -ic ccc' | tr -d '\r')
-case "$out" in
-  *dangerously*) bad "after moving the #, ccc still skips permissions" ;;
-  *STUB-CLAUDE*) ok "after moving the #, ccc asks every time (got: $out)" ;;
-  *)             bad "after moving the #, ccc did not run (got: ${out:-nothing})" ;;
-esac
-# Put it back the way it ships.
-u "sed -i \"s|^alias ccc='claude'$|# alias ccc='claude'|; s|^# alias ccc='claude --dangerously|alias ccc='claude --dangerously|\" ~/.bashrc" >/dev/null
-
-# The prompt: folder, branch, and the star that answers "have I saved?".
-# On a throwaway project, not the kit — see the warning above.
-u 'git config --global user.email t@example.com; git config --global user.name Tester
-   mkdir -p ~/projects/demo && cd ~/projects/demo && git init -q && git commit -q --allow-empty -m first' >/dev/null
-
-clean=$(u 'bash -ic "cd ~/projects/demo && __mwk_git"' | tr -d '\r')
-dirty=$(u 'touch ~/projects/demo/notes.txt; bash -ic "cd ~/projects/demo && __mwk_git"' | tr -d '\r')
-outside=$(u 'bash -ic "cd /tmp && __mwk_git"' | tr -d '\r')
-
-case "$clean" in
-  *\*\))     bad "fresh shell: a saved project shows a star it should not ('$clean')" ;;
-  *"("*")"*) ok  "fresh shell: saved project shows '$clean'" ;;
-  *)         bad "fresh shell: saved project showed '${clean:-nothing}'" ;;
-esac
-case "$dirty" in
-  *\*\)) ok  "fresh shell: unsaved work shows '$dirty'" ;;
-  *)     bad "fresh shell: unsaved work showed '${dirty:-nothing}' — the star is missing" ;;
-esac
-[ -z "$outside" ] && ok "fresh shell: silent outside a project" \
-                  || bad "fresh shell: printed '$outside' outside a project"
-
-# =============================================================================
-head_ "C. Stage two — the plugin, with real Claude Code"
-# =============================================================================
-
-u 'rm -f ~/.local/bin/claude' >/dev/null   # the stub has done its job
-printf '  … installing Claude Code the way SETUP.md assumes: its own installer,\n'
-printf '    no Homebrew, no npm, no package manager of any kind\n'
-u 'curl -fsSL https://claude.ai/install.sh | bash' >/dev/null
-
-if [ "$(u 'test -x ~/.local/bin/claude && echo yes')" = yes ]; then
-  ok "Claude Code installed itself, no package manager involved"
-else
-  bad "the official installer did not produce ~/.local/bin/claude — skipping the rest of C"
-  printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"; [ "$fail" -eq 0 ] || exit 1; exit 0
-fi
-
-# The end-to-end version of the PATH bug: real installer, real ccc.sh in
-# .bashrc, a genuinely fresh interactive shell, and nothing helping. This is
-# the shape of "they type three letters and it works".
-out=$(u 'bash -ic "command -v claude"' | tr -d '\r')
-case "$out" in
-  */.local/bin/claude) ok "a fresh interactive shell finds the real claude, unaided" ;;
-  *) bad "fresh interactive shell cannot find claude (got: ${out:-nothing}) — ccc will be command-not-found" ;;
-esac
-
-# `sudo ccc` is a dead end and a beginner will try it after step 7 tells them
-# installing needs admin. Step 3 warns about it, so check the warning is true.
-out=$(docker exec "$NAME" bash -c \
-        '/home/newbie/.local/bin/claude --dangerously-skip-permissions -p hi' 2>&1 | tr -d '\r')
-case "$out" in
-  *root*|*privileges*|*sudo*) ok "the skip-permissions flag refuses to run as root, as step 3 says" ;;
-  *) bad "expected a root refusal from --dangerously-skip-permissions, got: ${out:-nothing}" ;;
-esac
-
-# Phase C runs non-interactive shells, which never read .bashrc, so this prefix
-# is plumbing for THIS script -- not a stand-in for the kit's own PATH line,
-# which the check above proves works on its own.
-C='export PATH=$HOME/.local/bin:$PATH;'
-u "$C claude plugin marketplace add ~/projects/mwk-genie" >/dev/null
-out=$(u "$C claude plugin install mwk-genie@matewishkey")
-case "$out" in
-  *"Successfully installed"*) ok "installs off their own disk, no login needed" ;;
-  *) bad "plugin install failed: $out" ;;
-esac
-
-out=$(u "$C claude plugin list")
-case "$out" in
-  *"Version: $want"*) ok "installed version is $want — it read the disk, not GitHub" ;;
-  *) bad "expected version $want in plugin list; got: $out" ;;
-esac
-
-n_skills=$(find plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-details=$(u "$C claude plugin details mwk-genie@matewishkey")
-missing=""
-# Read the INVENTORY LINE, not the whole output. `plugin details` also prints
-# the marketplace description, which names every command in prose -- so the old
-# bare substring match against $details passed with the skills directory
-# emptied out entirely. The line looks like:
-#     Skills (5)  bug, learning, magic, new-project, save
-inv_line=$(printf '%s\n' "$details" | grep -E '^[[:space:]]*Skills \([0-9]+\)')
-inv_n=$(printf '%s' "$inv_line" | sed -E 's/.*Skills \(([0-9]+)\).*/\1/')
-inv_list=$(printf '%s' "$inv_line" | sed -E 's/.*Skills \([0-9]+\)[[:space:]]*//')
-
-if [ -z "$inv_line" ]; then
-  missing=" (no 'Skills (N)' inventory line in plugin details)"
-else
-  [ "$inv_n" = "$n_skills" ] || missing=" (inventory says $inv_n, disk has $n_skills)"
-  for d in plugin/skills/*/; do
-    s=$(basename "$d")
-    case ",${inv_list// /}," in *",$s,"*) ;; *) missing="$missing $s" ;; esac
-  done
-fi
-[ -z "$missing" ] \
-  && ok "all $n_skills skills resolve in the installed plugin" \
-  || bad "installed plugin is missing skills:$missing"
-
-# Step 10 warns: merge the model key, do not overwrite, because step 9 already
-# wrote to this file. Prove both halves — that the plugin really did write
-# there, and that adding "model" on top leaves it installed. Merge on the host;
-# the container has no python3, which is exactly the situation being tested.
-settings=$(docker exec -u newbie "$NAME" cat /home/newbie/.claude/settings.json 2>/dev/null)
-if [ -z "$settings" ]; then
-  bad "no ~/.claude/settings.json after installing the plugin"
-else
-  keys=$(printf '%s' "$settings" | python3 -c 'import json,sys;print(",".join(json.load(sys.stdin)))')
-  ok "the plugin wrote to settings.json (keys: $keys) — step 10's warning has something to protect"
-
-  printf '%s' "$settings" \
-    | python3 -c 'import json,sys;d=json.load(sys.stdin);d["model"]="opus";print(json.dumps(d,indent=2))' \
-    | docker exec -i -u newbie "$NAME" tee /home/newbie/.claude/settings.json >/dev/null
-
-  still=$(u "$C claude plugin list")
-  has_model=$(u "grep -c '\"model\"' ~/.claude/settings.json" | tr -d '\r')
-  if [ "$has_model" -ge 1 ] && [ "${still#*mwk-genie}" != "$still" ]; then
-    ok "merging \"model\": \"opus\" in leaves the plugin installed"
-  else
-    bad "after adding \"model\" the plugin is gone — merging is not optional"
-  fi
-fi
-
-# =============================================================================
-printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"
-[ "$fail" -eq 0 ] || exit 1
+  echo; [ \"\$FAILED\" = 0 ] && echo 'ALL GREEN' || { echo 'SOME FAILED'; exit 1; }
+"

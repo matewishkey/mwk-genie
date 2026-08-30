@@ -1,138 +1,48 @@
-# Put the genie in the box
+# Mate Wish Key — put the genie in the box
 
-**An AI agent, running on your own computer, set up for someone who has never opened a terminal.**
+An AI agent, running on your own computer, set up for someone who has never opened a terminal.
 
-You ask the AI in your browser to sort something out on your computer and it writes you a lovely
-answer. Open this file. Change that line. Run this. And you go and do it, and halfway through it says
-something red, and now you are carrying error messages back into a chat window like a courier. That
-is not the AI doing the job. That is you doing the job, with extra steps.
+**Two things to paste, one question to answer, and no password.**
 
-The other kind lives on your computer. It opens your files, it runs things, and it fixes what it
-broke. You can have it agree the work with you in conversation — it says what it is about to do,
-you say yes — and then get on with it instead of asking you to approve every command inside that.
-**That is a real trade, you get asked which way you want it, and it is why none of this belongs on
-a work computer.**
+> This is homework for [the show](https://matewishkey.com/show/). You do it once, on your own machine, and then we build the thing you actually wanted — together, on air.
 
-This is how you get one. **Two prompts, and you paste them.** You do not need to understand anything
-in this repo — the agent reads it, not you.
+## How it goes
 
----
+1. **[Paste prompt one](prompts/install.md)** into any chat you already have open. It asks whether you are on a Mac or on Windows — the only question in the whole process — and gets Claude Code onto your computer and signed in.
+2. **[Paste prompt two](prompts/setup.md)** into Claude Code itself. It reads the installer, tells you what it does, runs it, checks its own work, and makes you somewhere to start.
 
-## What it decides for you, and what it asks
-
-This is an **opinionated setup**. It is not a neutral installer and it is not a clever trick — it
-is a set of choices somebody already made, written down where you can read them.
-
-**It decides**, because these are not worth stopping a beginner over: your projects live in
-`~/projects`, one folder each; tools get installed with `mise` rather than over your whole machine;
-your work is saved to GitHub, privately; and websites, domains and email get a suggested starting
-point rather than a blank page. Every one of those is in a plain-English file you can open and
-change afterwards — and the last one is a suggestion the agent is told it can talk you out of.
-
-**It asks you three things**, because these are yours:
-
-- **How `ccc` starts the agent** — getting on with the work, or stopping to ask before every single
-  command. Faster or safer. Either is a fine answer, and you can switch later by moving one `#`.
-- **Admin access** — your computer password, once, so installing things does not stop at every
-  step. That means your whole machine, not one folder. Saying no is fine; it just asks each time.
-- **Which model** — the stronger one, which is what the setup suggests, or the faster one your plan
-  stretches much further on. One line swaps it either way, any time.
-
-**Two of those are the parts that can bite.** An agent running without per-command approval can
-delete things, and admin access is admin access. That is the honest description, and it is why the
-setup puts your work under GitHub before you start playing.
-
-## Step one — into the AI in your browser
-
-This one installs the agent on your machine. It goes in the browser, not a terminal, because if
-something on your screen does not match what it says you can take a screenshot and paste it in.
-
-Copy [`prompts/install.md`](prompts/install.md), paste the whole thing into ChatGPT or Claude in your
-browser, press enter, and answer its questions.
-
-You want a laptop or a desktop, not a phone. You will need a **Claude Code subscription** — Pro is
-the cheapest plan that includes it, and the free plan does not have it.
-
-## Step two — into the agent, once it is running
-
-When the agent is running in a terminal window on your own computer, paste
-[`prompts/setup.md`](prompts/setup.md) into it. That one downloads this repo and sets the machine up
-from it.
-
-**You do not need a GitHub account to download it** — this repo is public, so it comes down
-anonymously with either `git` or `curl`. You need an account later, in stage two, and by
-then you will already have seen the thing work.
-
-[`SETUP.md`](SETUP.md) is the instruction sheet the agent follows once the kit is on your machine.
-
----
+That is the whole thing. It does not ask which model, whether it may use admin, or whether to check with you before each step. Those were questions once; they are decided now, and the one that is worth changing your mind about is one character in a file the setup shows you.
 
 ## What you end up with
 
-- **`ccc`** — three letters and the agent starts. You choose during setup whether it runs with
-  `--dangerously-skip-permissions`, which is the flag that stops it asking you to approve every
-  command one at a time. That flag is the reason this is a your-own-computer thing. It starts
-  wherever you are standing, so `cd` into the project first — that one command is worth knowing,
-  and the setup teaches it to you.
-- **`~/.claude/CLAUDE.md`** — how it talks to you and how it works, in plain English, in a file you
-  can open and change. ([the one it starts with](templates/CLAUDE.md))
-- **A `~/projects` folder**, one folder per thing you are doing.
-- **A prompt that tells you where you are** — the folder, and a `*` when there is work you have not
-  saved. That star is the answer to "have I saved?" without having to ask.
-- **A how-to page you can bookmark**, with the handful of commands on it and a copy button on every
-  one, so none of this lives only in a terminal window you are about to close — and so you never
-  have to select a command by hand and catch a stray space with it.
-- **Commands for the bits you do over and over** — starting a project, finishing one, getting a
-  second opinion on one, adding today to a running page of what you have learnt, and reporting a
-  bug in this kit. Say *"start me a new project"* or *"save my work"* in normal words, or type
-  `/mwk-genie:` and pick from the list. ([what each one does](plugin/skills/))
-- **A note left behind every time you finish**, so next time you can open the project and say
-  *"carry on"*. Saving writes down where you got to; starting reads it back.
-- **GitHub set up**, so every version of your work is kept and "try it and see" stops being
-  frightening.
-- **`mise`**, so installing a tool never means installing it over the whole machine.
-- **A status bar** showing how full the agent's memory is — which matters more than it sounds, and
-  `SETUP.md` says why.
+| | |
+|---|---|
+| `ccc` | starts the agent, from anywhere |
+| `mwk` | a menu: start something, see your keys, open your page |
+| `http://127.0.0.1:29292/` | your page — what you can type, and anything the agent needs you to run |
+| `~/projects/<your thing>/` | your work, with an `input` folder to drop things into |
+| `~/.mwk/` | your keys, behind one password that only you know |
 
-**`ccc` and `CLAUDE.md` come first, on purpose.** Neither needs a password, an account or admin
-rights, so you are flying inside a couple of minutes. Everything that asks something of you — your
-password, a GitHub account — comes after you have seen it work.
+Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it, `/mwk-learning` adds to your running record of what you have learnt, `/mwk-magic` is a second opinion, `/mwk-bug` reports anything in here that is broken.
 
-## The bits that go wrong
+## The two things that will scare you
 
-- **The password that shows nothing.** Type your computer password into a terminal and the screen
-  does not move. No dots, no stars. It looks broken, so people type it again and lock themselves
-  out. It is working. Type it and press enter.
-- **On Windows it is not the password you think.** The one the terminal wants is the Ubuntu password
-  you made when you first opened Ubuntu, not your Windows sign-in. Since the screen shows nothing
-  either way, a wrong password looks exactly like a working one.
-- **Shift+Enter does not always give you a new line.** `Ctrl+J` always does, in every terminal.
-- **"Admin access" means your whole machine**, not one folder. Normal for installing software, and
-  exactly the moment to ask the agent what the command does. That question is never annoying.
-- **It can delete things.** Same as you can. This is not a toy that is protected from itself, which
-  is why the setup puts your work under GitHub before you start playing.
-- **It can be wrong and sound completely certain.** Read what it proposes before you say yes.
-- **The meter is running.** A long conversation with big files in it costs more than a short one.
-  Find your usage page on day one, not after a surprise.
-- **Not using Claude?** Any agent that runs in a terminal and can read files works the same way —
-  Codex CLI, Gemini CLI, others. Change the name in the prompts. For the status bar, ask it for its
-  own equivalent.
-- **Something in this kit itself broken?** Say *"report this bug"*. It writes the report from what
-  actually just happened, shows it to you, and files it here once you say yes — the repo is public,
-  so the report is too. You can also [open one
-  yourself](https://github.com/matewishkey/mwk-genie/issues/new/choose).
+**It runs commands without asking.** That is deliberate — setting up a computer is hundreds of small commands, and approving them one at a time means you stop reading and start pressing enter, which is worse than not being asked. **This is why it does not belong on a work computer.** To turn the asking back on, move one `#` in `~/.mwk-shell.sh`; the setup shows you the line.
 
-## Why "in the box"
+**It can see and change things in your home folder.** Not just one project. That is what makes it useful and it is worth knowing.
 
-A genie in the cloud that can only talk is a chatbot. A genie on *your* machine, that can open *your*
-files, is a different animal — more useful, and more able to break something. In the box means both
-halves: getting it in there, and knowing where the sides are.
+## Keys
 
----
+Never put an API key in a file or in the chat. `mwk add NAME` stores one behind a single master password; `mwk run -- <command>` hands the values to that one command and they vanish with it. **Save that master password in your password manager the moment you make it** — nobody can reset it. If it ever gets out, `mwk rekey` is one command.
 
-From **[Mate Wish Key](https://matewishkey.com/)** — a show about what people wish their computer did.
-You come on with something you wish yours did, the agent does the work on your machine while we talk
-it through, and the wish ends up on the site.
+The agent cannot type it and will not ask you to give it one. Anything that genuinely needs your keyboard appears on your page with a Copy button and a line saying why.
 
-Not affiliated with, sponsored by or endorsed by Anthropic, OpenAI, Google, GitHub or anyone else
-named here. They are named because that is what the things are called.
+## No package manager
+
+No Homebrew, no apt. Every tool is a pinned binary from its own project, fetched by `mise` from one list ([`mise.toml`](mise.toml)), identical on macOS, Ubuntu and WSL. On a Mac it also installs Apple's Command Line Tools, because you will want git before long.
+
+## Working on the kit itself
+
+[`CLAUDE.md`](CLAUDE.md) is the notes for whoever changes this repo — the reasoning, and the things that will bite you. [`test/`](test/) says what is checked automatically and what still needs a human.
+
+Something broken? `/mwk-bug` writes the report for you, or [open one here](https://github.com/matewishkey/mwk-genie/issues/new/choose).

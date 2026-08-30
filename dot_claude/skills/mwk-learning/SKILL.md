@@ -46,7 +46,7 @@ The record is a single self-contained HTML file — **a web page because a web
 page prints**, and because a wall of terminal text is not something anyone
 reads twice.
 
-    ~/projects/what-we-learnt/log.html
+    ~/mwk/site/learnt.html
 
 **Read it first if it exists.** Today goes in as a new dated entry at the
 **top**, above everything already there. **Never rewrite, tidy or re-summarise
@@ -78,7 +78,7 @@ rather than as one designed page and one plain one.
 **Before you write it, read <https://matewishkey.com/design/>.** That page
 renders the real colour tokens live, so it cannot go stale the way a copy in
 this file would. Take the values from there. If it is unreachable, use what is
-already in `log.html` from last time and say so in a line.
+already in `learnt.html` from last time and say so in a line.
 
 Keep it minimal — this is a record, not a brochure. Three rules, and they are
 the same three the bookmark page follows:
@@ -90,11 +90,11 @@ the same three the bookmark page follows:
   kickers `--faint`. **The copy buttons are deliberately not red.**
 - **The block is the real logo file**, inlined verbatim from
   `matewishkey.com/favicon.svg`. Do not hand-build a red square with a mark in
-  it. `~/projects/mwk-genie/templates/howto.html` has the correct one inlined
+  it. `~/projects/mwk-genie/mwk/site/index.html` has the correct one inlined
   already — copy it from there rather than drawing one.
 
 Display type is Fraunces, body is Manrope, with ordinary system fallbacks
-because an artifact cannot fetch a font. Entries are separated by a rule, not
+because the page must work with no network. Entries are separated by a rule, not
 boxed in cards.
 
 Rules for the page itself:
@@ -123,89 +123,16 @@ Rules for the page itself:
   half of how you find the published page again next time, and rewriting the
   file without it is how the record ends up at two addresses.
 
-## 4. Publish it to the same address, every time
+## 4. Save it, and tell them where
 
-The file on disk is the record. **The published page is its mirror, and it has
-one address that never changes** — that is the whole point, because an address
-that changes is not something anyone bookmarks.
+Write it to `~/mwk/site/learnt.html`, beside `index.html`. Their page is already
+being served, so it is at **http://127.0.0.1:29292/learnt.html** the moment you
+save it. Say that address out loud — it is the one they keep.
 
-**There is exactly one page. You update it. You never make a second one.**
+**There is no publishing step and there is nothing to look up.** This used to be
+an artifact at an address that had to be stored in three places, because a second
+page looked exactly like a successful run. A file cannot split in two, so all of
+that is gone. Do not reintroduce it.
 
-That sounds obvious and it is the easiest thing in this skill to get wrong,
-because getting it wrong looks like getting it right: a run that cannot find
-the first page publishes a fresh one, hands over a working link, and reports
-success. Nothing errors. The record is now split across two addresses, neither
-half is complete, and nobody finds out for weeks.
-
-### Where the address is kept
-
-**In two places, because one file is one accident.**
-
-1. **The first line of `log.html`**, exactly like this:
-
-       <!-- artifact: https://... -->
-
-   It travels with the record, so the file and its address cannot be separated.
-
-2. **A copy at `~/.claude/mwk-genie-learning.txt`** — the URL on one line, and
-   nothing else. This one survives the project folder being deleted, renamed,
-   or moved, which the first line cannot.
-
-**Write both every time you publish**, even when nothing changed. They are
-cheap, and the whole design rests on at least one of them being there.
-
-### The title is fixed, and it is not yours to improve
-
-The page is called exactly this, every time, forever:
-
-    What we learnt
-
-**Do not reword it, date it, or add their name to it.** It is the third way
-home when both files below are gone, and matching is by exact title — a page
-called "What we learnt so far" in March and "What We Learnt" in April is two
-pages as far as that search is concerned, which is the failure this whole
-section exists to prevent.
-
-### Finding it again, in order
-
-1. Read `~/.claude/mwk-genie-learning.txt`.
-2. Read the first line of `log.html`.
-3. **List their artifacts and match by that exact title.**
-
-Take the first address any of those gives you and **update that page**.
-
-**Updating means handing the publish step that address.** This is the part that
-actually does the work, and skipping it is silent: a session that did not
-publish the page originally — which is every session after the first — creates
-a *new* page at a *new* address unless it is explicitly told which one to
-update. There is no other way to target an existing page. Everything above is
-only about finding the address; if you find it and then publish without it, you
-have still split the record and it will still look like it worked.
-
-If two sources disagree, prefer the sidecar file, say so in one line, and
-repair the other.
-
-### If all three come up empty
-
-**Stop. Do not publish.** Ask them:
-
-> I keep your learning page at one address so it is always the same bookmark.
-> I cannot find it — is this the first time you have run this, or has the page
-> gone missing?
-
-**First time → publish, and tell them to bookmark it.** Anything else → they
-almost certainly still have the link in a bookmark or an old message, and one
-question costs a moment where a duplicate page costs the record. **If they can
-find the link, take it and use it** — that is the address, and it is better
-than anything you would create. Only publish fresh once they have said it is
-genuinely gone.
-
-This is the one place in this skill where asking beats getting on with it.
-
-On later runs just say it has been updated — they know where it lives.
-
-**If publishing is not available in this session, do not improvise a
-workaround.** The file on disk is still the complete record, and nothing has
-been lost: tell them the path, say they can double-click it, and say the link
-version needs them signed in with `/login`. Next time it publishes, everything
-written in the meantime goes up with it.
+If `~/mwk/site/` does not exist, the kit was never installed here — say so rather
+than inventing somewhere else to put it.

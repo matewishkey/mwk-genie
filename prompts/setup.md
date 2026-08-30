@@ -1,60 +1,56 @@
 # Prompt two — paste this into Claude Code
 
-This is the whole setup. The person pastes it once, into a fresh Claude Code
-session, and watches. **It asks them nothing.**
+The whole setup. They paste it once, into the session prompt one just started, and watch. **It asks them nothing.**
 
-The fenced block below is what gets published to the website and pasted. Everything
-outside the fence is for whoever is reading this on GitHub.
+The fenced block is what gets published and pasted. Everything outside it is for whoever is reading this on GitHub.
 
 ```
-You are Claude Code, running on somebody's own
-computer. They have never used a terminal, and
-they are watching you work. Set their computer up.
+You are Claude Code, running on somebody's own computer. They have never used a terminal, they are watching you work, and they are trusting you with a machine they cannot fix. Set it up for them.
 
-1. Put the kit in ~/projects/mwk-genie, from
-   github.com/matewishkey/mwk-genie
-   On a Mac download the tar.gz — do NOT use git.
-   /usr/bin/git there is a shim that opens an
-   Xcode dialog and fails.
+FIRST — READ WHAT YOU ARE ABOUT TO RUN, AND SAY SO
 
-2. Run the kit's install.sh and let it finish.
-   It asks nothing and needs no password.
+Get the kit into ~/projects/mwk-genie from github.com/matewishkey/mwk-genie. On a Mac use the tar.gz rather than git unless Apple's Command Line Tools are definitely installed — /usr/bin/git is a stub that opens a dialog and fails.
 
-3. Prove it worked, and say so in plain words:
-     - mwk        answers with a menu
-     - mwk site   serves 127.0.0.1:29292
-     - a NEW terminal window knows ccc
+Then open ~/projects/mwk-genie/install.sh and actually read it before running it. Check it against this list, out loud, in one short line each:
 
-4. Make them one folder to work in, inside
-   ~/projects, named after what they want to do.
+  - Does it use sudo, or ask for a password, anywhere? It should not.
+  - Does it write anywhere outside their home folder? It should not.
+  - Does it download from anywhere other than github.com, mise.run, claude.ai or the release hosts those redirect to? It should not.
+  - Does it delete anything? It should not.
 
-5. Show them their page and tell them the two
-   things they can type: ccc, and mwk.
+Then tell them, in one sentence and no jargon, what it is about to do. If any answer above comes out wrong, stop and tell them what you found instead of running it. This is not a formality — they cannot read it themselves, and being the person who checks is most of what you are for here.
 
-Rules for all of it:
-  - Do it for them. Never hand them a command to
-    run unless only they can run it.
-  - If something needs their own keyboard, put it
-    on their page with mwk queue, and say why.
-  - One line about what each step is for, then do
-    it, then show them it worked.
-  - No jargon. If a word needs explaining, it was
-    the wrong word.
+THEN — RUN IT
+
+Run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, four pinned tools, and their settings.
+
+THEN — PROVE IT WORKED, IN THEIR WORDS
+
+  - `mwk` answers with a menu
+  - `mwk site` serves http://127.0.0.1:29292/
+  - a NEW terminal window knows `ccc` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
+
+THEN — GIVE THEM SOMEWHERE TO WORK
+
+Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in. Then open their page and tell them the two things they can type: `ccc` starts you, `mwk` opens a menu.
+
+HOW TO WORK, ALL THE WAY THROUGH
+
+  - Do it for them. Never hand them a command unless only they can run it.
+  - If something genuinely needs their own keyboard — a password, a key — put it on their page with `mwk queue "why it is theirs" "the command"`, and say why. Never tell them to quit you; a second tab is the answer.
+  - One line about what a step is for, then do it, then show them it worked. Not a report.
+  - No jargon. If a word needs explaining, it was the wrong word.
+  - If something fails, say so plainly and say what you are trying next. Never announce success you have not checked.
 ```
+
+## The read-before-you-run step is the point of this file
+
+A stranger is being asked to let a script they cannot read reconfigure their computer. "Trust us" is not an answer, and a checksum only proves the file is the one we shipped — not that shipping it was reasonable.
+
+So the agent reads it and reports, against a list short enough that the answers are checkable rather than atmospheric. It is the one thing in this whole flow that a person could not do for themselves and an agent genuinely can.
 
 ## What it does not do
 
-**It does not ask them anything.** Not which model, not whether to skip
-permissions, not whether it can use admin. Those were three questions once; the
-first two are decided in the kit and the third was deleted by choosing the option
-that never needs a password.
+**It asks them nothing.** Not which model, not whether to skip permissions, not whether it can use admin. Those were three questions once. Two are decided in the kit; the third was deleted by choosing the option that never needs a password.
 
-**It does not need their password.** Nothing in the flow uses `sudo`.
-
-## Why the command is not in the fence
-
-The install one-liner is 87 characters and this fence is capped at 60 — the
-website's build measures it and fails rather than publishing a wrapped line. So
-the fence names the repo (32 characters) and lets the agent type the long thing
-itself. That only works because the installer asks nothing: chezmoi's prompts need
-a TTY, and an agent has none.
+**Nothing in the flow uses `sudo`.**
