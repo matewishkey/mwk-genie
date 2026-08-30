@@ -221,8 +221,21 @@ cmd_site() {
   if command -v curl >/dev/null 2>&1 && curl -s -o /dev/null --max-time 2 http://127.0.0.1:29292/; then
     note "Already open: http://127.0.0.1:29292/"; return 0
   fi
-  note "Your page: http://127.0.0.1:29292/   (Ctrl+C here stops it)"
-  exec miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a"
+  # An agent has no terminal to give up, and `exec miniserve` never returns — so running
+  # this the obvious way would hang the tool call until it timed out, and the page the
+  # whole flow depends on would look broken. With no tty, detach and come straight back.
+  if have_tty; then
+    note "Your page: http://127.0.0.1:29292/   (Ctrl+C here stops it)"
+    exec miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a"
+  fi
+  if command -v setsid >/dev/null 2>&1; then
+    setsid miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a" >/dev/null 2>&1 < /dev/null &
+  else
+    # macOS has no setsid. nohup plus a background job is the portable equivalent.
+    nohup miniserve -i 127.0.0.1 -P --index index.html --port 29292 "$a" >/dev/null 2>&1 < /dev/null &
+  fi
+  sleep 1
+  good "Their page is open: http://127.0.0.1:29292/"
 }
 
 # The page's producer. It existed only as a sentence in a JavaScript comment: the site

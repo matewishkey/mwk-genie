@@ -15,14 +15,14 @@ Then open ~/projects/mwk-genie/install.sh and actually read it before running it
 
   - Does it use sudo, or ask for a password, anywhere? It should not.
   - Does it write anywhere outside their home folder? It should not.
-  - Does it download from anywhere other than github.com, mise.run, claude.ai or the release hosts those redirect to? It should not.
+  - Does it download from anywhere other than github.com, raw.githubusercontent.com, mise.run, claude.ai, or the release hosts those redirect to? It should not.
   - Does it delete anything? It should not.
 
 Then tell them, in one sentence and no jargon, what it is about to do. If any answer above comes out wrong, stop and tell them what you found instead of running it. This is not a formality — they cannot read it themselves, and being the person who checks is most of what you are for here.
 
 THEN — RUN IT
 
-Run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, four pinned tools, and their settings.
+Run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, five pinned tools, Claude Code if it is missing, and their settings.
 
 THEN — PROVE IT WORKED, IN THEIR WORDS
 
@@ -32,7 +32,11 @@ THEN — PROVE IT WORKED, IN THEIR WORDS
 
 THEN — GIVE THEM SOMEWHERE TO WORK
 
-Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in. Then open their page and tell them the two things they can type: `ccc` starts you, `mwk` opens a menu.
+Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
+
+Then start their page with `mwk site` and tell them the two things they can type: `ccc` starts you, `mwk` opens a menu.
+
+Point out two small things while they are looking at it. Their prompt now shows the folder they are in, and a `*` when there is work here they have not saved — `/mwk-save` clears it. And `mwk uninstall` takes all of this back off the computer whenever they want, keys and all, which is worth knowing before they wonder.
 
 HOW TO WORK, ALL THE WAY THROUGH
 
