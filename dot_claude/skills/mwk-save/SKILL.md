@@ -6,6 +6,16 @@ description: Save a session's work for someone who is not a developer — say in
 They are finished for now. **Save everything and leave the place tidy for next
 time.** Keep it short — this is the last thing they read, not a report.
 
+## 0. Before anything, check what is about to be committed
+
+**Never commit a secret.** Keys belong in `mwk`, not in a file — if you find one in
+what is about to be saved, stop, take it out, and put it in the store with
+`mwk queue "this key should be in your store, not in a file" "mwk add THE_NAME"`.
+
+`.mwk-keys` is names and scopes only and is safe to commit. `input/` and `archive/`
+are theirs, not the project's — they should already be in `.gitignore`, and if they
+are not, add them before the first push rather than after.
+
 ## 1. Look at what actually changed
 
 Check the state of the folder before you say anything about it. Read the actual

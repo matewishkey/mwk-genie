@@ -30,6 +30,15 @@ THEN — PROVE IT WORKED, IN THEIR WORDS
   - `mwk site` serves http://127.0.0.1:29200/
   - a NEW terminal window knows `ccc` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
 
+THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
+
+Install one plugin and one documentation source, and nothing else. Every extra thing you add costs tokens in every session forever, so this list is short on purpose.
+
+  - claude plugin install frontend-design@claude-code-plugins — so the first thing they build with a screen does not look like a template.
+  - claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp — up-to-date documentation for whatever library they end up using. The --scope user matters: without it, it is registered only for the folder you are standing in, and the next thing you do is move them to a different one.
+
+Check each worked before saying it did. If either fails, say so and carry on — neither is load-bearing.
+
 THEN — GIVE THEM SOMEWHERE TO WORK
 
 Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
