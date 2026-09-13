@@ -323,12 +323,33 @@ for d in dot_claude/skills/*/; do
   fm=$(awk 'NR>1 && /^---$/{exit} /^name:/{print $2}' "$d/SKILL.md")
   is "$name: frontmatter name matches its directory" "$fm" "$name"
 done
-grep -q 'mwk/site/learnt.html' dot_claude/skills/mwk-learning/SKILL.md \
-  && ok "mwk-learning writes to the local page, not an artifact" \
-  || no "mwk-learning writes to the local page" "still publishing somewhere"
-grep -q 'artifact:' dot_claude/skills/mwk-learning/SKILL.md \
-  && no "mwk-learning has no artifact machinery left" "found 'artifact:'" \
-  || ok "mwk-learning has no artifact machinery left"
+grep -q 'mwk/site/learnt.html' dot_claude/skills/mwk-learn/SKILL.md \
+  && ok "mwk-learn writes to the local page, not an artifact" \
+  || no "mwk-learn writes to the local page" "still publishing somewhere"
+grep -q 'artifact:' dot_claude/skills/mwk-learn/SKILL.md \
+  && no "mwk-learn has no artifact machinery left" "found 'artifact:'" \
+  || ok "mwk-learn has no artifact machinery left"
+
+# BOTH DIRECTIONS, because a rename is the string-replace-that-silently-misses in its most
+# dangerous form: the skill still loads under its old directory name, so nothing fails —
+# the documents just promise a name that no longer answers. Every `/mwk-*` these two files
+# offer must exist on disk, AND every skill on disk must be offered. The second half is the
+# one that catches a rename done everywhere except the README.
+# Backticks are required, not decoration: a bare /mwk-… also matches the repo path in
+# github.com/matewishkey/mwk-genie, which this check duly reported as a missing skill on
+# its first run. A slash command is always written as code in both files.
+offered=$(grep -ohE '`/mwk-[a-z]+`' README.md dot_claude/create_CLAUDE.md | tr -d '`/' | sort -u)
+ondisk=$(for d in dot_claude/skills/*/; do basename "$d"; done | sort -u)
+for s in $offered; do
+  [ -f "dot_claude/skills/$s/SKILL.md" ] \
+    && ok "the documents offer /$s, and it exists" \
+    || no "the documents offer /$s" "no dot_claude/skills/$s/SKILL.md — a promised name that does not answer"
+done
+for s in $ondisk; do
+  printf '%s\n' "$offered" | grep -qx "$s" \
+    && ok "$s is offered to them, not just shipped" \
+    || no "$s is offered to them" "installed but named in neither README.md nor create_CLAUDE.md"
+done
 
 head_ "The page they keep"
 # The rule is "red is never body text", which counting the hex does not test — the token

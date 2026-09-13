@@ -23,7 +23,7 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 | `~/projects/<your thing>/` | your work, with an `input` folder to drop things into |
 | `~/.mwk/` | your keys, behind one password that only you know |
 
-Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it, `/mwk-learning` adds to your running record of what you have learnt, `/mwk-magic` is a second opinion, `/mwk-bug` reports anything in here that is broken.
+Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it, `/mwk-learn` adds to your running record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-bug` reports anything in here that is broken.
 
 ## The two things that will scare you
 

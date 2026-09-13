@@ -515,6 +515,26 @@ cmd_uninstall() {
   exec sh "$u" "$@"
 }
 
+# Getting a newer version, with the same delegation as uninstall above: there is ONE list
+# of what gets installed and it lives next to the thing that installs it. install.sh is
+# written to be re-run — it pulls the kit, skips every tool it already has, and re-applies
+# — so "update" and "install" are the same code path, which is the only way they stay in
+# step with each other.
+#
+# WHY THIS EXISTS AS A COMMAND AT ALL. The path was already there, but reaching it meant
+# re-pasting an 87-character curl one-liner, which is precisely the thing this kit exists
+# to stop asking people to do. A person who cannot get an update will not get a fix.
+#
+# It runs the installer that is ON DISK, not a fresh one off the network — so a change to
+# install.sh itself lands on the run AFTER the one that pulled it. That is the ordinary
+# self-update lag and it is fine; what is not fine is pretending it does not exist.
+cmd_update() {
+  u="$HOME/projects/mwk-genie/install.sh"
+  [ -f "$u" ] || die "the kit is not at ~/projects/mwk-genie, so there is nothing to update"
+  note "Updating. This takes a minute or two, and it will not ask you for anything."
+  exec sh "$u" "$@"
+}
+
 # Browse ~/projects in a web page — the same idea, and the same program, as the file
 # browser we use ourselves. Being able to click through your own folders is the fastest
 # way to understand where things are when "the file system" is a new concept.
@@ -592,6 +612,7 @@ mwk — your keys, in one place, behind one password.
   mwk needs                write .mwk-keys: what this project uses. Safe to commit
   mwk lock                 forget the master password until you type it again
   mwk rekey                change the master password
+  mwk update               get the newest version of all of this
   mwk uninstall            take all of this back off this computer
 
 There is no way to print a value, and no --value flag. That is on purpose.
@@ -612,7 +633,8 @@ cmd_menu() {
     5  See what keys you have      names only, never the values
     6  Lock your keys
     7  Just show me the commands
-    8  Take all of this off this computer
+    8  Get the newest version      fixes and new things, same as the first install
+    9  Take all of this off this computer
 
 EOF
   printf '  Type a number and press Enter: '
@@ -627,7 +649,8 @@ EOF
     5) cmd_list;;
     6) cmd_lock;;
     7) usage;;
-    8) cmd_uninstall;;
+    8) cmd_update;;
+    9) cmd_uninstall;;
     *) note "I didn't catch that. Run mwk again and type a number.";;
   esac
 }
@@ -639,6 +662,7 @@ case "${1:-}" in
   queue) shift; cmd_queue "$@";;
   port) shift; cmd_port "$@";;
   files) shift; cmd_files "$@";;
+  update) shift; cmd_update "$@";;
   uninstall) shift; cmd_uninstall "$@";;
   add) shift; cmd_add "$@";;
   list|ls) shift; cmd_list "$@";;

@@ -100,7 +100,21 @@ esac
 say "1/6  Getting the kit"
 mkdir -p "$HOME/projects"
 if [ -d "$KIT/.git" ] && have_git; then
-  step "already here — updating"; git -C "$KIT" pull --ff-only >/dev/null 2>&1 || true
+  # ⚠ THIS USED TO BE `git pull ... || true`, AND THAT IS THE BUG THIS REPO KEEPS HAVING.
+  # A kit with a local edit, or a branch that has diverged, makes --ff-only fail. The
+  # `|| true` swallowed it, the screen still said "updating", and step 6 then applied the
+  # OLD kit — so the one command whose entire job is being up to date reported success
+  # while doing nothing. Silence and success were indistinguishable. Compare the commit
+  # before and after and say which of the three things actually happened.
+  before=$(git -C "$KIT" rev-parse --short HEAD 2>/dev/null || echo unknown)
+  if git -C "$KIT" pull --ff-only >/dev/null 2>&1; then
+    after=$(git -C "$KIT" rev-parse --short HEAD 2>/dev/null || echo unknown)
+    if [ "$before" = "$after" ]; then step "already here, and already up to date"
+    else                              step "already here — updated $before → $after"; fi
+  else
+    step "already here — could not update, so keeping the copy you have ($before)"
+    step "nothing is broken. If this keeps happening, ask me about it"
+  fi
 elif have_git; then
   step "cloning"; git clone --quiet --branch "$REF" "$REPO.git" "$KIT"
 else

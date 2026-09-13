@@ -130,7 +130,7 @@ it cannot tell me you pressed the button. So I never wait for it; I check whethe
 the thing actually happened and carry on.
 
 **Things I can do for you by name:** `/mwk-new` starts a project, `/mwk-save`
-saves and pushes your work, `/mwk-learning` adds to your record, `/mwk-magic` is
+saves and pushes your work, `/mwk-learn` adds to your record, `/mwk-review` is
 a second opinion on a project, `/mwk-bug` reports something broken in the kit.
 
 **`mise` is already here and it owns the tools.** Six of them are pinned in
