@@ -77,6 +77,9 @@ download or a temp file to `install.sh`, update the list in the same commit.
 | `[ -t 1 ]` is false inside **every** pipeline and every `$()` | It asks about the current redirection, not about whether a person is there. `have_tty` used to test it, so `mwk add` — which reads inside a pipeline — took the no-human path on every run. Ask whether `/dev/tty` **opens** |
 | `exit` from a pipeline stage leaves the **subshell**, not the script | `sops_d` called `locked_msg` (which does `exit 3`); the caller carried on with empty output and wrote it back. Three adds with the correct password left one key. A function that reads must `return` non-zero and let the main shell decide |
 | Setting `SOPS_AGE_KEY_FILE` **and** `SOPS_AGE_KEY` re-opens the encrypted identity | A second passphrase prompt for a key already in hand — and with no TTY it hangs rather than failing. Prefer the key already unlocked; encryption needs a recipient, never an identity |
+| **`grep -c` exits 1 when the count is zero** | So `n=$(grep -c x f \|\| echo 0)` fires the fallback *on top of* grep's own `0` and yields the two-line string `0\n0`, which equals neither 0 nor 1. It reported a correct uninstall as a failure. Use `\|\| true` and default only the empty (file-absent) case |
+| `ubuntu:24.04` ships **no python3** | `rehearse.sh`'s settings-merge fixture was `python3 … \|\| true`, so it planted nothing and the assertion grepped for a key that never existed. **Assert the fixture landed before asserting what survives it** |
+| `api.github.com` sends `access-control-allow-origin: *`, but a **private** repo 404s unauthenticated | A browser can read *public* issues directly and no private ones. `/mwk-new` makes private repos, so the page reads a `gh`-written local mirror instead of the API — no token in a page on `:29200` |
 
 ## The store
 
@@ -228,6 +231,15 @@ debug log for all six phases.
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
+**Run, 2026-09-13, against `67d7d5f`: `check.sh` 161/161, `rehearse.sh` ALL GREEN (35 assertions).**
+The first two have now actually been executed; `on-this-machine.sh` still has not, and macOS still
+has never had the kit installed. Two of the failures on `rehearse.sh`'s first ever run were **in the
+test, not the kit** — see the table above — and the more important one is that
+**`a key Claude Code wrote survives an apply` had never executed at all**, because `ubuntu:24.04`
+carries no python3 and the fixture was guarded `|| true`. It now plants the key, **asserts the
+fixture landed**, and only then asks what survived. With that precondition proved, the merge does
+work: `modify_settings.json` preserves `enabledPlugins`. That was an assumption until this run.
+
 ## Still open — all four are filed
 
 | # | |
@@ -237,7 +249,37 @@ after a push, and that has already cost two runs.
 | **#15** | Caddy as the shared front for project sites. nginx cannot be used — source only. `auto_https off` and `admin off` are load-bearing |
 | **#16** | The v2 → main merge blockers, in order. `matewishkey-web#77` first, or their build goes red |
 
-**And the one that is not filed because it is not a task: none of the three test scripts has ever been run in
-its current form, and macOS has never had the kit installed on it.** Everything macOS in the table
+**And the one that is not filed because it is not a task: `test/on-this-machine.sh` has still never
+been run, and macOS has still never had the kit installed on it.** Everything macOS in the table
 above was measured by probing a real Mac; nothing was installed there. A red result on the first
-real run is information, not a defect.
+real run is information, not a defect. (`check.sh` and `rehearse.sh` **have** now been run — see
+*Test it before you push*. That sentence used to cover all three.)
+
+## v3 — what is being added, and what was already there
+
+Asked for on 2026-09-13: `mwk-install`, `mwk-close`, `mwk-learn`, `mwk-review`, `mwk-tasks`, plus a
+task page. **Two of the five already existed under other names**, which is why the first commit is
+mostly renames: `mwk-magic` **was** the review ("are they overcomplicating this" is its stated
+thesis) and `mwk-learning` **was** the learning log. Both are renamed for their verb now. Don't
+re-derive this — check `dot_claude/skills/` before building something that is already shipping.
+
+**GitHub is the task store, and the page reads a local mirror of it — never the API.** Measured
+2026-09-13 with a positive control: `api.github.com` sends `access-control-allow-origin: *` so a
+browser *can* reach it, but a **private** repo 404s unauthenticated (checked `mergodon/td-sops` and
+`mergodon/matewishkey-web` private → 404, `matewishkey/mwk-genie` public → 200). `/mwk-new` creates
+private repos by default, so a page on `:29200` could only read their issues by holding a token,
+which is exactly what we do not do. So `mwk tasks` shells out to `gh` (pinned, already authenticated
+during setup) and writes `tasks.json` beside the served root — the same writer/reader shape as
+`ports.tsv` → `projects.json` and `queue.json`. **The page stays one-way**; a task links out to the
+real GitHub issue rather than reimplementing one.
+
+**One kit, not one per platform** (mate's call, 2026-09-13, after measuring). WSL Ubuntu *is* Linux —
+`uname -s` says `Linux` — so there is no third target, and the whole kit branches on OS in exactly
+three places: `install.sh:46` (the xcode-select shim), `install.sh:95-97` (reject anything else),
+and `run_onchange_after_20-darwin-iterm2.sh.tmpl:2`. Forking would duplicate ~1000 lines to manage
+three conditionals, and re-create by hand the two-package-manager problem `mise.toml`'s header says
+`aqua:` was chosen to delete. The two differences that are **real** are behavioural, not syntactic,
+and get feature tests rather than a fork: **the passphrase cache is Linux-only** (a stock Mac has no
+pinentry and no gpg-agent, so `mwk lock` means something different there), and WSL's untested edges —
+a Windows browser reaching `127.0.0.1:29200`, and the `/mnt/c` boundary. The detection primitive
+already exists and is used exactly once: `bin/executable_mwk-debug:47`.
