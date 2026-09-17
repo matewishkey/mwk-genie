@@ -1,93 +1,99 @@
-# The bits no script can check
+# The bits no script can check — walk this on a real machine
 
 `check.sh` and `rehearse.sh` cover everything mechanical. What is left needs a browser, a
-login, or somebody actually reading the thing. Walk this when the prompts, the setup sheet,
-or the two published pages change.
+login, a Windows desktop, or a person reading the thing. **Windows first**: it has never been
+tested by anyone (#9), and three of the kit's claims are documented-not-measured there.
 
-## Needs a login
+Every ✗ here is information, not a defect. Write down what actually happened.
 
-- [ ] **Step 1 works in a browser.** Paste `prompts/install.md` into a fresh ChatGPT or Claude
-      conversation. It should ask which computer you are on **first**, and stop once the agent
-      is running and logged in — not carry on into setup.
-- [ ] **The artifact publishes.** Run `/mwk-genie:learning` in a signed-in session. Check a page
-      appears, the link opens, and it prints.
-- [ ] **It publishes to the *same* page the second time.** Run it again on another day, or after
-      a `/clear`. **Today's entry goes on top, yesterday's is still underneath, and the URL has
-      not changed.** This is the whole point of the command and the only part that cannot be
-      automated — a second copy at a new address is the failure, and it looks like success.
-- [ ] **Both copies of the address get written.** After a run, check the first line of
-      `~/projects/what-we-learnt/log.html` is `<!-- artifact: https://... -->` **and** that
-      `~/.claude/mwk-genie-learning.txt` holds the same URL. Two places on purpose: one survives
-      the file being rewritten, the other survives the folder being deleted.
-- [ ] **It asks rather than duplicating when the address is gone.** Delete both — the first line
-      and the sidecar — and run it again. **It must stop and ask** whether this is the first run
-      or the page went missing. If it silently publishes a new page, that is the bug this whole
-      design exists to prevent, and it will not announce itself.
-- [ ] **It still finds the page with only the title.** Delete both again, answer the question by
-      saying the page exists, and check it recovers the right artifact by title rather than
-      making a new one. The title is pinned in the skill as exactly **`What we learnt`** — if the
-      published page is called anything else, that is the bug, not the search.
-- [ ] **The second run reuses the address rather than finding it and then ignoring it.** The
-      subtle half: knowing the URL and *publishing to it* are two different steps, and a session
-      that did not create the page will mint a new one unless it is handed the address explicitly.
-      So after run two, check the URL in `~/.claude/mwk-genie-learning.txt` is **unchanged**, not
-      merely present — a fresh URL written confidently into the sidecar looks identical to success.
-- [ ] **Step 14's how-to page publishes** and the link survives closing the terminal.
-- [ ] **The show links work on the published page** — `check.sh` proves the URLs are alive, not that
-      they render as clickable links once `howto.html` is an artifact. Open it and click all three.
+## Before you start — the two things that make a pre-merge test possible
 
-## Needs a human reading it
+- **Paste the prompts from this branch, not from matewishkey.com.** The website renders
+  `main`, which is v1. Open the raw file at the SHA you are testing:
+  `https://raw.githubusercontent.com/matewishkey/mwk-genie/<sha>/prompts/install.md`
+  and the same for `prompts/setup.md`.
+- **Tell prompt two which commit.** It says "its main branch, unless I tell you a different
+  branch or commit" — so the first thing you type after pasting it is: *"use commit `<sha>`"*.
+  On `main` there is no `install.sh` until v2 merges, and the agent would stop there.
 
-- [ ] **The three questions get asked, once each.** Walk a real setup: `ccc` (step 2), admin
-      access (step 7), the model (step 10). Each should be one short question with a
-      recommendation, not a paragraph, and none of them should come back later.
-- [ ] **Answering "no" to admin access does not silently skip anything.** It should ask again
-      when it genuinely needs it, and say what for.
-- [ ] **Picking the asks-every-time `ccc` is honoured.** Step 3 must check against that answer,
-      not against the default.
-- [ ] **`/mwk-genie:bug` shows the report before filing**, redacts the home folder path, and says
-      out loud that the repo is public. **Do not test this by filing a real issue** — answer no,
-      and read what it was about to send.
+## Prompt one — in a browser chat, Windows
+
+- [ ] **It asks Mac or Windows first, and nothing else.**
+- [ ] **WSL install:** it warns about the restart before the restart, says nothing opens by
+      itself afterwards, and says the Ubuntu username/password is NOT the Windows one and
+      shows nothing while typed — **before** you type it.
+- [ ] **Ubuntu becomes the default profile in Windows Terminal.** The prompt tells the agent to
+      have you do this and to look up where the setting is. Confirm: press Ctrl+Shift+T later
+      and the new tab is Ubuntu, not `PS C:\`. **This is the gap a beginner hits first.**
+- [ ] **`claude --permission-mode auto` starts** — and then: **does it ask before commands, or
+      not?** This is the single most important measurement on this list. The docs say auto
+      mode is available "when available to your session"; nobody has run it on a fresh
+      consumer account. Note exactly what the first command did.
+- [ ] **Sign-in opens the Windows browser**, and the prompt said it would.
+
+## Prompt two — inside Claude Code
+
+- [ ] **It reads `install.sh` out loud against the four questions** (sudo, outside `$HOME`,
+      hosts, deletions) and the answers are all "no" — the host list must not flag its own
+      installer.
+- [ ] **`install.sh` runs to the end** with nothing typed. Note anything that looked like a hang.
+- [ ] **`git --version` answers afterwards.** Nothing installs git on Linux; the Ubuntu WSL image
+      is assumed to ship it. If it does not, `/mwk-new` cannot work — that is a finding.
+- [ ] **The bar at the bottom shows model · folder · % full** after the first reply.
+- [ ] **`http://127.0.0.1:29200/` opens in the Windows browser** and shows *How to work with your
+      genie*. Documented (WSL2 localhost forwarding is on by default), never measured on the
+      fleet. If it does not open, try `http://localhost:29200/` and note which worked.
+- [ ] **A new Ubuntu tab knows `mwk`** and `mwk` alone prints three commands.
+- [ ] **`/mwk-onboard`:** the GitHub device code is read out slowly; the first `mwk add` is
+      preceded by the key warning; `mwk add` refuses inside Claude and works in the second tab;
+      the second tab is Ubuntu (see above); `cat ~/.config/sops/age/keys.txt` shows one
+      `AGE-SECRET-KEY` line and you can copy it; the Cloudflare and Replicate checks print
+      `200`; the closing line has ticks that came from those calls.
+- [ ] **Desktop shortcuts.** The agent puts a shortcut to `~/projects` and `~/mwk-work` on the
+      Windows Desktop via the `\\wsl$` address. Double-click each: Explorer opens on the Linux
+      folder. `wslpath -w` is the documented tool for the address; nobody here has run it.
+- [ ] **`explorer.exe .`** from a project folder opens the right place.
+- [ ] **`/mwk-new`** makes `README.md`, `input/`, `archive/`, `.gitignore`, a private repo,
+      and moves you into it with `cd …` + `claude` — and it waits for you to say the new
+      window started.
+- [ ] **A page.** Ask for something longer than a screen (a plan, a comparison). It lands under
+      `~/mwk-work/<project>/<date_slug>/`, the link opens in the Windows browser, it looks like
+      the rest of the kit, and `~/mwk-work` got a commit.
+- [ ] **`/mwk-save`** says what changed in plain English, writes `TODO.md`, pushes, and prints
+      `cd …` / `claude` / `/clear` with the `/clear` explanation.
+- [ ] **`/mwk-learn`** writes `~/projects/learning/README.md`, entry at the top, and does NOT
+      touch `~/mwk-work/README.md`.
+- [ ] **`/clear` and `/model sonnet`** do what the howto says; the bar changes model name.
+- [ ] **Turn the asking back on** by saying so; confirm `permissions.defaultMode` changed in
+      `~/.claude/settings.json` and the next session asks.
+- [ ] **`/mwk-bug`** shows the report before filing and redacts the home path. **Answer no** —
+      do not file a real issue from a test.
+
+## Then the automated pass on the same machine
+
+```
+curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-genie/<sha>/test/on-this-machine.sh \
+  | MWK_REF=<sha> sh
+```
+
+It installs, checks, uninstalls and reinstalls — the machine is left set up. Its last block
+lists what it could not test; those are the boxes above.
+
+## macOS — the same, plus
+
+- [ ] **Command Line Tools:** the prompt warns first, `xcode-select --install` opens Apple's
+      window, and the agent waits for you to say it finished rather than assuming.
+- [ ] **No Homebrew appears** (`command -v brew` finds nothing).
+- [ ] **iTerm2 lands in `~/Applications`** with no password asked, and Ctrl+J makes a new line
+      in Apple's Terminal too.
+- [ ] **Ad-hoc signed binaries run** — `sops`, `age`, `chezmoi`, `miniserve`, `jq`, `gh` all
+      answer `--version`. The last three were pinned after the signing check.
+- [ ] **Everything in the Windows list from "prompt two" down**, with `open .` and Finder in
+      place of Explorer, and `ln -s` shortcuts on the Desktop.
 
 ## Only worth doing before a release
 
-- [ ] **Windows.** Everything above, once, in WSL. This is still the only coverage the Windows path
-      has, and "everything above, once" is not enough on its own — a tester who already knows to
-      open Ubuntu will open Ubuntu, and miss the thing a beginner hits first. So specifically:
-- [ ] **Windows, open the terminal the way a beginner would.** Start menu or taskbar, not the Ubuntu
-      entry, and check the setup notices. The default is PowerShell, where `ccc` will never exist
-      and the error mentions a cmdlet. Every "restart me" step has to survive this, not just step 2.
-- [ ] **Windows, the password.** At step 7, try the *Windows* sign-in password first, deliberately.
-      The setup should have already told you it wants the Ubuntu one — if you find that out by
-      failing three times, the warning is in the wrong place.
-- [ ] **Windows, the colours actually landed.** Step 13 writes Windows Terminal's `settings.json`
-      from inside WSL, across the `/mnt/c` boundary. Confirm the change is really in the file and
-      really visible, not just reported. If Windows Terminal is not installed, confirm it says so
-      and leaves it alone rather than improvising.
-- [ ] **Windows, finding the files.** Run `explorer.exe .` from a project folder and check the
-      window opens on the right place. That is the only route a Windows user has to their own work.
-- [ ] **macOS.** Homebrew is expected now, for one thing only. Confirm `brew list --cask` shows
-      **iTerm2 and nothing else**, and that Claude Code came from its own installer rather than a
-      formula (`brew list | grep -i claude` should find nothing).
-- [x] **macOS, `$TERM_PROGRAM`.** ~~Record what it actually says.~~ **Done 2026-08-11** on the
-      observer Mac (macOS 26.5.2): Apple's Terminal sets `Apple_Terminal`, iTerm2 sets `iTerm.app`,
-      both read out of the applications' own binaries. Step 13 matches these. The iTerm2 preference
-      keys were read off a live profile at the same time — see the table in `CLAUDE.md`.
-- [ ] **macOS, Ctrl+J really works in Apple's Terminal.** Press it and check it starts a new line
-      rather than sending. This is the claim the whole "you can decline the install" branch rests
-      on, and it is now the answer we give first, on every platform.
-- [ ] **macOS, brew is usable straight after installing it.** On an Apple Silicon Mac, follow step
-      one exactly and confirm `brew --version` answers *before* the iTerm2 line runs. The installer
-      prints a "Next steps" block that has to be run first, and skipping it is a `command not
-      found` on a beginner's first command.
-- [ ] **macOS, the terminal handoff.** Step one should leave them in iTerm2 before the agent is ever
-      installed, so step 13 has nothing to repair. **Then test the other path on purpose:** run the
-      setup from Apple's Terminal and check step 13 notices, offers rather than insists, and hands
-      over cleanly to a restarted agent rather than dying silently.
-- [ ] **macOS, the settings actually took.** Whatever step 13 changed in iTerm2, quit the app and
-      reopen it. iTerm2 can write its preferences back on exit; a change that does not survive that
-      was never made.
-- [ ] **The live site still matches.** `prompts/install.md` and `prompts/setup.md` are fetched
-      and published by `matewishkey.com` at build time. After a deploy, open
-      `matewishkey.com/how-to/put-the-genie-in-the-box/` and check the two boxes show what this
-      repo now says.
+- [ ] **The live site still matches.** `prompts/install.md` and `prompts/setup.md` are fetched and
+      published by `matewishkey.com` at build time. After a deploy, open
+      `matewishkey.com/wishes/put-the-genie-in-the-box/` and check the two boxes show what this
+      repo now says — and that `matewishkey-web#77` landed first, or their build is red.

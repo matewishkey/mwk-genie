@@ -30,6 +30,7 @@ WINDOWS
   - The first time it opens it sits there setting itself up for a minute or two before it says anything. Warn me first.
   - Then it asks me to invent a username and password. Before I type: say clearly that this is NOT my Windows password and has nothing to do with my Microsoft account, and that THE SCREEN WILL SHOW NOTHING AT ALL while I type it — no dots, no stars, nothing. That is normal. It is the single place people get most stuck, and they blame themselves for it.
   - From here on, "the terminal" always means the Ubuntu window. If my prompt starts with `PS C:\` I am in the wrong one, and you should say so every time you ask me to open a terminal.
+  - Have me make Ubuntu the default profile in Windows Terminal, so that every new tab I open later is an Ubuntu tab. Look up where that setting lives in the current Windows Terminal documentation rather than describing it from memory. Without it, "open a new tab" later lands me in PowerShell, where nothing we are about to set up exists.
 
 MAC
   - Open Terminal from Spotlight (Command+Space, type "terminal"). That is the only setup I need to reach a terminal.

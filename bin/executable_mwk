@@ -81,8 +81,10 @@ mwk: this needs your own terminal, and this isn't one.
   Nothing is wrong. Keys are only ever typed where nothing is watching,
   and an AI agent has no keyboard — so it cannot be here for this bit.
 
-  Open a new tab in your terminal (Cmd+T on a Mac, Ctrl+Shift+T otherwise),
-  run the command there, then come back. Do NOT quit Claude.
+  Open a new tab in your terminal — Cmd+T on a Mac. On Windows it must be an
+  UBUNTU tab (the arrow next to the + in Windows Terminal), not PowerShell:
+  if the new tab starts with PS C:\ nothing here exists in it.
+  Run the command there, then come back. Do NOT quit Claude.
 EOF
   exit 3
 }
