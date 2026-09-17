@@ -9,7 +9,11 @@
 # Claude Code hands this script one JSON document on stdin per repaint. The fields used here
 # are documented — model.display_name, workspace.current_dir, context_window.used_percentage —
 # and used_percentage is null before the first reply, hence the `// 0`.
-command -v jq >/dev/null 2>&1 || exit 0     # no jq → no bar, never an error in the footer
+# jq is a mise shim, and Claude Code inherits PATH from whatever launched it — a terminal
+# that read ~/.mwk-shell.sh has the shims, a login shell or an app launcher does not. The
+# container rehearsal hit exactly that: placed, wired, and printing nothing. Name the path.
+PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
+command -v jq >/dev/null 2>&1 || exit 0     # still no jq → no bar, never an error in the footer
 input=$(cat)
 model=$(printf '%s' "$input" | jq -r '.model.display_name // "Claude"')
 dir=$(printf '%s' "$input"   | jq -r '.workspace.current_dir // ""')
