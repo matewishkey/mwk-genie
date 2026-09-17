@@ -201,7 +201,9 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-17, against `895fb31`: `check.sh` 200/200, `rehearse.sh` ALL GREEN (48 assertions).**
+**Run, 2026-09-17 (late), against `e8a5d27`: `check.sh` 234/234, `rehearse.sh` ALL GREEN (50
+assertions) — the first run in which "Claude Code installed" is one of them.** Earlier that day,
+against `895fb31`: 200/200 and 48.
 Three container runs earlier the same day each went red on one line. Two were real bugs of the
 same class — a tool preflight at the top of `mwk`, then a status line that printed nothing — both
 under a login shell with no mise shims on PATH (the table has the row). The third was the test:
@@ -293,6 +295,29 @@ What v1 had that v2/v3 had lost, brought back without a page or a new command:
   `**From:**` marker, one digest, decisions in one reply — minus the declared `## Cross-repo`
   list, because for one person `gh repo list` *is* the list. Added the `— <project>` sign-off
   and the "six small folders beat one big one" sentence, which is the reason mate wanted it.
+
+## v3.3 — the external review round (2026-09-17, three models, no shared context)
+
+Mate asked for "a few external reviewers with different models". Three fresh agents, each
+given a different angle and nothing from the session. **Do this again after any large change;
+it found things a single author cannot.**
+
+| model | angle | what it found (all fixed, each with a check that fails on the old behaviour) |
+|---|---|---|
+| Haiku | consistency sweep | "5 pinned tools" / "Five of them" stale after miniserve returned. `check.sh` now derives the count from `mise.toml` and asserts every prose copy |
+| Sonnet | a beginner reading what the person reads | setup built the first folder by hand instead of `/mwk-new` (no save points, wrong shape); GitHub sign-in ran *before* the "tell them first" line; the agent-can-touch-all-of-`~` fact never reached the page they bookmark; `sudo`/`compiler` unexplained; prompt one never said the person types every command themselves; the entry name "mwk key" existed in one place |
+| Opus | security + correctness, reproduced against real sops/age | **five HIGHs in `mwk`**: a one-line key file killed `add` with no output (`grep \| head` under pipefail); the decrypted dotenv was *sourced* — a backtick ran as code; `read -rs` took one line and handed the rest of a paste to the shell; `run` with the store missing ran the command with no keys, exit 0; `install.sh`'s `$`-anchored version regex pinned three tools to `latest`. Plus: half-restore minted a key over their data; `command -v git` on a Mac; a failed Claude install still said "type claude"; unhook said "unhooked" for a file it did not change; miniserve respawned forever on a symlinked root; bare `mktemp` on macOS; the settings merge no-ops without `jq` on PATH |
+
+**Two more came out of chasing those, from the container, that no reviewer could see:** Claude
+Code had *never* installed in the container (a `jq` shim with no global version, in
+`/dev/null`, behind an unconditional "type claude"), and a bare quote in a comment silently
+truncated the container script to two assertions at exit 0. Both in the table above, both
+guarded.
+
+**And one from the harness:** the store test went red on the *previous* `mwk` too, because a mise
+shim had appeared on the dev box's PATH and a scratch `$HOME` trusts nothing. The lesson is
+general — `command -v` is not "runs" — and the container now executes every tool from the kit
+directory rather than checking its symlink exists.
 
 ## Still open
 
