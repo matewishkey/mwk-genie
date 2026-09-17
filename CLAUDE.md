@@ -198,10 +198,14 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-17, against `d9e8101`: `check.sh` 188/188, `rehearse.sh` ALL GREEN (40 assertions).**
-Two container runs earlier the same day each found one real bug of the same class — a tool
-preflight at the top of `mwk`, then a status line that printed nothing — both under a login shell
-with no mise shims on PATH (the table has the row). Neither would have been found by `check.sh`.
+**Run, 2026-09-17, against `895fb31`: `check.sh` 200/200, `rehearse.sh` ALL GREEN (48 assertions).**
+Three container runs earlier the same day each went red on one line. Two were real bugs of the
+same class — a tool preflight at the top of `mwk`, then a status line that printed nothing — both
+under a login shell with no mise shims on PATH (the table has the row). The third was the test:
+"the server is stopped" ran inside miniserve's graceful shutdown after `pkill`, and every
+reproduction that passed had a second's sleep the check did not. It has one now, and prints the
+process table if it ever fails again — a red line with no `ps` is a guess. None of the three would
+have been found by `check.sh`.
 
 `check.sh` needs `sops`, `age-keygen` and a working `script(1)` for the store test, and says
 **SKIPPED — not a pass** when it cannot run it. `on-this-machine.sh` has still never been run, and
