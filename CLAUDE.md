@@ -11,40 +11,56 @@ places it at a stranger's `~/.claude/CLAUDE.md` and it becomes the rules their a
 Editing the wrong one is silent: nothing fails, and either the kit stops working or a beginner gets
 instructions meant for you.
 
-## How v2 works, in one pass
+## How v3 works, in one pass
 
 ```
 prompt one  (browser)  → Mac or Windows? → WSL / Xcode CLT → Claude Code → start it with
                          --dangerously-skip-permissions
-prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder and a page
-install.sh             → kit → mise → 6 pinned tools → Claude Code → mise use -g → chezmoi apply
+prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder to work in
+install.sh             → kit → mise → 5 pinned tools → Claude Code → mise use -g → chezmoi apply
 chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/.claude/{CLAUDE.md,settings.json,skills/},
-                         ~/mwk/site/, and on macOS iTerm2
+                         and on macOS iTerm2
+mwk                    → add · run · update. That is all of it.
 ```
 
 **It is not a plugin.** Skills are placed straight at `~/.claude/skills/mwk-*/SKILL.md`, which
-loads with no marketplace and no manifest. That deleted the three-names-must-agree rule, the
-version match, and the install step. The prefix is in the directory name because user-level skills
-share one flat namespace.
+loads with no marketplace and no manifest. The prefix is in the directory name because user-level
+skills share one flat namespace.
+
+## The rule that shapes v3 (mate, 2026-09-17)
+
+**A command exists only if it is needed OFTEN. Everything infrequent, the agent does.** It is on the
+machine, it can see the actual state, and it will handle a one-off better than a function written
+months earlier for a machine nobody had seen. So there is no `init`, `list`, `needs`, `lock`,
+`rekey`, `uninstall`, `restore`, no menu, no page. `create_CLAUDE.md` carries each of those as one
+sentence under *Things that need no command*. **Don't add a command for something rare.** It rots.
+
+**The floor stays a script.** `install.sh` runs before the agent is useful, is read before it runs,
+and is tested in a container. OpenClaw's own install is `curl … | bash` and their docs say a skill
+"cannot install or update the runtime itself" — checked 2026-09-17, not assumed. v1 was an agent
+following prose for ~30 steps, and every documented near-miss came out of that.
+
+**Fix the silent bugs; let the agent handle the loud ones.** It routes around a missing tool or a
+404. It does not route around `Stored ✓` printed over a store that just lost two keys.
+
+`docs/v3-plan.md` is the record of why, with the research table and the four decisions.
 
 ## The one question, and the two that were deleted
 
 `.chezmoi.toml.tmpl` prompts for **nothing**. The single question — Mac or Windows — lives in
 `prompts/install.md`, because Windows needs WSL before a terminal exists and nothing later can ask.
 
-**Removing the prompts removed a TTY requirement, and that unblocked two things at once.** chezmoi
-needed a terminal only because it was asking; with nothing to ask, an agent can run `install.sh`,
-and the 87-character one-liner never has to appear inside a prompt file.
+**Removing the prompts removed a TTY requirement**: chezmoi needed a terminal only because it was
+asking; with nothing to ask, an agent can run `install.sh`, and the 87-character one-liner never
+has to appear inside a prompt file.
 
-- **Model** — deleted. Opus was settled on 2026-08-11 after testing sonnet. It is written by
-  `dot_claude/modify_settings.json` instead, and **removing the question had removed the setting
-  with it** for a while — Claude Code's own default is not opus.
+- **Model** — deleted. Opus, settled 2026-08-11. Written by `dot_claude/modify_settings.json`;
+  removing the question once removed the setting with it — Claude Code's own default is not opus.
 - **Admin** — deleted, not answered. iTerm2 goes to `~/Applications`, which needs no password, so
   nothing in the flow uses `sudo` at all.
-- **`ccc_mode`** — decided for them, in `.chezmoidata.yaml`, as `fast`. This repo argued the other
-  way for months and mate overruled it on 2026-08-30. What makes it survivable is that the escape
-  hatch is one character: `~/.mwk-shell.sh` ships both alias lines with one commented out, and the
-  page says which to swap. **If that escape hatch ever stops shipping, the argument has to reopen.**
+- **`ccc_mode`** — decided for them, in `.chezmoidata.yaml`, as `fast`. Mate's call, 2026-08-30.
+  The escape hatch is one character: `~/.mwk-shell.sh` ships both alias lines with one commented
+  out. **If that escape hatch ever stops shipping, the argument has to reopen.**
 
 ## The read-before-you-run guardrail
 
@@ -52,234 +68,146 @@ and the 87-character one-liner never has to appear inside a prompt file.
 writes outside `$HOME`, unexpected download hosts, deletions. A stranger cannot read it themselves,
 and "trust us" is not an answer.
 
-**The checklist must stay true of the script.** It listed three hosts while `install.sh` fetched
-from four — `raw.githubusercontent.com` was missing, so the guardrail would have fired on its own
-installer. **A guardrail that cries wolf the first time is ignored the second.** If you add a
-download or a temp file to `install.sh`, update the list in the same commit.
+**The checklist must stay true of the script.** It once listed three hosts while `install.sh`
+fetched from four, so the guardrail would have fired on its own installer. **A guardrail that cries
+wolf the first time is ignored the second.** `check.sh` now extracts every host `install.sh` fetches
+from and asserts `setup.md` names each one.
 
 ## Things measured on real machines, so nobody re-derives them
 
 | Fact | Consequence |
 |---|---|
 | `/usr/bin/git` and `/usr/bin/clang` share an inode on macOS — it is the xcode-select shim | `command -v git` is true with no dev tools. Ask `xcode-select -p`, not whether a file exists |
-| macOS has **no `timeout`** and no `gtimeout` | Calling it exits 127. Every agent-side `mwk` read once reported "locked" forever |
-| A stock Mac has **no pinentry and no gpg-agent** | sops reads `/dev/tty` itself. **The 600s cache window is Linux-only** — it was written here as a flat cross-platform fact and that was wrong |
+| macOS has **no `timeout`** and no `gtimeout` | Calling it exits 127. Nothing in v3 calls it; if something ever does, this is why it dies on a Mac |
+| A stock Mac has **no pinentry and no gpg-agent** | Irrelevant since 2026-09-17 — the passphrase is gone. Kept because it is why the passphrase is gone: it made `mwk lock` mean two different things on two platforms |
 | Binaries fetched by curl/Go carry `com.apple.provenance`, not `com.apple.quarantine` | Gatekeeper does not block the toolchain. **Never add a blanket `xattr -dr`** to "fix" it |
-| The four checked at the time (chezmoi, sops, age, miniserve) are ad-hoc signed arm64 — jq and gh were pinned later and not re-checked | They exec on Apple Silicon. `spctl -a` says "rejected" for ad-hoc binaries — that is the assessment API, not exec enforcement |
-| miniserve binds `0.0.0.0` and `[::]` by default and follows symlinks | Reproduced: a fetch from the LAN returned 200, and a symlink out of the served root returned the store's ciphertext |
+| chezmoi, sops and age were checked ad-hoc signed arm64; jq and gh were pinned later and not re-checked | They exec on Apple Silicon. `spctl -a` says "rejected" for ad-hoc binaries — that is the assessment API, not exec enforcement |
 | `mise` shims resolve from the config **in scope** | `mise.toml` is a project config, so tools were active only inside the kit. `mise use -g` fixes it |
-| A plain chezmoi-managed `settings.json` | With no TTY it **aborts the whole apply**; with `--force` it reverts the file and destroys `enabledPlugins`. Use `modify_`; `.chezmoi.stdin` does not exist, so it must be a script |
-| `nginx` ships **source only** — no binaries | It cannot be installed without a package manager. Caddy is in the aqua registry with mac and linux builds |
-| miniserve 0.35.0 has **no `--allowed-hosts`** | Checked its `--help`. A Host allowlist is the direct fix for rebinding and it does not exist here |
-| Binding to `127.0.0.1` does **not** stop a web page | A site can point its own domain at loopback and read the server same-origin. `mwk files` exposes all of `~/projects`, so it carries per-run basic auth; a browser will not send credentials cross-origin |
+| A plain chezmoi-managed `settings.json` | With no TTY it **aborts the whole apply**; with `--force` it reverts the file and destroys `enabledPlugins`. Use `modify_`; `.chezmoi.stdin` does not exist, so it must be a script. **Measured to preserve `enabledPlugins`, 2026-09-13** — it was an assumption until the fixture was proved planted |
 | `.chezmoiignore` patterns match the **target** name | `dot_claude/**` matches nothing — the target is `.claude/**`. Writing the source name places NOTHING while reading correctly |
 | `A && B \|\| C && D` groups as `((A && B) \|\| C) && D` | A successful first branch still ran the second. Use `if/elif` |
-| `[ -t 1 ]` is false inside **every** pipeline and every `$()` | It asks about the current redirection, not about whether a person is there. `have_tty` used to test it, so `mwk add` — which reads inside a pipeline — took the no-human path on every run. Ask whether `/dev/tty` **opens** |
-| `exit` from a pipeline stage leaves the **subshell**, not the script | `sops_d` called `locked_msg` (which does `exit 3`); the caller carried on with empty output and wrote it back. Three adds with the correct password left one key. A function that reads must `return` non-zero and let the main shell decide |
-| Setting `SOPS_AGE_KEY_FILE` **and** `SOPS_AGE_KEY` re-opens the encrypted identity | A second passphrase prompt for a key already in hand — and with no TTY it hangs rather than failing. Prefer the key already unlocked; encryption needs a recipient, never an identity |
-| **`grep -c` exits 1 when the count is zero** | So `n=$(grep -c x f \|\| echo 0)` fires the fallback *on top of* grep's own `0` and yields the two-line string `0\n0`, which equals neither 0 nor 1. It reported a correct uninstall as a failure. Use `\|\| true` and default only the empty (file-absent) case |
-| `ubuntu:24.04` ships **no python3** | `rehearse.sh`'s settings-merge fixture was `python3 … \|\| true`, so it planted nothing and the assertion grepped for a key that never existed. **Assert the fixture landed before asserting what survives it** |
-| `api.github.com` sends `access-control-allow-origin: *`, but a **private** repo 404s unauthenticated | A browser can read *public* issues directly and no private ones. `/mwk-new` makes private repos, so the page reads a `gh`-written local mirror instead of the API — no token in a page on `:29200` |
+| `[ -t 1 ]` is false inside **every** pipeline and every `$()` | It asks about the current redirection, not whether a person is there. `have_tty` asks whether `/dev/tty` **opens** |
+| `exit` from a pipeline stage leaves the **subshell**, not the script | A function that reads must `return` non-zero and let the main shell decide. This is how `mwk add` once replaced the store with one key |
+| **`grep -c` exits 1 when the count is zero** | `n=$(grep -c x f \|\| echo 0)` yields the two-line string `0\n0`. Use `\|\| true` and default only the empty case |
+| `ubuntu:24.04` ships **no python3** | A `python3 … \|\| true` fixture plants nothing and the check never runs. **Assert the fixture landed before asserting what survives it** |
+| `env -i … <shell function>` is "No such file", silently | `env` execs binaries. The store test's first run reported "no store was made" against a store that was. Put the pty inside the env, not a function around it |
+| **sops searches for `.sops.yaml` upward from the CURRENT DIRECTORY** | `mwk add` runs from inside a project, not the store. Pass `--config` explicitly |
+| **sops matches creation rules on the file NAME, and stdin has none** | `--filename-override <name>`, or a no-catch-all `.sops.yaml` refuses with `no matching creation rules found` — which is that rule doing its job on the wrong file |
+| **A login shell has `~/bin` but not mise's shims.** Ubuntu's `.profile:20-21` adds `~/bin`; `.bashrc:6-8` returns before the kit's source line whenever the shell is non-interactive (`su - user -c`, cron, a script) | Measured in `ubuntu:24.04`, 2026-09-17. So `mwk` is found and `sops` is not. A tool preflight at the top of `mwk` made bare usage exit 1 and would have killed `mwk update` — the command for when things are broken. Tools are checked inside `add` and `run` only |
+| This box's fleet shell exports `SOPS_AGE_KEY_FILE` | It contaminated the first round of store research with an unexplained recipient mismatch. `mwk` sets it explicitly; `check.sh` runs the store under `env -i`. **Do store research in a clean env** |
+| `api.github.com` sends `access-control-allow-origin: *`, but a **private** repo 404s unauthenticated | Measured with a positive control (`td-sops` private → 404, `mwk-genie` public → 200). It decided that no page would ever read their issues — and then the page went anyway |
 
-## The store
+## The store — `~/projects/keys`
 
-`~/.mwk/` — a passphrase-encrypted age identity plus sops-encrypted dotenv files. The thing they
-save in a password manager is **a password**, not a 74-character key, which is the whole reason for
-that shape.
+A private git repo of sops-encrypted dotenv files, and **one plain age key at sops's default path,
+`~/.config/sops/age/keys.txt`**, mode 600. The thing they save in their password manager, once, is
+that key's `AGE-SECRET-KEY` line.
 
-**The store is outside `~/mwk/`, and that is structural rather than tidy.** `~/mwk/site` is handed
-to a web server. "It is a dotfile and miniserve hides those" survives until someone adds `-H`;
-not being under the served root survives that. `mwk site` also refuses to start if the two
-directories contain one another.
+```
+~/projects/keys/.sops.yaml          their PUBLIC key, one rule, no catch-all. Safe to commit
+~/projects/keys/global.enc.env      keys every project can use
+~/projects/keys/projects/<slug>.enc.env
+~/.config/sops/age/keys.txt         the PRIVATE key. Never in git, never in ~/projects, never in chat
+```
 
-`init`, `add` and `rekey` refuse without a TTY — enforcement using the property that was measured,
-not a convention to remember. No `--value` flag anywhere, deliberately: that removes argv, `ps` and
-shell history as a class rather than mitigating them.
+Measured 2026-09-17 under `env -i`, sops 3.13.3 / age 1.1.1 — the table is in `docs/v3-plan.md`:
+sops finds the default key path unaided; a hidden key fails instantly (exit 128 — the hang was
+pinentry, and pinentry is gone); `sops updatekeys -y` after a new key locks the old one out; `git
+add -A` stages zero secret lines.
+
+**What replaced what.** `~/.mwk` with a passphrase-encrypted identity was chosen so the saved
+thing was "a password"; it cost pinentry, gpg-agent, the 600s cache, three TTY refusals, `lock`,
+`rekey`, and a per-platform fork — and it had **no backup**. A 74-character string is what
+password managers are for, and a repo is what backups are for.
+
+**Three things are load-bearing in `bin/executable_mwk`, and `check.sh` asserts each:**
+
+- **`add` refuses without a TTY**, using the property that was measured (`/dev/tty` opens), and has
+  **no `--value` flag** — that removes argv, `ps` and shell history as a class.
+- **A store with no key is a NEW COMPUTER, not a first run.** `ensure_store` refuses to mint a key
+  when `.sops.yaml` exists; a fresh key there would encrypt the next add to a key that cannot read
+  the rest of the repo, and it would look like it worked. It says where the saved key goes.
+- **`add` reads before it prompts, dies on a failed read, keeps the old ciphertext until the new one
+  is proved, and reads the store back to confirm every previous name survived.** That is the
+  2026-08-30 bug's fix, carried over. `check.sh` runs it against a real scratch store through a
+  pty, and was confirmed red with the merge sabotaged before being trusted green.
+
+Each `add` commits in the store. Pushing is `/mwk-save`'s — that needs GitHub, a commit needs nothing.
 
 ## The failure this repo keeps having
 
-**A string replace that does not match is silent, and it looks exactly like one that worked.** It
-has now happened three times: v1's green ticks counted nothing, an ignore file placed
-nothing while reading correctly, and a menu renumbering left **two number 3s** with `uninstall`
-listed nowhere — so "see what keys you have" ran *add a key*.
+**A string replace that does not match is silent, and it looks exactly like one that worked.**
+v1's green ticks counted nothing; an ignore file placed nothing while reading correctly; a menu
+renumbering left two number 3s; `mwk add` replaced the store with one key while printing `Stored`;
+a test fixture that never ran reported a verdict anyway; a `pty` function behind `env -i` never
+executed and the suite said the store was never made.
 
 Every one was written confidently and reviewed as correct. The defence is not more care, it is
-asserting the result: after an edit, read back the thing that should have changed. `test/check.sh`
-now compares the menu's printed digits against its `case` arms, and asserts the placed-file list by
-name in both directions.
-
-**The same shape reached the store, and there it cost data.** `mwk add` replaced the whole file
-with the single key being added — measured 2026-08-30, three adds with the *correct* password
-each time left one key, each printing a green `Stored` and exiting 0. Two of the three rows added
-to the table above are its mechanism; the third is why the fix does not merely move the prompt.
-`cmd_add` now unlocks in the main shell, refuses to continue on a failed read, keeps the old
-ciphertext until the new one is proved, and **reads the store back to confirm every previous name
-survived**. Note where the static checks stood: 129 of them passed on the day this shipped. The
-check that catches it runs `mwk` against a real store — and it was confirmed red against the
-pre-fix binary before being trusted green against this one.
-
-## Debug mode
-
-`MWK_DEBUG=1` sends a run's log to `debug.matewishkey.com` — a Cloudflare Worker, KV, 30-day
-expiry. **Posting is open and reading needs a token**, deliberately: turning it on has to be one
-word a person can type on a call, and what needed protecting was reading. The read token is in
-`td-sops` at `apps/mwk-genie.enc.env`; the Worker holds its own copy, so rotating means both.
-
-Guards, all measured against the live endpoint: a body not starting with `=== mwk ` is 400 before
-it costs a KV write, 20 posts per IP per hour (post 19 → 201, post 20 → 429), 512 KB cap, reads
-401 without the token. **The run id is built in the Worker, not taken from the caller** — otherwise
-anyone posting could overwrite an existing run.
-
-Redaction happens **on the way out**, not by trusting the log: `$HOME` first so a username cannot
-survive inside a path, then age keys, `sk-`, `gh[pousr]_`, Slack, JWTs and long base64. The whole
-point of a debug log is that it caught something nobody expected.
-
-Two things in `install.sh`'s capture that are easy to break: the real stderr is kept on **fd 3**,
-because everything else is redirected into the capture pipe and a confirmation written into the log
-it is confirming is no confirmation; and the send is on an **EXIT trap**, because the run worth
-reading is the one that failed and `set -e` never reaches the bottom of the file.
-
-## Ports
-
-Everything served lives in **292xx**: `29200` is their page, `29201` browses `~/projects`, and
-`mwk port` gives each project the next number up from `29202` — the same one every time. One fixed
-port breaks the moment there are two projects.
-
-**`mwk port` allocates; `mwk serve` is what answers on it.** For a while only the first existed,
-so the number was an address with nothing behind it — and `site-templates/README.md` told people
-"any project folder can be served on its own address", which is worse than saying nothing, because
-they conclude they broke it. `mwk serve` refuses `$HOME` and `~/projects` (that is what `mwk files`
-is for) and refuses anything overlapping the store, and is loopback-only with symlinks off like
-everything else here. It carries **no** basic auth, unlike `mwk files`: one folder they intend to
-publish is a different proposition from every folder they have ever made.
-
-`ports.tsv` is the record and lives **beside** `~/mwk/site`, not inside it. `write_projects_json`
-copies it to `site/projects.json`, which is the only version the page can fetch — same
-writer/reader shape as `queue.json`, and it is in `.chezmoiignore` for the same reason. Whether a
-project is *running* is asked of the port by the page itself (`fetch` with `no-cors`, which settles
-either way), never read from a stored flag: a flag written at start time is wrong after a reboot,
-and wrong in the reassuring direction.
-
-## The page
-
-`~/mwk/site/index.html`, chezmoi-managed. It polls `queue.json`, which `mwk queue` writes — **the
-page had a reader and no writer for a while**, and the mechanism the whole handover depends on was
-a sentence in a JavaScript comment.
-
-**The page is one-way.** It cannot tell the agent anything, so the agent must never wait on it —
-it checks the world instead. And every queued command is printed in chat too, because a page that
-is not running is nothing at all.
-
-It also lists **Your projects** from `projects.json`, hidden entirely until there is one — an empty
-box under that heading is a question a beginner cannot answer.
-
-**`password.html` shipped with `index.html`'s script copied into it verbatim**, which looks up
-`#queue` (not on that page) and binds handlers only to buttons it builds itself. So its one
-command — `mwk rekey`, on the page someone reaches at the moment they think their password has
-been seen — had a Copy button attached to nothing. It looked perfect. If a second page ever gets a
-Copy button, it wants the `data-c` handler, not the queue poller.
+asserting the result: after an edit, read back the thing that should have changed, and **when a
+check goes green, break the thing and watch it go red first.** `check.sh` asserts the placed-file
+list by name in both directions, the promised skill names against the shipped ones in both
+directions, the dispatcher's arms against the usage text, and every cut command against every
+document that ships.
 
 ## The cross-repo coupling — editing a prompt here changes the live website
 
 **`mergodon/matewishkey-web` FETCHES `prompts/install.md` and `prompts/setup.md` AT BUILD TIME**
 (`src/data/genie-prompts.ts`) and renders them at **`matewishkey.com/wishes/put-the-genie-in-the-box/`**.
-The `/how-to/` path 301s **to** `/wishes/`, not the reverse — this file had that backwards and told
-people to write the redirect, which is the thing it warns against.
+The `/how-to/` path 301s **to** `/wishes/`, not the reverse.
 
 - It reads the **first** fenced block. A second fence above it publishes the wrong thing.
-- It **caps `prompts/setup.md` at 60 columns and throws.** v2 unwraps them, so
-  **matewishkey-web#77 must land before merging** or their build goes red.
+- It **caps `prompts/setup.md` at 60 columns and throws.** v2 unwrapped them (longest line 445), so
+  **matewishkey-web#77 must land before merging** or their build goes red. Still open, 2026-09-17.
 - A missing prompt file does **not** fail — it serves a stale cached copy with a warning. Green and
   wrong is worse than red.
 
 **The third coupling is hand-typed and nothing checks it.** `src/content/wishes/put-the-genie-in-the-box.mdx`
 quotes the opening of what is now `dot_claude/create_CLAUDE.md`, and the prose around it says "two
-prompts", "three stages", "it asks you three things" and "an `mwk` plugin" — all false in v2. Filed
-in #77.
+prompts", "three stages", "it asks you three things" and "an `mwk` plugin" — all false. Filed in #77.
 
-## Rules that survived v1 and still apply
+## Rules that survived and still apply
 
 **Verify identifiers.** Every URL here is handed to a stranger whose agent acts on it. `check.sh`
-extracts URLs from the files that ship and curls them; it does not read a hand-kept list, because
-that checked the URLs somebody remembered rather than the ones a stranger meets.
+extracts URLs from the files that ship and curls them; it does not read a hand-kept list.
 
-**A test that arranges its own preconditions is worse than no test.** Three of v1's green ticks
-counted nothing. When a check goes green, ask what would have to be true for it to go red.
+**A test that arranges its own preconditions is worse than no test.** When a check goes green, ask
+what would have to be true for it to go red.
 
 **Existing is not running.** `test -x ~/bin/mwk` passed for a day while `~/bin` was on nobody's
 PATH and the first command a person is told to type did not exist.
 
-**The show is mentioned twice, and no more** — that rule currently has **zero** homes, because v2
-retired both. Unresolved, and mate's to decide.
+**The show is mentioned twice, and no more** — it currently has **one** home, `README.md:7`.
+Unresolved, and mate's to decide (#14).
 
 **No disclaimer link.** Settled 2026-08-09 and still settled.
 
-**Red is spent once**, on the block, which is the real `favicon.svg` inlined verbatim. Copy buttons
-stay neutral.
+**One kit, not one per platform** (mate, 2026-09-13, after measuring). WSL Ubuntu *is* Linux —
+`uname -s` says `Linux` — and the whole kit branches on OS in three places: the xcode-select shim
+check and the Darwin|Linux gate in `install.sh`, and `run_onchange_after_20-darwin-iterm2.sh.tmpl`.
+Forking would duplicate ~1000 lines to manage three conditionals. The two platform differences that
+were real — the passphrase cache and the served page — are both gone with v3.
 
 ## Test it before you push
 
 ```
-bash test/check.sh                    # seconds, no Docker
-bash test/rehearse.sh <sha>           # minutes, Docker, install → uninstall → reinstall
+bash test/check.sh                    # seconds, no Docker. Runs mwk add against a real scratch store
+bash test/rehearse.sh <sha>           # minutes, Docker, install → update → uninstall → reinstall
 curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 ```
-
-The third one installs on the machine it runs on and is the only way to test macOS. It ships one
-debug log for all six phases.
 
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-13, against `67d7d5f`: `check.sh` 161/161, `rehearse.sh` ALL GREEN (35 assertions).**
-The first two have now actually been executed; `on-this-machine.sh` still has not, and macOS still
-has never had the kit installed. Two of the failures on `rehearse.sh`'s first ever run were **in the
-test, not the kit** — see the table above — and the more important one is that
-**`a key Claude Code wrote survives an apply` had never executed at all**, because `ubuntu:24.04`
-carries no python3 and the fixture was guarded `|| true`. It now plants the key, **asserts the
-fixture landed**, and only then asks what survived. With that precondition proved, the merge does
-work: `modify_settings.json` preserves `enabledPlugins`. That was an assumption until this run.
+`check.sh` needs `sops`, `age-keygen` and a working `script(1)` for the store test, and says
+**SKIPPED — not a pass** when it cannot run it. `on-this-machine.sh` has still never been run, and
+macOS has still never had the kit installed on it — everything macOS in the table above was
+measured by probing a real Mac. A red result on the first real run is information, not a defect.
 
-## Still open — all four are filed
+## Still open
 
 | # | |
 |---|---|
-| **#13** | `mwk` menu option 1 is a stub. It is the first thing on the front door and the one that does nothing. The issue carries the `input/` + `archive/` convention it should build |
-| **#14** | The show is mentioned in **zero** places and the rule is exactly two. A decision about tone, not a sweep |
-| **#15** | Caddy as the shared front for project sites. nginx cannot be used — source only. `auto_https off` and `admin off` are load-bearing |
+| **#13** | `mwk` menu option 1 was a stub. **The menu is gone — close it** |
+| **#14** | The show is mentioned once and the rule is exactly two. A decision about tone |
+| **#15** | Caddy as the shared front for project sites. **Nothing serves any more — close it** |
 | **#16** | The v2 → main merge blockers, in order. `matewishkey-web#77` first, or their build goes red |
-
-**And the one that is not filed because it is not a task: `test/on-this-machine.sh` has still never
-been run, and macOS has still never had the kit installed on it.** Everything macOS in the table
-above was measured by probing a real Mac; nothing was installed there. A red result on the first
-real run is information, not a defect. (`check.sh` and `rehearse.sh` **have** now been run — see
-*Test it before you push*. That sentence used to cover all three.)
-
-## v3 — what is being added, and what was already there
-
-Asked for on 2026-09-13: `mwk-install`, `mwk-close`, `mwk-learn`, `mwk-review`, `mwk-tasks`, plus a
-task page. **Two of the five already existed under other names**, which is why the first commit is
-mostly renames: `mwk-magic` **was** the review ("are they overcomplicating this" is its stated
-thesis) and `mwk-learning` **was** the learning log. Both are renamed for their verb now. Don't
-re-derive this — check `dot_claude/skills/` before building something that is already shipping.
-
-**GitHub is the task store, and the page reads a local mirror of it — never the API.** Measured
-2026-09-13 with a positive control: `api.github.com` sends `access-control-allow-origin: *` so a
-browser *can* reach it, but a **private** repo 404s unauthenticated (checked `mergodon/td-sops` and
-`mergodon/matewishkey-web` private → 404, `matewishkey/mwk-genie` public → 200). `/mwk-new` creates
-private repos by default, so a page on `:29200` could only read their issues by holding a token,
-which is exactly what we do not do. So `mwk tasks` shells out to `gh` (pinned, already authenticated
-during setup) and writes `tasks.json` beside the served root — the same writer/reader shape as
-`ports.tsv` → `projects.json` and `queue.json`. **The page stays one-way**; a task links out to the
-real GitHub issue rather than reimplementing one.
-
-**One kit, not one per platform** (mate's call, 2026-09-13, after measuring). WSL Ubuntu *is* Linux —
-`uname -s` says `Linux` — so there is no third target, and the whole kit branches on OS in exactly
-three places: `install.sh:46` (the xcode-select shim), `install.sh:95-97` (reject anything else),
-and `run_onchange_after_20-darwin-iterm2.sh.tmpl:2`. Forking would duplicate ~1000 lines to manage
-three conditionals, and re-create by hand the two-package-manager problem `mise.toml`'s header says
-`aqua:` was chosen to delete. The two differences that are **real** are behavioural, not syntactic,
-and get feature tests rather than a fork: **the passphrase cache is Linux-only** (a stock Mac has no
-pinentry and no gpg-agent, so `mwk lock` means something different there), and WSL's untested edges —
-a Windows browser reaching `127.0.0.1:29200`, and the `/mnt/c` boundary. The detection primitive
-already exists and is used exactly once: `bin/executable_mwk-debug:47`.

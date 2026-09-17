@@ -164,7 +164,8 @@ EOF
 # password left one key, each printing a green "Stored". Each line below is load-bearing,
 # and check.sh runs this against a real scratch store and reads every name back.
 cmd_add() {
-  require_tty
+  require_tty      # first: "this needs your keyboard" is the answer that hands it to a person
+  need_tools       # then: at a person's terminal, a missing sops is a PATH problem, said plainly
   name="${1:-}"; scope="${2:-project}"
   [ -n "$name" ] || die "usage: mwk add NAME [global|project]"
   printf '%s' "$name" | grep -qE '^[A-Za-z_][A-Za-z_0-9]*$' || die "a name must look like OPENAI_API_KEY"
@@ -213,6 +214,7 @@ cmd_add() {
 }
 
 cmd_run() {
+  need_tools
   [ "${1:-}" = "--" ] && shift
   [ $# -gt 0 ] || die "usage: mwk run -- <command>"
   [ -s "$KEY" ] || die "no key at $KEY — add a key first (mwk add NAME), or put your saved key there"
@@ -239,9 +241,15 @@ cmd_update() {
   exec sh "$u" "$@"
 }
 
-for t in sops age-keygen; do
-  command -v "$t" >/dev/null 2>&1 || die "$t is not installed — run 'mwk update', or ask me in the chat"
-done
+# Only the two commands that touch the store need sops. `mwk` alone and `mwk update` must
+# work with NOTHING else on PATH — update is what you run when things are broken, and a
+# login shell (`su - user -c`, a cron, a fresh tab before ~/.mwk-shell.sh) has ~/bin but not
+# mise's shims. The container rehearsal caught this: a preflight here made usage exit 1.
+need_tools() {
+  for t in sops age-keygen; do
+    command -v "$t" >/dev/null 2>&1 || die "$t is not on PATH — open a new terminal tab, or run 'mwk update'"
+  done
+}
 
 case "${1:-}" in
   add)    shift; cmd_add "$@";;
