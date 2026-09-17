@@ -167,6 +167,41 @@ grep -q -- '--filename-override "\$1"' bin/executable_mwk \
 grep -q 'but the key that opens them is not' bin/executable_mwk \
   && ok "a store with no key refuses to mint a new one (the new-computer case)" \
   || no "a store with no key refuses to mint a new one" "a fresh key would lock them out of their own repo, silently"
+grep -q 'age-keygen -y "\$KEY"' bin/executable_mwk && ok "the public key is DERIVED (age-keygen -y), not grepped" \
+  || no "the public key is derived" "a one-line key file has nothing to grep, and pipefail kills the script silently"
+grep -vE '^\s*#' bin/executable_mwk | grep -qE '^\s*\. "\$tmp"|set -a; \. ' \
+  && no "mwk run never sources the dotenv" "a value with a backtick would run as code" \
+  || ok "mwk run never sources the dotenv (comments excluded — the history line names the old bug)"
+grep -q 'mktemp "\${TMPDIR:-/tmp}/mwk.XXXXXX"' bin/executable_mwk && ok "mktemp has a template (BSD mktemp needs one)" \
+  || no "mktemp has a template" "bare mktemp is a usage error on macOS, and set -e makes it fatal"
+grep -q 'xcode-select -p' bin/executable_mwk && ok "git is tested the macOS way before git init (xcode-select -p)" \
+  || no "git is tested the macOS way" "command -v git is true with no dev tools — the store would never become a repo"
+
+head_ "install.sh — the pins actually reach the global config"
+# The old regex was $-anchored and a trailing comment on the pin line made it return
+# nothing for three of six tools, which mise then pinned to "latest". Run the shipped loop's
+# extraction against the shipped file and demand a version for every tool.
+for t in $(grep -oE '^"aqua:[^"]+"' mise.toml | tr -d '"'); do
+  v=$(grep -E "^\"$t\"" mise.toml | grep -oE '= *"[0-9][^"]*"' | grep -oE '[0-9][^"]*')
+  [ -n "$v" ] && ok "install.sh's extraction reads $t → $v" || no "install.sh's extraction reads $t" "empty — this would be pinned to latest"
+done
+grep -q 'NOT making it global' install.sh && ok "…and an unreadable pin is said out loud, not defaulted" \
+  || no "an unreadable pin is said out loud" "silence here means @latest"
+grep -q 'if have claude; then' install.sh && ok "the closing banner checks claude actually installed" \
+  || no "the banner checks claude installed" "a failed install would still say 'type claude'"
+
+head_ "uninstall.sh — unhooking is honest"
+grep -q 'rc_grep' uninstall.sh && grep -q 'cat "\$tmp" > "\$rc"' uninstall.sh \
+  && ok "an rc file whose only line is the hook is unhooked, and a symlinked rc stays a symlink" \
+  || no "unhook handles the only-line case" "grep -v exits 1 on an empty result and && mv skipped the write while saying unhooked"
+
+head_ "The server start is defended"
+grep -q '\[ ! -L "\$HOME/mwk-work" \]' dot_mwk-shell.sh.tmpl && ok "a symlinked ~/mwk-work is refused, not respawned forever" \
+  || no "a symlinked root is refused" "miniserve -P exits at once on a symlinked root; every shell would spawn another"
+grep -q 'mwk-server.log' dot_mwk-shell.sh.tmpl && grep -q 'mwk-server.log' dot_claude/create_CLAUDE.md \
+  && ok "the server logs somewhere, and the agent is told where" || no "the server logs somewhere the agent knows" "every failure went to /dev/null"
+grep -q 'mise/shims' dot_claude/modify_settings.json && ok "the settings merge names the shim path for jq" \
+  || no "the settings merge names the shim path" "no jq → the merge silently no-ops and chezmoi reports clean"
 
 # ── the add-eats-the-store class ──────────────────────────────────────────────────────
 # Three separate mistakes had to line up for `mwk add` to replace the whole store with one
@@ -220,6 +255,38 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
       || ok "the store file is ciphertext"
     c=$(git -C "$T/keys" log --oneline 2>/dev/null | wc -l)
     [ "$c" -ge 2 ] && ok "each add is a commit in the store ($c)" || no "each add commits" "$c commits"
+    # ── what the external review reproduced on 2026-09-17, each kept red-capable ──────
+    # (2) a value with a space AND a backtick must come back byte for byte through `run`,
+    # and the backtick must not execute. Sourcing the dotenv did both wrong.
+    printf 'has a space `touch %s/PWNED` end\n' "$T" | cadd TRICKY >/dev/null 2>&1
+    got=$(clean "$T/mwk" run -- sh -c 'printf %s "$TRICKY"' 2>/dev/null || true)
+    is "a value with a space and a backtick round-trips through mwk run" "$got" "has a space \`touch $T/PWNED\` end"
+    [ -e "$T/PWNED" ] && no "a stored value is never executed" "the backtick ran — the dotenv was sourced" \
+      || ok "a stored value is never executed (no PWNED file)"
+    # (3) a multi-line paste is refused and stores nothing — the rest of the paste used to
+    # be handed to the shell as commands.
+    printf 'first line\nsecond line\n' | cadd MULTI >/dev/null 2>&1; rc=$?
+    [ "$rc" != 0 ] && ok "a multi-line paste is refused (exit $rc)" || no "a multi-line paste is refused" "it exited 0"
+    printf '%s' "$(names)" | grep -q MULTI && no "…and nothing of it was stored" "MULTI is in the store" \
+      || ok "…and nothing of it was stored"
+    # (1) the recovery path the tool prints: a ONE-LINE key file (secret only, no public-key
+    # comment). `grep … | head` under pipefail died with no output here.
+    cp "$T/key.txt" "$T/key.full"; grep 'AGE-SECRET-KEY' "$T/key.full" > "$T/key.txt"
+    printf 'value-r\n' | cadd RESTORED >/dev/null 2>&1; rc=$?
+    [ "$rc" = 0 ] && ok "add works with a one-line (restored) key file" || no "add works with a one-line key file" "exit $rc — the public key was grepped, not derived"
+    printf '%s' "$(names)" | grep -q RESTORED && ok "…and the key landed" || no "the key landed after a restore" "RESTORED missing"
+    cp "$T/key.full" "$T/key.txt"
+    # (4) run with the STORE FILE missing must die, not run the command with no keys.
+    mv "$T/keys/keys.enc.env" "$T/keys/keys.bak"
+    clean "$T/mwk" run -- true >/dev/null 2>&1; rc=$?
+    mv "$T/keys/keys.bak" "$T/keys/keys.enc.env"
+    [ "$rc" != 0 ] && ok "mwk run with no store file refuses (exit $rc)" || no "mwk run with no store file refuses" "it ran the command with no keys, exit 0"
+    # (7) half a restore — the store file present, .sops.yaml absent, no key — must refuse
+    # rather than mint a key over their data.
+    mv "$T/key.txt" "$T/key.bak"; mv "$T/keys/.sops.yaml" "$T/keys/sops.bak"
+    printf 'value-h\n' | cadd HALF >/dev/null 2>&1; rc=$?
+    [ ! -e "$T/key.txt" ] && ok "a half-restored store does not mint a new key" || no "a half-restored store does not mint a key" "a fresh key was written over their data"
+    mv "$T/key.bak" "$T/key.txt"; mv "$T/keys/sops.bak" "$T/keys/.sops.yaml"
     # Negative: the key goes missing (new computer). add must refuse, and change nothing.
     mv "$T/key.txt" "$T/key.bak"
     printf 'value-c\n' | cadd GAMMA >/dev/null 2>&1; rc=$?
@@ -228,7 +295,7 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
       || ok "a second argument to add is refused (no per-project scope)"
     mv "$T/key.bak" "$T/key.txt"
     [ "$rc" != 0 ] && ok "no key → add refuses (exit $rc)" || no "no key → add refuses" "it exited 0"
-    is "…and the store is exactly as it was" "$(names)" "ALPHA BETA "
+    is "…and the store is exactly as it was" "$(names)" "ALPHA BETA RESTORED TRICKY "
     [ -s "$T/key.txt" ] && ok "…and no new key was minted over the missing one" \
       || no "no new key minted" "a fresh key here locks them out of their own repo"
   else

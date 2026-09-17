@@ -35,7 +35,8 @@ word so it sticks. Anything more complicated than those three, do it for me.
   of this) with a one-line `README.md` beside it, and put the link here with the one-line
   answer: `http://127.0.0.1:29200/<project>/<YYYY-MM-DD_slug>/`. **Check the link answers
   before you hand it over** — `curl -sf -o /dev/null http://127.0.0.1:29200/` — and if it
-  does not, start the server exactly as `~/.mwk-shell.sh` does, then hand it over. The chat
+  does not, read `~/.mwk-server.log` (why it died, if it did), start the server exactly as
+  `~/.mwk-shell.sh` does, then hand it over. The chat
   is for the answer; the page is for the reading. Commit `~/mwk-work` after writing there
   (if it is not a repo yet: `git init`, and a **private** GitHub repo, no need to ask).
   Publish as an artifact only when I want to send it to someone else.

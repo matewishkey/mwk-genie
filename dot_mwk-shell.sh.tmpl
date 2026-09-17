@@ -42,10 +42,14 @@ export PATH
 # only what was written to be read, so it carries no password — anything else of theirs
 # stays outside it. `pgrep -x`, never `-f`: -f matches its own command line.
 # Flags are from `miniserve 0.35.0 --help`, not memory (-q there is a QR code, not quiet).
-if [ -d "$HOME/mwk-work" ] && command -v miniserve >/dev/null 2>&1 \
+# `! -L`: miniserve with -P refuses a symlinked ROOT and exits at once (measured), so a
+# symlinked ~/mwk-work would have respawned a doomed process from every new shell, with
+# every message going to /dev/null. Its output goes to a log now, so "the page will not
+# open" has somewhere to look: ~/.mwk-server.log.
+if [ -d "$HOME/mwk-work" ] && [ ! -L "$HOME/mwk-work" ] && command -v miniserve >/dev/null 2>&1 \
    && ! pgrep -x miniserve >/dev/null 2>&1; then
   ( nohup miniserve -i 127.0.0.1 -p 29200 -P --readme -t "Your page" "$HOME/mwk-work" \
-      >/dev/null 2>&1 & )
+      >>"$HOME/.mwk-server.log" 2>&1 & )
 fi
 
 

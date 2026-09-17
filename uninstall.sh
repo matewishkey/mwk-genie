@@ -85,9 +85,17 @@ for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
   [ -f "$rc" ] || continue
   grep -q 'mwk-shell.sh' "$rc" 2>/dev/null || continue
   if [ "$DRY" = 1 ]; then item "would unhook" "$rc"; else
-    tmp="$rc.mwk.$$"
-    grep -v 'mwk-shell.sh' "$rc" > "$tmp" && mv "$tmp" "$rc"
-    item "unhooked" "$rc"
+    # `grep -v` exits 1 when NOTHING is left — an rc file whose only line was the hook —
+    # and `&& mv` then skipped the write while the screen said "unhooked". And `mv` over
+    # the rc replaced a symlinked ~/.bashrc with a regular file. Write back with `cat >`
+    # (keeps the symlink and the inode), and accept exit 1 as "empty now", not failure.
+    tmp="$rc.mwk.$$"; rc_grep=0
+    grep -v 'mwk-shell.sh' "$rc" > "$tmp" || rc_grep=$?
+    if [ "$rc_grep" -le 1 ]; then
+      cat "$tmp" > "$rc"; rm -f "$tmp"; item "unhooked" "$rc"
+    else
+      rm -f "$tmp"; item "could NOT unhook — take the mwk-genie line out by hand" "$rc"
+    fi
   fi
 done
 wipe "$HOME/.mwk-shell.sh"

@@ -23,6 +23,17 @@
 #
 # No --value flag anywhere, deliberately. A value passed as an argument lands in argv, in
 # ps, in shell history and in an agent transcript. Deleting the flag removes the class.
+#
+# FIVE THINGS AN EXTERNAL REVIEW FOUND ON 2026-09-17, each reproduced, each now asserted by
+# check.sh — see the comment where each is fixed:
+#   1. `pub=$(grep … | head -1)` under pipefail died with NO output on the exact recovery
+#      path the tool prints (a one-line key file has no public-key line).
+#   2. `set -a; . "$tmp"` SOURCED the decrypted dotenv: a value with a backtick ran as code,
+#      a value with a space broke the command it was meant to feed.
+#   3. `read -rs` takes one line; a pasted multi-line secret was truncated and the rest was
+#      handed to the interactive shell — then "Stored. Not in your history." Both false.
+#   4. `mwk run` with the store file missing ran the command with NO keys, exit 0.
+#   5. (install.sh) the version regex missed any pin with a trailing comment.
 set -euo pipefail
 
 STORE="${MWK_STORE:-$HOME/projects/keys}"
@@ -99,6 +110,15 @@ need_tools() {
   done
 }
 
+# `command -v git` is TRUE on every Mac with no developer tools — /usr/bin/git is Apple's
+# xcode-select shim, and calling it pops an install dialog and fails. install.sh asks
+# `xcode-select -p`; so does this, or the store's `git init` would silently never happen.
+have_git() {
+  command -v git >/dev/null 2>&1 || return 1
+  if [ "$(uname -s)" = Darwin ] && ! xcode-select -p >/dev/null 2>&1; then return 1; fi
+  return 0
+}
+
 # `--config` rather than trusting the search: sops looks for .sops.yaml upward from the
 # CURRENT DIRECTORY, and `mwk add` is run from wherever they are standing, not the store.
 # `--filename-override` because the input is stdin, and the creation rule matches on the
@@ -121,10 +141,13 @@ sops_e() {
 # the first time there is anything to initialise, and it is the moment they are already
 # at a keyboard doing exactly this.
 ensure_store() {
-  if [ ! -s "$KEY" ] && [ -f "$STORE/.sops.yaml" ]; then
-    # A store with no key is a NEW COMPUTER (or a lost file), not a first run. Minting a
-    # fresh key here would encrypt the next add to a key that cannot read the rest of the
-    # repo — and it would look like it worked. The saved key is the only way forward.
+  # A store with no key is a NEW COMPUTER (or a lost file), not a first run. Minting a
+  # fresh key here would encrypt the next add to a key that cannot read the rest of the
+  # repo — and it would look like it worked. The saved key is the only way forward.
+  # EITHER file counts as "a store exists": the review found that a half-restored folder
+  # (keys.enc.env copied, .sops.yaml not) minted a new key over their data and then wrote
+  # that bogus key into .sops.yaml, wedging every later add with no diagnostic.
+  if [ ! -s "$KEY" ] && { [ -f "$STORE/.sops.yaml" ] || [ -f "$KEYS" ]; }; then
     cat >&2 <<EOF
 mwk: your keys are here ($STORE) but the key that opens them is not.
 
@@ -140,14 +163,18 @@ EOF
     age-keygen -o "$KEY" 2>/dev/null; chmod 600 "$KEY"
     made_key=1
   fi
-  pub=$(grep -oE 'age1[a-z0-9]+' "$KEY" | head -1)
-  [ -n "$pub" ] || die "the key at $KEY does not look like an age key"
+  # DERIVE the public key; never grep for it. The file they restore by hand is exactly one
+  # line — the secret — with no "# public key:" comment, and `grep … | head` under pipefail
+  # killed the script with nothing on screen, on precisely the path the message above
+  # tells them to take. `age-keygen -y` computes it from the secret (measured identical).
+  pub=$(age-keygen -y "$KEY" 2>/dev/null || true)
+  [ -n "$pub" ] || die "the key at $KEY does not look like an age key (it should be one line starting AGE-SECRET-KEY-1)"
   if [ ! -f "$STORE/.sops.yaml" ]; then
     mkdir -p "$STORE"
     # One rule and no catch-all: a file matching nothing fails loudly instead of being
     # encrypted to the wrong set. This file holds the PUBLIC key and is safe to commit.
     printf 'creation_rules:\n  - path_regex: \\.enc\\.env$\n    age: %s\n' "$pub" > "$STORE/.sops.yaml"
-    command -v git >/dev/null 2>&1 && git -C "$STORE" init -q 2>/dev/null || true
+    have_git && git -C "$STORE" init -q 2>/dev/null || true
   fi
   if [ -n "${made_key:-}" ]; then
     cat >&2 <<EOF
@@ -188,6 +215,13 @@ cmd_add() {
 
   printf 'Paste the value for %s (it will not appear on screen): ' "$name" >&2
   IFS= read -rs value; printf '\n' >&2
+  # ONE LINE. `read` takes one line and a pasted multi-line secret used to leave the rest
+  # of the paste sitting in the terminal — to be run as commands, and written to history,
+  # by the shell this returns to, under a green "not in your history". Drain whatever is
+  # still pending (it is never echoed), and if there was anything, store nothing.
+  extra=0
+  while IFS= read -rs -t 1 _more; do extra=1; done
+  [ "$extra" = 0 ] || die "that was more than one line. A key here is one line — nothing was stored. For something with several lines (a certificate, a private key file), ask me in the chat"
   [ -n "$value" ] || die "nothing pasted — no change made"
 
   # Keep the old ciphertext until the new one is PROVED good. This is a key store: the
@@ -201,13 +235,13 @@ cmd_add() {
   printf '%s\n' "$new" | sops_e "$f"
 
   # Read it back and ASSERT THE RESULT: every name that was in there must still be in
-  # there, and the new one must have arrived. Otherwise put the old file back.
+  # there, and the new one must have arrived WITH ITS VALUE. Otherwise put the old file back.
   now=$(sops_d "$f") || now=""
   lost=""
   for n in $(printf '%s\n' "$old" | grep -oE '^[A-Za-z_][A-Za-z_0-9]*' || true); do
     printf '%s\n' "$now" | grep -qE "^$n=" || lost="$lost $n"
   done
-  if [ -n "$lost" ] || ! printf '%s\n' "$now" | grep -qE "^$name="; then
+  if [ -n "$lost" ] || ! printf '%s\n' "$now" | grep -qF "$name=$value"; then
     [ -f "$f.prev" ] && mv "$f.prev" "$f"
     [ -n "$lost" ] && die "your store did not come back right, so I put it back as it was. Nothing changed. Missing:$lost"
     die "your store did not come back right, so I put it back as it was. Nothing changed."
@@ -227,11 +261,24 @@ cmd_run() {
   [ "${1:-}" = "--" ] && shift
   [ $# -gt 0 ] || die "usage: mwk run -- <command>"
   [ -s "$KEY" ] || die "no key at $KEY — add a key first (mwk add NAME), or put your saved key there"
-  tmp="$(mktemp)"; chmod 600 "$tmp"; trap 'rm -f "$tmp"' EXIT
-  # A `{ }` group, not a subshell, so `die` here actually stops the command from running
-  # with no keys — which is a far worse outcome than not running at all.
+  # The STORE FILE too. `sops_d` treats a missing file as empty (which `add` relies on for
+  # the very first key), so without this line a missing store ran the command with no keys
+  # at all, exit 0, and nothing said so — reproduced by the review.
+  [ -f "$KEYS" ] || die "nothing is stored yet at $KEYS — add a key first (mwk add NAME)"
+  # A template, because BSD mktemp (macOS) wants one; GNU accepts it too.
+  tmp="$(mktemp "${TMPDIR:-/tmp}/mwk.XXXXXX")"; chmod 600 "$tmp"; trap 'rm -f "$tmp"' EXIT
   { sops_d "$KEYS" || die "could not read your keys"; } > "$tmp"
-  set -a; . "$tmp"; set +a; rm -f "$tmp"
+  # NEVER `. "$tmp"`. sops writes KEY=value with no quoting, and sourcing that made a value
+  # containing a backtick RUN as code and a value with a space break the command it was
+  # meant to feed — both reproduced. Parse the lines instead: the value is whatever follows
+  # the first `=`, byte for byte, and the name has to look like a name or it is skipped.
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue;; esac
+    k=${line%%=*}; v=${line#*=}
+    printf '%s' "$k" | grep -qE '^[A-Za-z_][A-Za-z_0-9]*$' || continue
+    export "$k=$v"
+  done < "$tmp"
+  rm -f "$tmp"
   exec "$@"
 }
 

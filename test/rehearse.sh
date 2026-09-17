@@ -75,6 +75,10 @@ docker run --rm ubuntu:24.04 bash -euc "
   chk 'mwk with no args + no tty prints usage'  'mwk </dev/null | grep -q \"mwk add\"'
   chk 'mwk add refuses with no keyboard (exit 3)' 'mwk add X </dev/null >/dev/null 2>&1; [ \$? = 3 ]'
   chk 'mwk update is offered'                   'mwk </dev/null | grep -q \"mwk update\"'
+  # The pins must reach the GLOBAL mise config as versions. A regex bug had three of six
+  # tools land there as \"latest\" — the exact thing mise.toml says the pins exist to prevent.
+  chk 'no tool is \"latest\" in the global mise config' '! grep -q latest ~/.config/mise/config.toml'
+  chk 'all six tools are pinned globally'       '[ \$(grep -c \"^\\\"aqua:\" ~/.config/mise/config.toml) = 6 ]'
   # The update path is install.sh re-run. It has to be safe on a machine that already has
   # everything — which is the ONLY state it is ever used in, and the state the old
   # \`git pull ... || true\` reported success from without doing anything.

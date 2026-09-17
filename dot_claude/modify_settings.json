@@ -21,6 +21,12 @@
 # ⚠ WRITTEN BUT NOT RUN.
 set -eu
 
+# jq is a mise shim, and chezmoi runs this with whatever PATH `chezmoi apply` had — a
+# login shell or a launcher has no shims, and the no-jq branch below then passes the file
+# through UNTOUCHED while chezmoi reports a clean apply: none of ours set, nothing on
+# screen. Name the shim path, as statusline.sh does. (External review, 2026-09-17.)
+PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
+
 current=$(cat)
 [ -n "$current" ] || current='{}'
 

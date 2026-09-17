@@ -104,8 +104,16 @@ if have claude; then step "already installed"; else curl -fsSL https://claude.ai
 say "5/6  Making those tools available everywhere"
 step "so mwk works wherever you are standing, not just inside the kit"
 for t in $(grep -oE '^"aqua:[^"]+"' "$KIT/mise.toml" | tr -d '"'); do
-  v=$(grep -F "\"$t\"" "$KIT/mise.toml" | grep -oE '"[0-9][^"]*"$' | tr -d '"')
-  mise use -g "$t@$v" >/dev/null 2>&1 || true
+  # The version is the quoted thing after `=`, NOT the last quoted thing on the line: a
+  # trailing `# comment` after the pin made the old `$`-anchored regex return nothing for
+  # three of six tools, `mise use -g tool@` then meant `@latest`, and the global config
+  # said "latest" for the three tools the pin exists for. Found by an external review.
+  v=$(grep -E "^\"$t\"" "$KIT/mise.toml" | grep -oE '= *"[0-9][^"]*"' | grep -oE '[0-9][^"]*')
+  if [ -z "$v" ]; then
+    printf '  could not read the pinned version of %s from mise.toml — NOT making it global\n' "$t" >&2
+    continue
+  fi
+  mise use -g "$t@$v" >/dev/null 2>&1 || printf '  mise use -g %s@%s failed\n' "$t" "$v" >&2
 done
 
 say "6/6  Setting up your computer"
@@ -116,9 +124,19 @@ step "no questions, and no password"
 mise exec -C "$KIT" -- chezmoi init --apply --source "$KIT" "$@"
 
 printf '\n  %s────────────────────────────────────────────────────────────%s\n' "$DIM" "$R"
-printf '   %s%sDone.%s One thing left, and it has to be you:\n\n' "$B" "$GRN" "$R"
-printf '     Close this window and open a new one.\n'
-printf '     Then type:   %s%sclaude%s\n\n' "$B" "$RED" "$R"
-printf '   %sA terminal only reads its settings when it starts, so your\n' "$DIM"
-printf '   new shortcut does not exist in this window yet.%s\n' "$R"
+# Say which thing actually happened. Step 4 swallows a failed Claude Code install on
+# purpose (the rest of the kit is still worth having), but a green "type claude" over a
+# missing claude is a beginner's first "command not found" — an external review's finding.
+if have claude; then
+  printf '   %s%sDone.%s One thing left, and it has to be you:\n\n' "$B" "$GRN" "$R"
+  printf '     Close this window and open a new one.\n'
+  printf '     Then type:   %s%sclaude%s\n\n' "$B" "$RED" "$R"
+  printf '   %sA terminal only reads its settings when it starts, so your\n' "$DIM"
+  printf '   new tools do not exist in this window yet.%s\n' "$R"
+else
+  printf '   %s%sNearly.%s Everything is in place except Claude Code itself,\n' "$B" "$RED" "$R"
+  printf '   which did not install (no network, or an unsupported computer).\n\n'
+  printf '     Run this again:   curl -fsSL https://claude.ai/install.sh | bash\n'
+  printf '     Then close this window, open a new one, and type:   %s%sclaude%s\n' "$B" "$RED" "$R"
+fi
 printf '  %s────────────────────────────────────────────────────────────%s\n\n' "$DIM" "$R"
