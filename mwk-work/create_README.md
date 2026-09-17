@@ -74,6 +74,7 @@ You can type these, or just say them in normal words. Both work.
 
 | say | or type | what happens |
 |---|---|---|
+| "I wish my computer could…" | `/mwk-wish` | it finds what already does that, writes you one page of options, and builds the first version today |
 | "connect my accounts" | `/mwk-onboard` | GitHub, Cloudflare and Replicate — set up, keys stored, each one proved to answer |
 | "start me a new project" | `/mwk-new` | a folder with the shape above, saving turned on, a private copy on GitHub |
 | "save my work" | `/mwk-save` | says what changed, writes the note for next time, saves, pushes, tidies up |

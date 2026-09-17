@@ -271,6 +271,26 @@ What v1 had that v2/v3 had lost, brought back without a page or a new command:
   update` pulls over it and uninstall trashes the folder with it; a dotfolder breaks
   "everything visible in `~/projects`". A repo of their own is the only shape that survives.
 
+## v3.2 — the reference architecture, and the show's shape as a skill (mate, 2026-09-17)
+
+- **Three services: GitHub, Cloudflare, Replicate.** Not a preference — measured across the 42
+  repos in `~/projects` by files mentioning each: Cloudflare 19, Workers 16, R2 17, D1 13,
+  Replicate 11, Astro 20; Hetzner and Dokku 4, Vercel 2, Supabase 0. `create_CLAUDE.md` carries
+  it as a need → service table with the rule *"say in one line what these three cannot do
+  before reaching for anything else"*, Hetzner as the stated exception, and "anything only
+  they use on their own computer is fair game". Product names only, no prices — the file
+  already says prices move. Astro is named because every real site of ours is one
+  (`mwk-rider` is the auditor + starter); the kit's `site-templates/` stay as the first page.
+- **`/mwk-wish`** — they explain, we research what already does it, we deliver. Three moves,
+  one page of research under `~/mwk-work/<slug>/<date>_wish/` (the first real customer of
+  the folder server), an answer that must be one of *use X / build the smallest version /
+  not worth it*, and the show's rule: something works before they close the laptop. Named for
+  the show, because it *is* the show. Eight skills now.
+- **`/mwk-tasks` validated against `/td-fly:mailbox`**: same shape — inbound + outbound,
+  `**From:**` marker, one digest, decisions in one reply — minus the declared `## Cross-repo`
+  list, because for one person `gh repo list` *is* the list. Added the `— <project>` sign-off
+  and the "six small folders beat one big one" sentence, which is the reason mate wanted it.
+
 ## Still open
 
 | # | |

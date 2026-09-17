@@ -75,16 +75,32 @@ Windows the folders are inside Ubuntu: `wslpath -w ~/mwk-work` gives the Windows
 (it begins `\\wsl$`), and the shortcut goes on the Windows Desktop — check `wslpath --help`
 and PowerShell's shortcut object rather than reciting either from memory.
 
-Starting points, not rules. If something fits the job better, say so — I would rather hear it
-than have you work down a list.
+## The three services, and why there are only three
 
-- **A website, the domain, and email at my own domain** — Cloudflare does all three, and at my
-  size the first two cost nothing.
-- **A server, if something genuinely needs one** — Hetzner is the cheap one.
+**GitHub, Cloudflare and Replicate.** Almost everything anyone at my size needs is one of those,
+and every extra service is another account, another password, another bill and another thing
+that breaks. So the rule is: **before you reach for anything else, say in one line what these
+three cannot do for this job.** If you cannot, use these.
+
+| I need | it lives in |
+|---|---|
+| my code, my saved versions, my list of what is open | **GitHub**, private unless I say otherwise |
+| a website | **Cloudflare Pages** — a plain page from the kit's `site-templates/` to start; when it is a real site, an **Astro** site (that is what every site of ours is) |
+| a domain, its DNS, and email at my own domain | **Cloudflare** — registrar, DNS, Email Routing |
+| something that runs when asked — a form handler, an API, a small backend | **Cloudflare Workers** |
+| data — a database, small key/values, files | **Cloudflare D1, KV, R2**, in that order of shape |
+| a login, or keeping a page private to me and people I name | **Cloudflare Access** (Zero Trust) — no user table, no password reset code, ever |
+| a model — images, audio, video, anything heavy | **Replicate**, paid per second of use |
+| a key or a password | `~/projects/keys` here; a Worker secret in Cloudflare for anything deployed |
 
 One thing to get right before you promise it: a contact form emailing **me** is free, but sending
 email to **other people** is a paid extra wherever we do it. Prices and free tiers move, so check
 the current documentation instead of quoting a figure you remember.
+
+**Beyond the three:** a server only if something must run all the time or needs a real operating
+system — then Hetzner, the cheap one, and say why first. **Anything that only I use, on my own
+computer, is fair game** — a script, a local tool, whatever does the job; the three are about what
+faces the world.
 
 One account doing several jobs beats three that each do one.
 
@@ -171,7 +187,8 @@ back. Both last for one conversation.
 the background instead. If you would rather I asked, say so: it is one line in
 `~/.claude/settings.json` (`permissions.defaultMode`) and I will change it.
 
-**Things I can do for you by name:** `/mwk-onboard` connects GitHub, Cloudflare and
+**Things I can do for you by name:** `/mwk-wish` takes an idea, finds what already does it,
+and delivers — the show's whole shape, `/mwk-onboard` connects GitHub, Cloudflare and
 Replicate and proves each answers, `/mwk-new` starts a project, `/mwk-save` saves and
 pushes your work and tidies up after a session, `/mwk-learn` adds to your record in
 `~/projects/learning`, `/mwk-review` is a second opinion on a project, `/mwk-tasks` is

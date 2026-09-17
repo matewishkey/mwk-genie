@@ -64,7 +64,7 @@ bash -ic true >/dev/null 2>&1; sleep 2
 try "their page answers on 29200"   "curl -sf -m 5 http://127.0.0.1:29200/ -o /dev/null"
 try "…and it is the howto"          "curl -sf -m 5 http://127.0.0.1:29200/ | grep -q 'How to work with your genie'"
 try "…and it is NOT on the network" "! curl -sf -m 4 http://\$(hostname):29200/ -o /dev/null"
-try "all seven skills"              "test \$(ls -d \$HOME/.claude/skills/mwk-* | wc -l) -eq 7"
+try "all eight skills"              "test \$(ls -d \$HOME/.claude/skills/mwk-* | wc -l) -eq 8"
 # The one thing only a real account can answer: does auto mode actually engage here?
 # `claude --permission-mode auto` on an account without it is the unmeasured case.
 try "claude accepts --permission-mode auto" "claude --permission-mode auto --print 'say ok' 2>&1 | grep -qi ok"

@@ -25,7 +25,7 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 | `~/projects/learning/` | what you have learnt, added to each time you ask |
 | `http://127.0.0.1:29200/` | your page: how to work with all of this, and under it every page the agent writes for you. The files are in `~/mwk-work`, one folder per project |
 
-Plus seven things you can ask for by name: `/mwk-onboard` connects your accounts and proves they work, `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
+Plus eight things you can ask for by name: `/mwk-wish` takes an idea, finds what already does it, and delivers a first version, `/mwk-onboard` connects your accounts and proves they work, `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
 
 Everything else — seeing which keys you have, a new computer, changing a key — you ask the agent. **There is no menu and no long list of commands on purpose:** a thing you do once a year is a thing the agent does for you, not a thing you learn.
 

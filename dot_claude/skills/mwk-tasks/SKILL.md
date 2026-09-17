@@ -28,10 +28,16 @@ than the issue list is.
 ## 2. Anything one project asked of another
 
 A project can leave a request for another one by opening an issue in that other
-repo whose body starts `**From:** <project-name>`. That is the whole convention.
-Show these separately, both ways: what *this* project has asked of others, and
-what others have asked of *this* one. If none exist, say nothing about it — a
-heading with nothing under it is a question they cannot answer.
+repo whose body starts `**From:** <project-name>`, and every comment or closure on
+such an issue is signed `— <project-name>`. That is the whole convention, and it is
+the same one `/td-fly:mailbox` runs on for the people who made this kit. Show these
+separately, both ways: what *this* project has asked of others, and what others have
+asked of *this* one. If none exist, say nothing about it — a heading with nothing
+under it is a question they cannot answer.
+
+**Small projects are the point.** Someone with six small folders and this list knows
+more about where they are than someone with one big folder and a memory. When a
+project's `TODO.md` is really three projects, say so — `/mwk-new` is cheap.
 
 ## 3. The list
 
