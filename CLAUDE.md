@@ -105,8 +105,8 @@ that key's `AGE-SECRET-KEY` line.
 
 ```
 ~/projects/keys/.sops.yaml          their PUBLIC key, one rule, no catch-all. Safe to commit
-~/projects/keys/global.enc.env      keys every project can use
-~/projects/keys/projects/<slug>.enc.env
+~/projects/keys/keys.enc.env        every key. ONE file, no per-project scope (mate, 2026-09-17:
+                                    "one global password manager, do not overcomplicate it")
 ~/.config/sops/age/keys.txt         the PRIVATE key. Never in git, never in ~/projects, never in chat
 ```
 

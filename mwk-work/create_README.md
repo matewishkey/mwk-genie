@@ -97,7 +97,7 @@ An API key — the password a service gives you so a program can use it — neve
 file and never goes in the chat. In a **second** terminal tab:
 
 ```
-mwk add OPENAI_API_KEY global
+mwk add OPENAI_API_KEY
 ```
 
 It asks you to paste the value and shows nothing while you do. The key is stored encrypted

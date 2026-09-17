@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # mwk — three commands. Everything else, the agent does.
 #
-#   mwk add NAME [global|project]   put a key in the store. YOU type it; it never goes through chat
+#   mwk add NAME                    put a key in the store. YOU type it; it never goes through chat
 #   mwk run -- <command>            run something with your keys in its environment
 #   mwk update                      get the newest version of the kit
 #
@@ -12,13 +12,14 @@
 # because the agent types it constantly; `update` because it has to work when the agent's
 # own instructions are stale.
 #
-# THE STORE is ~/projects/keys — a private git repo of sops-encrypted dotenv files, and ONE
-# plain age key at sops's default path, ~/.config/sops/age/keys.txt. The thing they save in
-# their password manager is that key's AGE-SECRET-KEY line, once. Measured 2026-09-17 under
-# env -i with sops 3.13.3 / age 1.1.1: sops finds the default key path unaided; a hidden key
-# fails decryption instantly (exit 128 — the hang was pinentry, and pinentry is gone); a new
-# key + `sops updatekeys` locks the old one out; `git add -A` stages zero secret lines.
-# docs/v3-plan.md has the table.
+# THE STORE is ~/projects/keys — a private git repo holding ONE sops-encrypted dotenv file,
+# keys.enc.env, and ONE plain age key at sops's default path, ~/.config/sops/age/keys.txt.
+# One file, no per-project scope (mate, 2026-09-17: "one global password manager, do not
+# overcomplicate it"). The thing they save in their password manager is that key's
+# AGE-SECRET-KEY line, once. Measured under env -i with sops 3.13.3 / age 1.1.1: sops finds
+# the default key path unaided; a hidden key fails decryption instantly (exit 128 — the hang
+# was pinentry, and pinentry is gone); a new key + `sops updatekeys` locks the old one out;
+# `git add -A` stages zero secret lines. docs/v3-plan.md has the table.
 #
 # No --value flag anywhere, deliberately. A value passed as an argument lands in argv, in
 # ps, in shell history and in an agent transcript. Deleting the flag removes the class.
@@ -26,8 +27,7 @@ set -euo pipefail
 
 STORE="${MWK_STORE:-$HOME/projects/keys}"
 KEY="${MWK_KEY:-$HOME/.config/sops/age/keys.txt}"
-GLOBAL="$STORE/global.enc.env"
-PROJ_DIR="$STORE/projects"
+KEYS="$STORE/keys.enc.env"
 
 # Set explicitly, never inherited. A shell that already exports SOPS_AGE_KEY_FILE (this
 # repo's own dev box does) silently points every decrypt at somebody else's key — that
@@ -56,7 +56,7 @@ good() { printf '%s%s%s\n' "$GRN" "$*" "$R" >&2; }
 usage() { cat <<'EOF'
 mwk — your keys, in one place.
 
-  mwk add NAME [global|project]   put a key in. You type it; it never goes through the chat
+  mwk add NAME                    put a key in. You type it; it never goes through the chat
   mwk run -- <command>            run something with your keys, just for that command
   mwk update                      get the newest version of all of this
 
@@ -89,11 +89,18 @@ EOF
   exit 3
 }
 
-slug() { basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-' | sed 's/-*$//'; }
-scope_file() { case "$1" in global) printf '%s' "$GLOBAL";; *) printf '%s' "$PROJ_DIR/$1.enc.env";; esac; }
+# Only the two commands that touch the store need sops. `mwk` alone and `mwk update` must
+# work with NOTHING else on PATH — update is what you run when things are broken, and a
+# login shell (`su - user -c`, a cron, a fresh tab before ~/.mwk-shell.sh) has ~/bin but not
+# mise's shims. The container rehearsal caught this: a preflight here made usage exit 1.
+need_tools() {
+  for t in sops age-keygen; do
+    command -v "$t" >/dev/null 2>&1 || die "$t is not on PATH — open a new terminal tab, or run 'mwk update'"
+  done
+}
 
 # `--config` rather than trusting the search: sops looks for .sops.yaml upward from the
-# CURRENT DIRECTORY, and `mwk add` is run from inside a project, not inside the store.
+# CURRENT DIRECTORY, and `mwk add` is run from wherever they are standing, not the store.
 # `--filename-override` because the input is stdin, and the creation rule matches on the
 # file's NAME — without it there is "no matching creation rules found" (measured), which
 # is the no-catch-all rule doing its job on the wrong file.
@@ -136,7 +143,7 @@ EOF
   pub=$(grep -oE 'age1[a-z0-9]+' "$KEY" | head -1)
   [ -n "$pub" ] || die "the key at $KEY does not look like an age key"
   if [ ! -f "$STORE/.sops.yaml" ]; then
-    mkdir -p "$PROJ_DIR"
+    mkdir -p "$STORE"
     # One rule and no catch-all: a file matching nothing fails loudly instead of being
     # encrypted to the wrong set. This file holds the PUBLIC key and is safe to commit.
     printf 'creation_rules:\n  - path_regex: \\.enc\\.env$\n    age: %s\n' "$pub" > "$STORE/.sops.yaml"
@@ -168,12 +175,12 @@ EOF
 cmd_add() {
   require_tty      # first: "this needs your keyboard" is the answer that hands it to a person
   need_tools       # then: at a person's terminal, a missing sops is a PATH problem, said plainly
-  name="${1:-}"; scope="${2:-project}"
-  [ -n "$name" ] || die "usage: mwk add NAME [global|project]"
+  name="${1:-}"
+  [ -n "$name" ] && [ $# -eq 1 ] || die "usage: mwk add NAME"
   printf '%s' "$name" | grep -qE '^[A-Za-z_][A-Za-z_0-9]*$' || die "a name must look like OPENAI_API_KEY"
-  case "$scope" in global) f="$GLOBAL";; project) f="$(scope_file "$(slug)")";; *) die "scope is 'global' or 'project'";; esac
+  f="$KEYS"
   ensure_store
-  [ -f "$f" ] || { mkdir -p "$(dirname "$f")"; : | sops_e "$f"; }
+  [ -f "$f" ] || { : | sops_e "$f"; }
 
   # Read BEFORE asking for the value, and refuse to go on if the read failed. A failed
   # read used to mean "carry on and write the file anyway", which is the whole bug.
@@ -212,7 +219,7 @@ cmd_add() {
   if [ -d "$STORE/.git" ]; then
     git -C "$STORE" add -A >/dev/null 2>&1 && git -C "$STORE" commit -qm "add $name" >/dev/null 2>&1 || true
   fi
-  good "Stored $name ($scope). It is not on screen and not in your history."
+  good "Stored $name. It is not on screen and not in your history."
 }
 
 cmd_run() {
@@ -222,9 +229,8 @@ cmd_run() {
   [ -s "$KEY" ] || die "no key at $KEY — add a key first (mwk add NAME), or put your saved key there"
   tmp="$(mktemp)"; chmod 600 "$tmp"; trap 'rm -f "$tmp"' EXIT
   # A `{ }` group, not a subshell, so `die` here actually stops the command from running
-  # with half its keys — which is a far worse outcome than not running at all.
-  { sops_d "$GLOBAL" || die "could not read your keys"
-    sops_d "$(scope_file "$(slug)")" || die "could not read this project's keys"; } > "$tmp"
+  # with no keys — which is a far worse outcome than not running at all.
+  { sops_d "$KEYS" || die "could not read your keys"; } > "$tmp"
   set -a; . "$tmp"; set +a; rm -f "$tmp"
   exec "$@"
 }
@@ -241,16 +247,6 @@ cmd_update() {
   [ -f "$u" ] || die "the kit is not at ~/projects/mwk-genie, so there is nothing to update"
   note "Updating. This takes a minute or two, and it will not ask you for anything."
   exec sh "$u" "$@"
-}
-
-# Only the two commands that touch the store need sops. `mwk` alone and `mwk update` must
-# work with NOTHING else on PATH — update is what you run when things are broken, and a
-# login shell (`su - user -c`, a cron, a fresh tab before ~/.mwk-shell.sh) has ~/bin but not
-# mise's shims. The container rehearsal caught this: a preflight here made usage exit 1.
-need_tools() {
-  for t in sops age-keygen; do
-    command -v "$t" >/dev/null 2>&1 || die "$t is not on PATH — open a new terminal tab, or run 'mwk update'"
-  done
 }
 
 case "${1:-}" in

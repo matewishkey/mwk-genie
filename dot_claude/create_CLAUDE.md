@@ -137,10 +137,10 @@ One account doing several jobs beats three that each do one.
 
 **Keys live in `~/projects/keys`** — a private repo of sops-encrypted files, and ONE key
 that opens it at `~/.config/sops/age/keys.txt`. Never put an API key in a file, in a
-`.env`, or in this conversation. `mwk add NAME` stores one (`mwk add NAME global` for one
-every project can use); `mwk run -- <command>` hands the values to that one command and
-they vanish with it. To see what is there, `sops -d ~/projects/keys/global.enc.env | cut
--d= -f1` — names, never values, and never more than the names into the chat.
+`.env`, or in this conversation. `mwk add NAME` stores one — one store for everything, no
+per-project anything; `mwk run -- <command>` hands the values to that one command and they
+vanish with it. To see what is there, `sops -d ~/projects/keys/keys.enc.env | cut -d= -f1`
+— names, never values, and never more than the names into the chat.
 
 **`mwk add` refuses to run in my hands, on purpose.** I have no keyboard, and anything
 you typed to me would be saved in our conversation. When a key is needed I say so here,

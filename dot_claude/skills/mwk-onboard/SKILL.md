@@ -42,7 +42,7 @@ it moves. A token scoped to what they will actually use is right; "everything" i
 Then, in a second tab — say why it is theirs to type, and that the screen shows nothing
 while they paste:
 
-    mwk add CLOUDFLARE_API_TOKEN global
+    mwk add CLOUDFLARE_API_TOKEN
 
 **If this is their first `mwk add`**, warn them BEFORE they run it: it will make them a key
 of their own and tell them to copy one line into their password manager. That line is the
@@ -62,7 +62,7 @@ mark it done.
 Same shape. The token is on their Replicate account page (again: point at Replicate's own
 docs for where, not memory).
 
-    mwk add REPLICATE_API_TOKEN global
+    mwk add REPLICATE_API_TOKEN
 
 Check — measured 2026-09-17, a good token answers 200 and a wrong one 401:
 

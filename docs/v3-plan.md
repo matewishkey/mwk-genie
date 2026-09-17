@@ -37,8 +37,9 @@ never has it, but **run store research in a clean env**):
 ```
 ~/projects/keys/                private GitHub repo — visible, backed up, clonable on a new machine
   .sops.yaml                    their PUBLIC key. Safe to commit, safe to serve
-  global.enc.env                keys every project can use
-  projects/<name>.enc.env       one per project, created the first time that project needs one
+  keys.enc.env                  every key — ⤳ one file since later the same day; the
+                                per-project scope below was cut ("one global password
+                                manager, do not overcomplicate it")
 ~/.config/sops/age/keys.txt     the PRIVATE key. 600, outside ~/projects, never in git
 ```
 

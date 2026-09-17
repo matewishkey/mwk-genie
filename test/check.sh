@@ -181,23 +181,26 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
   clean() { env -i HOME="$T" PATH="$PATH" TERM=dumb MWK_STORE="$T/keys" MWK_KEY="$T/key.txt" \
                    GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t "$@"; }
   cadd()  { clean script -qec "$T/mwk add $*" /dev/null; }
-  names() { clean env SOPS_AGE_KEY_FILE="$T/key.txt" sops -d --input-type dotenv --output-type dotenv "$T/keys/global.enc.env" 2>/dev/null \
+  names() { clean env SOPS_AGE_KEY_FILE="$T/key.txt" sops -d --input-type dotenv --output-type dotenv "$T/keys/keys.enc.env" 2>/dev/null \
             | grep -oE '^[A-Z]+' | sort -u | tr '\n' ' '; }
-  printf 'value-a\n' | cadd ALPHA global >/dev/null 2>&1
+  printf 'value-a\n' | cadd ALPHA >/dev/null 2>&1
   if [ -s "$T/key.txt" ] && [ -f "$T/keys/.sops.yaml" ]; then
     ok "the first add makes the key and the store"
     is "…the key is 600" "$(stat -c %a "$T/key.txt" 2>/dev/null || stat -f %Lp "$T/key.txt")" "600"
     grep -q 'AGE-SECRET' "$T/keys/.sops.yaml" && no ".sops.yaml holds only the public key" "a SECRET line is in it" \
       || ok ".sops.yaml holds only the public key"
-    printf 'value-b\n' | cadd BETA global >/dev/null 2>&1
+    printf 'value-b\n' | cadd BETA >/dev/null 2>&1
     is "adding a second key keeps the first" "$(names)" "ALPHA BETA "
-    grep -q 'value-' "$T/keys/global.enc.env" && no "the store file is ciphertext" "a plaintext value is in it" \
+    grep -q 'value-' "$T/keys/keys.enc.env" && no "the store file is ciphertext" "a plaintext value is in it" \
       || ok "the store file is ciphertext"
     c=$(git -C "$T/keys" log --oneline 2>/dev/null | wc -l)
     [ "$c" -ge 2 ] && ok "each add is a commit in the store ($c)" || no "each add commits" "$c commits"
     # Negative: the key goes missing (new computer). add must refuse, and change nothing.
     mv "$T/key.txt" "$T/key.bak"
-    printf 'value-c\n' | cadd GAMMA global >/dev/null 2>&1; rc=$?
+    printf 'value-c\n' | cadd GAMMA >/dev/null 2>&1; rc=$?
+    # And the scope that was removed must stay removed: a second argument is a usage error.
+    printf 'value-d\n' | cadd DELTA global >/dev/null 2>&1 && no "a second argument to add is refused" "it accepted 'global' — the per-project scope is back" \
+      || ok "a second argument to add is refused (no per-project scope)"
     mv "$T/key.bak" "$T/key.txt"
     [ "$rc" != 0 ] && ok "no key → add refuses (exit $rc)" || no "no key → add refuses" "it exited 0"
     is "…and the store is exactly as it was" "$(names)" "ALPHA BETA "
