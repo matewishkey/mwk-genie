@@ -198,6 +198,10 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
+**Run, 2026-09-17, against `eae3104`: `check.sh` 154/154, `rehearse.sh` ALL GREEN (34 assertions).**
+The container run before it, against `f3c6400`, found one real bug — a tool preflight at the top of
+`mwk` that killed usage and would have killed `update` under a login shell (the table has the row).
+
 `check.sh` needs `sops`, `age-keygen` and a working `script(1)` for the store test, and says
 **SKIPPED — not a pass** when it cannot run it. `on-this-machine.sh` has still never been run, and
 macOS has still never had the kit installed on it — everything macOS in the table above was

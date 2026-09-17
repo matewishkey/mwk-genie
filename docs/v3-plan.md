@@ -1,7 +1,7 @@
 # v3 — the cut, and why
 
-Decided with mate on 2026-09-17. This is the plan; `CLAUDE.md` stays the current picture and gets
-rewritten as the work lands. **Not started** — nothing below is true of the code yet.
+Decided with mate on 2026-09-17, and **landed the same day** (`f3c6400`, `eae3104`). `CLAUDE.md` is
+the current picture; this is the record of why. Where the two disagree, the code and `CLAUDE.md` win.
 
 ## The rule that drives every line of this
 
@@ -62,7 +62,7 @@ anything. (And miniserve is leaving anyway — below.)
 | keep | why it survives the rule |
 |---|---|
 | `mwk add NAME [project]` | **The one thing that structurally needs a human at a keyboard.** The value is read at a hidden prompt so it never passes through chat, argv, `ps` or history. Self-initialising: no store → keygen, `.sops.yaml`, `git init`, then "now save your key". `init` disappears into it |
-| `mwk run -- cmd` | Frequent, and used by the agent every time a project runs with keys. `sops exec-env` twice (global, then project) — thin, but typed constantly |
+| `mwk run -- cmd` | Frequent, and used by the agent every time a project runs with keys. Decrypts global then project into a 600 mktemp, sources it, deletes it, `exec`s — `sops exec-env` takes one file and the merge of two is the whole job. Thin, but typed constantly |
 | `mwk update` | The one that must work when the agent's own instructions are stale. Six lines delegating to `install.sh` |
 
 | cut | the agent does it instead |
