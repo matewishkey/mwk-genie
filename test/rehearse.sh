@@ -20,6 +20,7 @@ set -euo pipefail
 REF="${1:-main}"
 echo "Rehearsing ref: $REF"
 
+LOG=$(mktemp "${TMPDIR:-/tmp}/rehearse.XXXXXX"); status=0
 docker run --rm ubuntu:24.04 bash -euc "
   # python3 is for THIS SCRIPT's fixtures only — the kit never calls it (grepped: the only
   # python reference in the repo is this file). ubuntu:24.04 ships without it, and the
@@ -37,11 +38,18 @@ docker run --rm ubuntu:24.04 bash -euc "
 
   chk 'kit is at ~/projects/mwk-genie'          'test -f ~/projects/mwk-genie/mise.toml'
   chk 'mise installed'                          'test -x ~/.local/bin/mise'
-  # RUNS, not "on PATH". These are mise shims: `command -v` is true the moment the symlink
-  # exists, while the shim itself can refuse — an untrusted mise.toml in the current
-  # directory makes every one of them exit 1 with a mise error, and that is exactly what
-  # a green "on PATH" line was hiding (found 2026-09-17 on the dev box, by accident).
+  # Claude Code itself. Never asserted before 2026-09-17 — and it had never installed in
+  # this container: a jq shim with no global version killed its installer, in /dev/null.
+  chk 'Claude Code installed (~/.local/bin/claude)' 'test -x ~/.local/bin/claude'
+  # RUNS, not merely on PATH. These are mise shims: command -v is true the moment the
+  # symlink exists, while the shim itself can refuse — an untrusted mise.toml in the
+  # current directory makes every one of them exit 1 with a mise error, and that is
+  # exactly what a green on-PATH line was hiding (found 2026-09-17 on the dev box).
   # Run each from the kit directory, which is the worst case: the project config in scope.
+  # NO DOUBLE QUOTES IN COMMENTS INSIDE THIS SCRIPT: it is one double-quoted string, and a
+  # quote in a comment ENDS IT — the rest becomes arguments to docker, the truncated script
+  # runs to its end, exit 0. That happened here on 2026-09-17: two assertions, ALL GREEN
+  # absent, exit 0. The REHEARSAL-COMPLETE sentinel below is what catches it now.
   chk 'sops RUNS (through the shim, from the kit dir)'      '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && sops --version'
   chk 'age AND age-keygen RUN'                  '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && age --version && age-keygen --version'
   chk 'miniserve RUNS'                          '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && miniserve --version'
@@ -154,5 +162,15 @@ PY'
   chk 'reinstall: mwk runs again'               'bash -ic \"command -v mwk\"'
   chk 'reinstall: settings say auto again'      'grep -q \"\\\"defaultMode\\\": *\\\"auto\\\"\" ~/.claude/settings.json'
 
+  echo REHEARSAL-COMPLETE
   echo; [ \"\$FAILED\" = 0 ] && echo 'ALL GREEN' || { echo 'SOME FAILED'; exit 1; }
-"
+" | tee "$LOG" || status=$?
+# A container script that ENDS EARLY exits 0 with whatever ran — an unescaped quote in a
+# comment did exactly that. The sentinel is printed by the script's last line; if it is not
+# in the output, nothing after the cut ran, and this is red regardless of the exit code.
+if ! grep -q 'REHEARSAL-COMPLETE' "$LOG"; then
+  echo; echo "SOME FAILED — the container script ENDED EARLY ($(grep -cE 'PASS|FAIL' "$LOG") assertions ran)."
+  echo "Most likely an unescaped double quote inside the docker script string. Check the last thing printed above."
+  exit 1
+fi
+exit "${status:-0}"

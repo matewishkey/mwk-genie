@@ -349,6 +349,18 @@ grep -q '\[ -t 0 \] || return 1' uninstall.sh \
   && ok "no keyboard means no consent — it does not assume yes" \
   || no "no keyboard means no consent" "an unattended run could delete their key"
 
+head_ "rehearse.sh cannot end early without saying so"
+# The container script is ONE double-quoted string. A double quote on a comment line inside
+# it ends the string; the rest becomes arguments to docker, the truncated script runs to its
+# end, and the exit code is 0. It happened: two assertions, no verdict, exit 0. Two guards:
+# no such quote exists, and the script ends with a sentinel the outer script demands.
+# An ESCAPED quote (\") is fine — it is a literal inside the string. A bare one is the cut.
+bad=$(awk '/docker run --rm ubuntu:24.04 bash -euc "/{inside=1; next} /^" \| tee/{inside=0} inside && /^[[:space:]]*#/ { l=$0; gsub(/\\"/, "", l); if (l ~ /"/) print }' test/rehearse.sh | wc -l)
+is "no bare double quote on a comment line inside rehearse.sh's docker string" "$bad" "0"
+grep -q 'echo REHEARSAL-COMPLETE' test/rehearse.sh && grep -q "grep -q 'REHEARSAL-COMPLETE'" test/rehearse.sh \
+  && ok "the container script ends with a sentinel and the outer script demands it" \
+  || no "the sentinel guard exists" "a truncated container script would exit 0 with a partial run"
+
 head_ "The starter websites"
 for f in site-templates/one-page/index.html site-templates/pages/index.html \
          site-templates/pages/work.html site-templates/pages/about.html; do

@@ -92,16 +92,20 @@ say "3/6  Installing chezmoi, sops, age, miniserve, jq and gh"
 step "from $KIT/mise.toml — same versions on every machine"
 ( cd "$KIT" && mise install --yes >/dev/null 2>&1 ) || ( cd "$KIT" && mise install --yes )
 
-say "4/6  Installing Claude Code"
-if have claude; then step "already installed"; else curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1 || true; fi
-
-# Make the kit's tools active EVERYWHERE, not just inside the kit directory.
+# Make the kit's tools active EVERYWHERE, not just inside the kit directory — and do it
+# BEFORE installing Claude Code. Step 2 put mise's shims first on PATH and step 3 created
+# a `jq` shim for the project config; until the global versions exist, that shim errors
+# "No version is set for shim: jq" — and Claude Code's installer uses jq. Measured
+# 2026-09-17 in the container: with Claude Code as step 4, the installer died on that
+# error every time, with its output in /dev/null, and the kit said "type claude". On a
+# real machine prompt one installs Claude Code first, so the step is skipped and nobody
+# saw it. Order fixes it; the honest banner at the end is what surfaced it.
 #
 # mise shims resolve a tool from the config in scope. mise.toml is a PROJECT config, so
 # `sops` and `age` are in scope inside ~/projects/mwk-genie and nowhere else — and `mwk`
 # is run from wherever the person happens to be standing. `mise use -g` writes the same
 # pinned versions into their global config, additively, so the shims resolve anywhere.
-say "5/6  Making those tools available everywhere"
+say "4/6  Making those tools available everywhere"
 step "so mwk works wherever you are standing, not just inside the kit"
 for t in $(grep -oE '^"aqua:[^"]+"' "$KIT/mise.toml" | tr -d '"'); do
   # The version is the quoted thing after `=`, NOT the last quoted thing on the line: a
@@ -115,6 +119,9 @@ for t in $(grep -oE '^"aqua:[^"]+"' "$KIT/mise.toml" | tr -d '"'); do
   fi
   mise use -g "$t@$v" >/dev/null 2>&1 || printf '  mise use -g %s@%s failed\n' "$t" "$v" >&2
 done
+
+say "5/6  Installing Claude Code"
+if have claude; then step "already installed"; else curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1 || true; fi
 
 say "6/6  Setting up your computer"
 step "no questions, and no password"
