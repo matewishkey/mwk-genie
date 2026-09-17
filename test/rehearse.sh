@@ -130,7 +130,10 @@ PY'
   ok 'the source line is out of ~/.bashrc' \"\$([ \"\$n3\" = 0 ] && echo PASS || echo \"FAIL (n=\$n3)\")\"
   [ \"\$n3\" = 0 ] || FAILED=1
   chk 'the status bar script is gone'           '! test -f ~/.claude/statusline.sh'
+  sleep 1
   chk 'the server is stopped'                   '! pgrep -x miniserve'
+  # If that failed, SAY WHAT IS RUNNING — a red line with no process table is a guess.
+  pgrep -x miniserve >/dev/null 2>&1 && ps -eo pid,ppid,user,stat,lstart,args | grep '[m]iniserve' | sed 's/^/      still running: /'
   chk '…but ~/mwk-work and the howto are NOT touched' 'test -f ~/mwk-work/README.md'
 
   # Their keys were moved, not erased. Deleting a password store on a typo would be the
