@@ -16,7 +16,7 @@ body:
     id: doing
     attributes:
       label: What were you trying to do?
-      placeholder: I typed ccc in a new terminal window.
+      placeholder: I typed claude in a new terminal window.
     validations:
       required: true
 

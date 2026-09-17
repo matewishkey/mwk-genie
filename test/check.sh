@@ -92,7 +92,7 @@ rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/nu
 # ccc is gone (2026-09-17): how Claude asks is permissions.defaultMode in settings, one
 # home. An alias would be a second home, and two homes is how v1 got two definitions.
 is "no ccc alias in the shell file" "$(printf '%s\n' "$rendered" | grep -c '^alias ccc')" "0"
-ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md HOW-TO.md prompts/ dot_claude/ site-templates/ mwk-work/ install.sh uninstall.sh 2>/dev/null \
+ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md HOW-TO.md prompts/ dot_claude/ site-templates/ mwk-work/ .github/ install.sh uninstall.sh 2>/dev/null \
            | grep -vE ':[0-9]+:[[:space:]]*#' | wc -l)
 is "no document still tells them to type ccc" "$ccc_docs" "0"
 
