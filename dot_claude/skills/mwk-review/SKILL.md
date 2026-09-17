@@ -3,6 +3,8 @@ name: mwk-review
 description: Step back and look at this project with fresh eyes — work out what it is actually trying to do, then say where it has drifted away from that, and offer to tidy it up. Summoned on demand. Use when they ask for a review, a second opinion, a check-up, or say something feels off and they cannot say why.
 ---
 
+<!-- requires: git -->
+
 They have summoned you for a look around. **This is a change of altitude, not a
 bug hunt.** You have been inside the details; now come out of them.
 

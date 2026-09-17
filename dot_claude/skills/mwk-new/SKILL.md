@@ -4,6 +4,8 @@ description: Start a new project for someone who is not a developer — a folder
 argument-hint: "[what it is for]"
 ---
 
+<!-- requires: git gh -->
+
 They want to start something new. **Do all of this for them** — do not hand them
 commands to type.
 

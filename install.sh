@@ -47,51 +47,6 @@ have_git() {
   return 0
 }
 
-# ── debug mode ────────────────────────────────────────────────────────────────────────
-# Off unless MWK_DEBUG holds a token. With none, this whole block does nothing and the
-# script behaves exactly as it always has — a guest cannot switch it on by accident and
-# has nowhere to send anything to.
-#
-# The capture is a named pipe rather than `exec > >(tee ...)`, because that is bash-only
-# process substitution and this script is POSIX sh by design.
-#
-# The trap is the point: the run worth reading is the one that FAILED, and `set -e` means
-# a failure exits without reaching the bottom of the file. EXIT fires either way.
-if [ -n "${MWK_DEBUG:-}" ]; then
-  [ -t 2 ] && printf "\n  Debug mode is on — a copy of this run will be sent when it finishes.\n" >&2
-  MWK_LOG=$(mktemp 2>/dev/null || echo /tmp/mwk-install.$$)
-  MWK_RUN_ID="install-$(date +%Y%m%d-%H%M%S)-$$"; export MWK_RUN_ID
-  _fifo="${TMPDIR:-/tmp}/mwk-fifo.$$"
-  if mkfifo "$_fifo" 2>/dev/null; then
-    # Keep the REAL stderr on fd 3. Everything below is about to be redirected into the
-    # pipe, and the run code has to come back to a screen the person is looking at — a
-    # confirmation written into the log it is confirming is no confirmation at all.
-    exec 3>&2
-    tee -a "$MWK_LOG" < "$_fifo" &
-    _tee=$!
-    exec > "$_fifo" 2>&1
-    ship() {
-      rc=$?
-      exec >&- 2>&- || true
-      wait "$_tee" 2>/dev/null || true
-      rm -f "$_fifo"
-      printf 'exit %s\n' "$rc" >> "$MWK_LOG"
-      # if/elif, NOT `A && B || C && D`. That chain groups as ((A && B) || C) && D, so a
-      # successful first send would still run the second one — two uploads for one run.
-      if [ -x "$HOME/bin/mwk-debug" ]; then
-        MWK_DEBUG="$MWK_DEBUG" "$HOME/bin/mwk-debug" send "$MWK_LOG" 2>&3
-      elif [ -x "$KIT/bin/executable_mwk-debug" ]; then
-        MWK_DEBUG="$MWK_DEBUG" sh "$KIT/bin/executable_mwk-debug" send "$MWK_LOG" 2>&3
-      else
-        printf '\n  Debug log kept at %s (nothing to send it with)\n' "$MWK_LOG" >&3
-      fi
-      exec 3>&- || true
-      return $rc
-    }
-    trap ship EXIT
-  fi
-fi
-
 case "$(uname -s)" in
   Darwin|Linux) ;;
   *) printf 'This needs macOS or Linux. On Windows, open your Ubuntu window and run it there.\n' >&2; exit 1 ;;
@@ -133,7 +88,7 @@ say "2/6  Installing mise (this is the only tool that installs tools)"
 if have mise; then step "already installed"; else curl -fsSL https://mise.run | sh >/dev/null; fi
 PATH="$BIN:$HOME/.local/share/mise/shims:$PATH"; export PATH
 
-say "3/6  Installing chezmoi, sops, age, miniserve, jq and gh"
+say "3/6  Installing chezmoi, sops, age, jq and gh"
 step "from $KIT/mise.toml — same versions on every machine"
 ( cd "$KIT" && mise install --yes >/dev/null 2>&1 ) || ( cd "$KIT" && mise install --yes )
 

@@ -7,8 +7,8 @@
 #
 # ⚠ This used to be a question, and the repo argued hard that it should stay one. It is now
 # decided for them — mate's call. The escape hatch is kept and it is one character:
-# ~/.mwk-shell.sh ships both alias lines with one commented out, and the page they keep
-# says which to swap. That is the whole reason this is survivable as a default.
+# ~/.mwk-shell.sh ships both alias lines with one commented out, and the setup shows them
+# which to swap. That is the whole reason this is survivable as a default.
 ccc_mode: fast
 
 # iTerm2 goes to ~/Applications, which never needs a password. /Applications would have

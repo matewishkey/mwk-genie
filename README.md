@@ -18,12 +18,14 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 | | |
 |---|---|
 | `ccc` | starts the agent, from anywhere |
-| `mwk` | a menu: start something, see your keys, open your page |
-| `http://127.0.0.1:29200/` | your page — what you can type, and anything the agent needs you to run |
+| `mwk add NAME` | puts a key in your store — you type it, so it never goes through the chat |
 | `~/projects/<your thing>/` | your work, with an `input` folder to drop things into |
-| `~/.mwk/` | your keys, behind one password that only you know |
+| `~/projects/keys/` | your keys, encrypted, in a private repo of their own — so they come with you to a new computer |
+| `~/projects/learning/` | what you have learnt, added to each time you ask |
 
-Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it, `/mwk-learn` adds to your running record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-bug` reports anything in here that is broken.
+Plus six things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
+
+Everything else — seeing which keys you have, a new computer, changing a key — you ask the agent. **There is no menu and no long list of commands on purpose:** a thing you do once a year is a thing the agent does for you, not a thing you learn.
 
 ## The two things that will scare you
 
@@ -33,19 +35,15 @@ Plus five things you can ask for by name: `/mwk-new` starts a project, `/mwk-sav
 
 ## Taking it off again
 
-```
-mwk uninstall
-```
-
-It removes everything it put there and asks before touching anything that is yours. **Your keys and your work go to the trash, not the bin** — a password store that vanishes on a typo would be the worst thing this kit could do. It tells you where they went.
-
-`sh ~/projects/mwk-genie/uninstall.sh --dry-run` says what would go without touching anything.
+Ask the agent to remove it, or run `sh ~/projects/mwk-genie/uninstall.sh` yourself. It removes everything it put there and asks before touching anything that is yours. **Your key goes to the trash, not the bin**, and your work in `~/projects` is not touched at all. `--dry-run` says what would go without touching anything.
 
 ## Keys
 
-Never put an API key in a file or in the chat. `mwk add NAME` stores one behind a single master password; `mwk run -- <command>` hands the values to that one command and they vanish with it. **Save that master password in your password manager the moment you make it** — nobody can reset it. If it ever gets out, `mwk rekey` is one command.
+Never put an API key in a file or in the chat. `mwk add NAME` stores one, encrypted, in `~/projects/keys` — a private repo of its own, so it is backed up like the rest of your work. `mwk run -- <command>` hands the values to that one command and they vanish with it.
 
-The agent cannot type it and will not ask you to give it one. Anything that genuinely needs your keyboard appears on your page with a Copy button and a line saying why.
+The first time you add a key, one is made for you at `~/.config/sops/age/keys.txt`. **Copy the line that starts `AGE-SECRET-KEY` into your password manager, once.** It is the only way into `~/projects/keys` — on this computer, and on the next one.
+
+The agent cannot type a key and will not ask you to give it one. When something genuinely needs your keyboard it says so in the chat, and you run it in a second tab.
 
 ## No package manager
 

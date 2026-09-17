@@ -39,22 +39,22 @@ docker run --rm ubuntu:24.04 bash -euc "
   chk 'mise installed'                          'test -x ~/.local/bin/mise'
   chk 'sops on PATH'                            '. ~/.mwk-shell.sh; command -v sops'
   chk 'age AND age-keygen on PATH'              '. ~/.mwk-shell.sh; command -v age && command -v age-keygen'
-  chk 'miniserve on PATH'                       '. ~/.mwk-shell.sh; command -v miniserve'
   chk 'chezmoi on PATH'                         '. ~/.mwk-shell.sh; command -v chezmoi'
-  chk 'jq on PATH (settings merge + mwk queue)' '. ~/.mwk-shell.sh; command -v jq'
+  chk 'jq on PATH (settings merge)'             '. ~/.mwk-shell.sh; command -v jq'
+  chk 'gh on PATH (/mwk-save, /mwk-bug, /mwk-tasks)' '. ~/.mwk-shell.sh; command -v gh'
   chk '~/.mwk-shell.sh placed'                  'test -f ~/.mwk-shell.sh'
   chk '~/.claude/CLAUDE.md placed'              'test -f ~/.claude/CLAUDE.md'
   chk '~/.claude/settings.json placed'          'test -f ~/.claude/settings.json'
   chk 'settings.json says opus'                 'grep -q opus ~/.claude/settings.json'
   chk 'skills placed'                           'test -f ~/.claude/skills/mwk-save/SKILL.md'
-  chk 'the page was placed'                     'test -f ~/mwk/site/index.html'
 
   # Existing is not the same as usable. v2 shipped a green 'test -x ~/bin/mwk' for a day
   # while ~/bin was on nobody's PATH and the first command a person is told to run did not
   # exist. Ask whether it RUNS.
   chk 'mwk RUNS in a fresh interactive shell'   'bash -ic \"command -v mwk\"'
   chk 'ccc exists in a fresh interactive shell' 'bash -ic \"alias ccc\"'
-  chk 'mwk with no args + no tty prints usage'  'mwk </dev/null | grep -q \"mwk init\"'
+  chk 'mwk with no args + no tty prints usage'  'mwk </dev/null | grep -q \"mwk add\"'
+  chk 'mwk add refuses with no keyboard (exit 3)' 'mwk add X </dev/null >/dev/null 2>&1; [ \$? = 3 ]'
   chk 'mwk update is offered'                   'mwk </dev/null | grep -q \"mwk update\"'
   # The update path is install.sh re-run. It has to be safe on a machine that already has
   # everything — which is the ONLY state it is ever used in, and the state the old
@@ -99,10 +99,10 @@ PY'
   echo '  --- take it all off, then put it back on ---'
   # This is the cycle the kit has to survive, because it is the one used to test it. A
   # second install onto a machine that still has the first is not what a new person meets.
-  su - guest -c 'mkdir -p ~/.mwk && echo CIPHERTEXT > ~/.mwk/identity.age'
+  su - guest -c 'mkdir -p ~/.config/sops/age && echo AGE-SECRET-KEY-1FAKE > ~/.config/sops/age/keys.txt'
   su - guest -c 'sh ~/projects/mwk-genie/uninstall.sh --all' >/dev/null 2>&1 || { echo '  UNINSTALL FAILED'; FAILED=1; }
 
-  for leftover in .mwk-shell.sh bin/mwk .claude/skills/mwk-save mwk projects/mwk-genie .config/chezmoi; do
+  for leftover in .mwk-shell.sh bin/mwk .claude/skills/mwk-save projects/mwk-genie .config/chezmoi; do
     if su - guest -c \"test -e ~/\$leftover\" 2>/dev/null; then ok \"gone: ~/\$leftover\" FAIL; FAILED=1
     else ok \"gone: ~/\$leftover\" PASS; fi
   done
@@ -113,7 +113,7 @@ PY'
 
   # Their keys were moved, not erased. Deleting a password store on a typo would be the
   # worst thing this kit could do, so the trash is load-bearing rather than politeness.
-  chk 'the keys are in the trash, not erased'   'ls ~/.local/share/Trash/files/.mwk/identity.age'
+  chk 'the key is in the trash, not erased'     'ls ~/.local/share/Trash/files/keys.txt'
 
   su - guest -c 'curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-genie/$REF/install.sh | MWK_REF=$REF sh' >/dev/null 2>&1 \
     || { echo '  REINSTALL FAILED'; FAILED=1; }

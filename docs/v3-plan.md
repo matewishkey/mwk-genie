@@ -57,24 +57,24 @@ That was the *encrypted identity* — the thing the passphrase protected. Now no
 `~/projects` is secret; the one secret file is at the sops default path and is not served by
 anything. (And miniserve is leaving anyway — below.)
 
-## `mwk` after the cut: four commands, ~150 lines
+## `mwk` after the cut: three commands, ~120 lines
 
 | keep | why it survives the rule |
 |---|---|
 | `mwk add NAME [project]` | **The one thing that structurally needs a human at a keyboard.** The value is read at a hidden prompt so it never passes through chat, argv, `ps` or history. Self-initialising: no store → keygen, `.sops.yaml`, `git init`, then "now save your key". `init` disappears into it |
 | `mwk run -- cmd` | Frequent, and used by the agent every time a project runs with keys. `sops exec-env` twice (global, then project) — thin, but typed constantly |
 | `mwk update` | The one that must work when the agent's own instructions are stale. Six lines delegating to `install.sh` |
-| `mwk uninstall` | Five lines delegating to `uninstall.sh`. Not frequent — kept because it is the escape hatch when the agent is the broken thing. **Mate's call** |
 
 | cut | the agent does it instead |
 |---|---|
 | `init` | folded into the first `add` |
+| `uninstall` | `sh ~/projects/mwk-genie/uninstall.sh` when asked. Once-ever, one step (mate, 2026-09-17) |
 | `list` | `sops -d … \| cut -d= -f1` |
 | `needs` | writes a file |
 | `lock`, `rekey` | no passphrase; `sops updatekeys` after a new key |
 | `site`, `serve`, `port`, `queue`, `files` | **the page is going** (below); serving a folder is `miniserve -p 292xx dir` or `python3 -m http.server`; browsing files is `open .` / `explorer.exe .` |
 | the menu | four commands do not need a menu. `mwk` alone prints usage |
-| `mwk-debug` + the Cloudflare worker | 172 lines and a deployed service for "see a stranger's failed install". The agent on their machine reads the output and files it with `/mwk-bug`. **Mate's call** — he asked for it in August |
+| `mwk-debug` + the Cloudflare worker | 172 lines and a deployed service for "see a stranger's failed install". The agent on their machine reads the output and files it with `/mwk-bug`. Cut (mate, 2026-09-17); the fd-3 capture and EXIT trap come out of `install.sh` with it |
 
 ## The page is going
 
@@ -94,7 +94,7 @@ git-backed, renders on GitHub, and it is in `~/projects` where mate wants everyt
 | | |
 |---|---|
 | `mwk-new` | keep. Does **not** pre-create a keys file; the first `mwk add NAME project` does |
-| `mwk-save` | keep. Gains the "finished for good?" branch — tend the repo's issues, then push — so **`mwk-close` is a paragraph here, not a skill**. Closing a project is rare. **Mate's call** |
+| `mwk-save` | **becomes the `/td-fly:close` shape** (mate, 2026-09-17): say what changed → sweep for drift → file only what clears the bar → commit → push → tend the open issues. Save and close are the same act; someone who wants to close a project for good says so in the prompt. **No `mwk-close`** |
 | `mwk-review` | keep as is |
 | `mwk-learn` | keep, retargeted to `~/projects/learning/README.md` |
 | `mwk-bug` | keep |
@@ -119,18 +119,19 @@ ate-the-store mechanism. Every one is a fact about a component that is leaving. 
 1. **The store.** Rewrite `add` + `run` on the plain key; `test/check.sh` runs `mwk add` against a
    real scratch store under `env -i` and reads every previous name back — the check that was
    confirmed red against the bug that ate the store stays, on the new code.
-2. **Delete** `lock`, `rekey`, `init`, `list`, `needs`, the menu.
+2. **Delete** `lock`, `rekey`, `init`, `list`, `needs`, `uninstall`, the menu, `mwk-debug` and
+   `debug-worker/`, and the capture in `install.sh`.
 3. **Delete the page** and everything that fed it; miniserve out of `mise.toml`; `.chezmoiignore`
    and `rehearse.sh`'s placed-file list updated **and asserted by name in both directions**.
-4. `mwk-learn` → `~/projects/learning/`. `mwk-tasks` written. `mwk-save` gains the closing branch.
+4. `mwk-learn` → `~/projects/learning/`. `mwk-tasks` written. `mwk-save` reshaped to the close rhythm.
 5. `create_CLAUDE.md` keys section + the no-function sentences. `requires:` on every skill.
 6. `rehearse.sh` green against the pushed SHA. `CLAUDE.md` rewritten to describe what is there.
 
-## Open — mate decides, then it is not re-argued
+## Decided 2026-09-17 — not re-argued
 
-| | recommendation |
+| | |
 |---|---|
-| Name of the repo | `keys`. `mwk-sops` matches the fleet and means nothing to the person looking for it in a panic |
-| `mwk uninstall` | keep (escape hatch) |
-| debug worker | cut; `/mwk-bug` is the channel |
-| `mwk-close` | a branch of `mwk-save`, not a sixth skill |
+| Name of the repo | **`keys`** |
+| `mwk uninstall` | **cut** — once-ever, one step, the agent runs the script |
+| debug worker | **cut** — `/mwk-bug` is the channel |
+| `mwk-close` | **none** — `mwk-save` *is* the close rhythm; "close it for good" is said in the prompt |

@@ -98,18 +98,15 @@ wipe "$HOME/.local/share/chezmoi"
 
 head_ "Things that might be yours"
 
-if [ -d "$HOME/.mwk" ]; then
-  printf '\n  %s%sYour keys live in ~/.mwk%s\n' "$B" "$RED" "$R"
-  say "  ${DIM}Everything you saved with 'mwk add' is in there, locked with your master"
-  say "  password. It goes to the trash rather than being erased, so you can put it back —"
-  say "  but the trash does get emptied, and nobody can rebuild it for you.$R"
-  if ask "Take your keys off this computer?"; then trash_it "$HOME/.mwk"
-  else item "kept" "$HOME/.mwk"; fi
-fi
-
-if [ -d "$HOME/mwk" ]; then
-  if ask "Remove your page and anything saved beside it (~/mwk)?"; then trash_it "$HOME/mwk"
-  else item "kept" "$HOME/mwk"; fi
+# ~/projects/keys is THEIRS — a git repo like any other project, and it stays with the
+# rest of ~/projects. The one thing that is ours to ask about is the key that opens it.
+if [ -s "$HOME/.config/sops/age/keys.txt" ]; then
+  printf '\n  %s%sThe key that opens ~/projects/keys%s\n' "$B" "$RED" "$R"
+  say "  ${DIM}~/.config/sops/age/keys.txt — the AGE-SECRET-KEY line you saved in your password"
+  say "  manager. It goes to the trash rather than being erased. Without it, or the copy in"
+  say "  your password manager, nothing in ~/projects/keys can ever be read again.$R"
+  if ask "Take the key off this computer?"; then trash_it "$HOME/.config/sops/age/keys.txt"
+  else item "kept" "$HOME/.config/sops/age/keys.txt"; fi
 fi
 
 if [ -f "$HOME/.claude/CLAUDE.md" ]; then

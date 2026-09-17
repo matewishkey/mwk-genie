@@ -88,51 +88,51 @@ One account doing several jobs beats three that each do one.
 
 ## The things this computer has that others do not
 
-**`mwk` is where keys live.** Never put an API key in a file, in a `.env`, or in
-this conversation. `mwk add NAME` stores one; `mwk run -- <command>` hands the
-values to that one command and they vanish with it. `mwk list` shows names and
-never values, so you can always check what is there.
+**Keys live in `~/projects/keys`** — a private repo of sops-encrypted files, and ONE key
+that opens it at `~/.config/sops/age/keys.txt`. Never put an API key in a file, in a
+`.env`, or in this conversation. `mwk add NAME` stores one (`mwk add NAME global` for one
+every project can use); `mwk run -- <command>` hands the values to that one command and
+they vanish with it. To see what is there, `sops -d ~/projects/keys/global.enc.env | cut
+-d= -f1` — names, never values, and never more than the names into the chat.
 
-**I cannot type a password and you should not ask me to.** `mwk init`, `mwk add`
-and `mwk rekey` refuse to run in my hands on purpose — I have no keyboard, and
-anything you typed to me would be saved in our conversation. When one of those is
-needed I put it on your page and you run it in a second tab. **Never tell me to
-quit** — the tab stays open.
+**`mwk add` refuses to run in my hands, on purpose.** I have no keyboard, and anything
+you typed to me would be saved in our conversation. When a key is needed I say so here,
+in one line — the command and why it is yours — and you run it in a second tab. **Never
+tell me to quit** — the tab stays open.
 
-**`mwk files` browses `~/projects` in a web page**, at `http://127.0.0.1:29201/`. It is
-read-only on purpose — looking is the point, changing is your job or their editor's. It is
-the fastest way to answer "where did that go?" for someone to whom a file system is a new
-idea, so reach for it rather than pasting a directory listing into the chat.
+**The first `mwk add` makes their key, and there is a once-only thing to do.** It tells
+them to open a second tab, `cat ~/.config/sops/age/keys.txt`, and copy the
+`AGE-SECRET-KEY` line into their password manager. I never run that `cat` myself and
+never ask for the line. **Say it before they run the first add, not after** — it is the
+one thing in this whole setup that cannot be recovered if it is lost.
+
+**Things that need no command, because they are rare — I just do them:**
+- **A new computer:** they put their saved key at `~/.config/sops/age/keys.txt` (one line,
+  600), I clone `~/projects/keys` and every repo `gh repo list` returns. That is the whole
+  restore.
+- **A new key:** `age-keygen` into that path, its public half into `.sops.yaml`, then
+  `sops updatekeys -y` on every `.enc.env`. Then the same once-only save as above.
+- **Showing a folder in a browser:** a small local server on it (`python3 -m http.server`
+  or whatever is to hand), bound to `127.0.0.1`, and hand them the address.
+- **Finding a file:** `open .` on a Mac, `explorer.exe .` in WSL, and they are looking at
+  it. Not a listing pasted into the chat.
+- **Taking the kit off:** `sh ~/projects/mwk-genie/uninstall.sh`. It asks before touching
+  anything that is theirs.
 
 **There are two starter websites in the kit**, at `~/projects/mwk-genie/site-templates/` —
 `one-page/` and `pages/`. If they want a website, copy one in and change the words with
 them rather than writing a page from an empty file. Plain HTML, one stylesheet, no build
 step; the colours are named at the top of `mwk.css` and changing one changes the site.
 
-**Everything served on this computer lives in 292xx, and the rule is one sentence: `29200`
-is always their page, and each project gets the next number up.** `mwk port` inside a
-project prints its number and gives back the same one every time, so a bookmark or a note
-never goes stale. Never pick a port by hand — you would take one that is already spoken
-for, and nothing would say so.
+**When I hand you something to run, I do not wait for it.** I check whether the thing
+actually happened and carry on. A command in the chat is the whole mechanism — there is
+no page, no button, nothing that could be out of date.
 
-**`mwk serve` inside a project opens it in a browser on that number.** Use it the moment
-there is anything to look at — seeing their own website appear is the point at which this
-stops being abstract for them. It is also listed on their page under **Your projects**,
-with a dot showing whether it is running, so they can always find their way back without
-asking you. Servers do not survive a restart: if the dot is grey, run `mwk serve` again.
+**Things I can do for you by name:** `/mwk-new` starts a project, `/mwk-save` saves
+and pushes your work and tidies up after a session, `/mwk-learn` adds to your record
+in `~/projects/learning`, `/mwk-review` is a second opinion on a project, `/mwk-tasks`
+is what is open across all your projects, `/mwk-bug` reports something broken in the kit.
 
-**Your page is `http://127.0.0.1:29200/`.** `mwk site` starts it. Anything I need
-you to type appears there with a Copy button and a line saying why it is yours to
-run. It only works on this computer, which is the point.
-
-**The commands I put there are also printed in the chat.** The page is one-way —
-it cannot tell me you pressed the button. So I never wait for it; I check whether
-the thing actually happened and carry on.
-
-**Things I can do for you by name:** `/mwk-new` starts a project, `/mwk-save`
-saves and pushes your work, `/mwk-learn` adds to your record, `/mwk-review` is
-a second opinion on a project, `/mwk-bug` reports something broken in the kit.
-
-**`mise` is already here and it owns the tools.** Six of them are pinned in
+**`mise` is already here and it owns the tools.** Five of them are pinned in
 `~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not
 globally, or this machine drifts away from the one that was tested.

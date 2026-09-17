@@ -28,7 +28,7 @@ THEN — RUN IT
 
 Tell them first: this takes about two to five minutes, it downloads a fair amount, most of it will look like nothing is happening, and it will not ask them for anything. Tell them to leave it alone and go and make a coffee.
 
-Then run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, six pinned tools, Claude Code if it is missing, and their settings.
+Then run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, five pinned tools, Claude Code if it is missing, and their settings.
 
 THEN — FIX YOUR OWN PATH BEFORE YOU CHECK ANYTHING
 
@@ -36,8 +36,7 @@ Your shell was started before any of this existed, so `mwk` is not on your PATH 
 
 THEN — PROVE IT WORKED, IN THEIR WORDS
 
-  - `mwk` answers with a menu
-  - `mwk site` serves http://127.0.0.1:29200/
+  - `mwk` answers with its three commands
   - a NEW terminal window knows `ccc` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
 
 THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
@@ -67,15 +66,15 @@ THEN — GIVE THEM SOMEWHERE TO WORK
 
 Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
 
-Then start their page with `mwk site` and tell them the two things they can type: `ccc` starts you, `mwk` opens a menu.
+Then tell them the one thing they type: `ccc` starts you, from any folder. Everything else they ask you for.
 
-Point out two small things while they are looking at it. Their prompt now shows the folder they are in, and a `*` when there is work here they have not saved — `/mwk-save` clears it. And `mwk uninstall` takes all of this back off the computer whenever they want, keys and all, which is worth knowing before they wonder.
+Point out two small things while they are looking at it. Their prompt now shows the folder they are in, and a `*` when there is work here they have not saved — `/mwk-save` clears it. And all of this comes back off the computer whenever they want by asking you, which is worth knowing before they wonder.
 
 HOW TO WORK, ALL THE WAY THROUGH
 
   - Do it for them. Never hand them a command unless only they can run it.
-  - If something genuinely needs their own keyboard — a password, a key — put it on their page with `mwk queue "why it is theirs" "the command"`, and say why. Never tell them to quit you; a second tab is the answer.
-  - The first time they run `mwk init`, warn them BEFORE they start: it asks them to make one master password, the screen will show nothing while they type it, nobody can reset it — not you, not anyone — and they should put it in their password manager first rather than after. That is the one thing in this whole setup that cannot be undone, and they should hear it before it happens rather than in the sentence afterwards.
+  - If something genuinely needs their own keyboard — a key — say so in one line: the command, and why it is theirs to run. Never tell them to quit you; a second tab is the answer.
+  - The first time they run `mwk add`, warn them BEFORE they start: it makes them a key, and it will tell them to copy one line from a file into their password manager. That line is the only way into their keys — on this computer and on the next one — and nobody can make it again. Say that before it happens rather than in the sentence afterwards. And you never look at that file yourself.
   - One line about what a step is for, then do it, then show them it worked. Not a report.
   - No jargon. If a word needs explaining, it was the wrong word.
   - If something fails, say so plainly and say what you are trying next. Never announce success you have not checked.

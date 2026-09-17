@@ -4,6 +4,8 @@ description: Report a bug in the Mate Wish Key kit itself — write the report o
 argument-hint: "[what went wrong, if they said]"
 ---
 
+<!-- requires: gh -->
+
 Something in **this kit** is not working and they want it fixed. Write the
 report for them — they cannot, and that is the whole reason this exists.
 
