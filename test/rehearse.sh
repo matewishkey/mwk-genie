@@ -37,12 +37,17 @@ docker run --rm ubuntu:24.04 bash -euc "
 
   chk 'kit is at ~/projects/mwk-genie'          'test -f ~/projects/mwk-genie/mise.toml'
   chk 'mise installed'                          'test -x ~/.local/bin/mise'
-  chk 'sops on PATH'                            '. ~/.mwk-shell.sh; command -v sops'
-  chk 'age AND age-keygen on PATH'              '. ~/.mwk-shell.sh; command -v age && command -v age-keygen'
-  chk 'miniserve on PATH'                       '. ~/.mwk-shell.sh; command -v miniserve'
-  chk 'chezmoi on PATH'                         '. ~/.mwk-shell.sh; command -v chezmoi'
-  chk 'jq on PATH (settings merge)'             '. ~/.mwk-shell.sh; command -v jq'
-  chk 'gh on PATH (/mwk-save, /mwk-bug, /mwk-tasks)' '. ~/.mwk-shell.sh; command -v gh'
+  # RUNS, not "on PATH". These are mise shims: `command -v` is true the moment the symlink
+  # exists, while the shim itself can refuse — an untrusted mise.toml in the current
+  # directory makes every one of them exit 1 with a mise error, and that is exactly what
+  # a green "on PATH" line was hiding (found 2026-09-17 on the dev box, by accident).
+  # Run each from the kit directory, which is the worst case: the project config in scope.
+  chk 'sops RUNS (through the shim, from the kit dir)'      '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && sops --version'
+  chk 'age AND age-keygen RUN'                  '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && age --version && age-keygen --version'
+  chk 'miniserve RUNS'                          '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && miniserve --version'
+  chk 'chezmoi RUNS'                            '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && chezmoi --version'
+  chk 'jq RUNS (settings merge)'                '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && jq --version'
+  chk 'gh RUNS (/mwk-save, /mwk-bug, /mwk-tasks)' '. ~/.mwk-shell.sh; cd ~/projects/mwk-genie && gh --version'
   chk '~/.mwk-shell.sh placed'                  'test -f ~/.mwk-shell.sh'
   chk '~/.claude/CLAUDE.md placed'              'test -f ~/.claude/CLAUDE.md'
   chk '~/.claude/settings.json placed'          'test -f ~/.claude/settings.json'

@@ -105,8 +105,9 @@ in `~/projects/keys`, and `mwk run -- <something>` hands it to that one program 
 one run.
 
 **The first time you do this it makes you a key of your own** and tells you to copy one
-line — it starts `AGE-SECRET-KEY` — into your password manager. **Do that, once.** It is the
-only way into your keys, on this computer and on the next one, and nobody can make it again.
+line — it starts `AGE-SECRET-KEY` — into your password manager, as an entry called **mwk
+key**. **Do that, once.** It is the only way into your keys, on this computer and on the next
+one, and nobody can make it again.
 
 ## Starting a fresh conversation
 
@@ -138,11 +139,12 @@ It switches for this conversation only; `/model opus` puts it back.
 working. Type it and press Enter. Do not type it again. On Windows it is not your Windows
 password — it is the Ubuntu one you made the first time you opened Ubuntu.
 
-**It does not ask before each command.** Anthropic's own safety check looks at each action
-in the background and stops anything that does not fit what you asked for. That is the
-trade that makes this a your-own-computer thing and not a work one. To change your mind,
-say: *"ask me before every command from now on"* — it is one line in a settings file, and
-the genie changes it.
+**It does not ask before each command, and it can see and change anything in your home
+folder** — not just one project. Anthropic's own safety check looks at each action in the
+background and stops anything that does not fit what you asked for, but the reach is real,
+and it is the trade that makes this a your-own-computer thing and **not a work one**. To
+change your mind about the asking, say: *"ask me before every command from now on"* — it is
+one line in a settings file, and the genie changes it.
 
 ## Changing how it behaves
 

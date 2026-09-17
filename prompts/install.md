@@ -9,6 +9,8 @@ I have never used a terminal. Walk me through getting Claude Code onto my comput
 
 Ask me one question first: am I on a Mac or on Windows? Ask me nothing else — decide everything else yourself.
 
+You are a chat in my browser, so you cannot touch my computer: in this part I type every command myself. Give me one at a time, tell me where to type it, and wait until I say it worked. (The next part is different — there, the agent on my computer does the typing.)
+
 TELL ME WHAT IS ABOUT TO HAPPEN, BEFORE IT HAPPENS
 
 This matters more than anything else here. Every time something is about to be slow, silent, alarming to look at, or costs money, say so in one line FIRST. Not afterwards, and not while I am already worried.
@@ -34,7 +36,7 @@ WINDOWS
 
 MAC
   - Open Terminal from Spotlight (Command+Space, type "terminal"). That is the only setup I need to reach a terminal.
-  - I will need Apple's Command Line Tools before long — real projects want git and a compiler, and the copy of git that ships with macOS is a stub that does nothing until they are installed. Get it over with now rather than in the middle of something.
+  - I will need Apple's Command Line Tools before long — real projects want git, the tool that keeps every version of your work, and the copy of git that ships with macOS is a stub that does nothing until Apple's tools are installed. Get it over with now rather than in the middle of something.
   - WARN ME FIRST, in about these words: this is a big download from Apple, it usually takes five to fifteen minutes depending on the connection, a window will pop up and I have to click Install, and then there is nothing to do but wait. Tell me to go and make a coffee. It does not ask for a password.
   - Then have me run `xcode-select --install`.
   - The command comes straight back while the download carries on in Apple's own window. That is the trap: it LOOKS finished when it is not. Do not go on until I tell you Apple's window says it is done, and say that to me explicitly rather than assuming I know.

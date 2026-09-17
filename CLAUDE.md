@@ -17,7 +17,7 @@ instructions meant for you.
 prompt one  (browser)  → Mac or Windows? → WSL / Xcode CLT → Claude Code → start it with
                          --dangerously-skip-permissions
 prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder to work in
-install.sh             → kit → mise → 5 pinned tools → Claude Code → mise use -g → chezmoi apply
+install.sh             → kit → mise → 6 pinned tools → Claude Code → mise use -g → chezmoi apply
 chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/.claude/{CLAUDE.md,settings.json,skills/},
                          and on macOS iTerm2
 mwk                    → add · run · update. That is all of it.
@@ -94,6 +94,7 @@ from and asserts `setup.md` names each one.
 | **sops searches for `.sops.yaml` upward from the CURRENT DIRECTORY** | `mwk add` runs from inside a project, not the store. Pass `--config` explicitly |
 | **sops matches creation rules on the file NAME, and stdin has none** | `--filename-override <name>`, or a no-catch-all `.sops.yaml` refuses with `no matching creation rules found` — which is that rule doing its job on the wrong file |
 | **A login shell has `~/bin` but not mise's shims.** Ubuntu's `.profile:20-21` adds `~/bin`; `.bashrc:6-8` returns before the kit's source line whenever the shell is non-interactive (`su - user -c`, cron, a script) | Measured in `ubuntu:24.04`, 2026-09-17. So `mwk` is found and `sops` is not. A tool preflight at the top of `mwk` made bare usage exit 1 and would have killed `mwk update` — the command for when things are broken. Tools are checked inside `add` and `run` only. **Same class, second time:** `statusline.sh` was placed, wired, and printed nothing under a login shell — `jq` is a shim too, and Claude Code inherits PATH from whatever launched it. The script names the shim path itself now |
+| **mise trusts `mise.toml` by content hash — editing it untrusts the directory** | Every shim run from that directory then exits 1 with a mise error, while `command -v` stays true. Found 2026-09-17 when the store test went red on both the new and the previous `mwk` after miniserve was added back; `mise trust` fixed it. `install.sh` runs `mise install --yes` in the kit dir, and `rehearse.sh` now asserts each tool **runs** from there, not that its shim exists |
 | This box's fleet shell exports `SOPS_AGE_KEY_FILE` | It contaminated the first round of store research with an unexplained recipient mismatch. `mwk` sets it explicitly; `check.sh` runs the store under `env -i`. **Do store research in a clean env** |
 | `api.github.com` sends `access-control-allow-origin: *`, but a **private** repo 404s unauthenticated | Measured with a positive control (`td-sops` private → 404, `mwk-genie` public → 200). It decided that no page would ever read their issues — and then the page went anyway |
 

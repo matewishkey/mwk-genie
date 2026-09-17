@@ -17,7 +17,7 @@ Get the kit into ~/projects/mwk-genie from github.com/matewishkey/mwk-genie — 
 
 Then open ~/projects/mwk-genie/install.sh and actually read it before running it. Check it against this list, out loud, in one short line each:
 
-  - Does it use sudo, or ask for a password, anywhere? It should not.
+  - Does it use sudo — the thing that asks for the computer's password so a command can change anything outside their own folder — or ask for a password anywhere? It should not.
   - Does it write anywhere outside their home folder? It should not.
   - Does it download from anywhere other than github.com, raw.githubusercontent.com, mise.run, claude.ai, or the release hosts those redirect to? It should not.
   - Does it delete anything? It should not.
@@ -50,31 +50,21 @@ Install one plugin and one documentation source, and nothing else. Every extra t
 
 Check each worked before saying it did. If either fails, say so and carry on — neither is load-bearing.
 
-THEN — GET THEM SIGNED IN TO GITHUB
-
-This is where their work gets saved, so it has to happen before the first project rather than in the middle of the first save.
-
-Run `gh auth login --hostname github.com --git-protocol https --skip-ssh-key` in the background and read the code out of its output. It prints a short code and a URL and then waits.
-
-Tell them, before you start it: this needs them to open a web page and type a short code, their phone is fine, and nothing gets typed into the terminal for it.
-
-Then: open github.com/login/device, type the code, and come back. Read them the code slowly — it has letters and numbers in it and it is easy to hear wrong.
-
-Then poll `gh auth status` until it is clean. Two things will bite you: the code expires, so be ready to run it again and give them a fresh one rather than reporting failure; and the waiting must be in the background, because a foreground command will hit your own timeout and look like a failure while the sign-in is still perfectly alive.
-
-If they do not have a GitHub account, walk them through making one first — it is free, and without it nothing they build can be saved anywhere but this computer.
-
-THEN — GIVE THEM SOMEWHERE TO WORK
-
-Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
-
-Then tell them the one thing they type: `claude` starts you, from any folder. Everything else they ask you for. Put a shortcut to `~/projects` and to `~/mwk-work` on their Desktop — on Windows those folders are inside Ubuntu, so the shortcut points at the `\\wsl$` address — and say that is how they reach their files without a terminal.
-
 THEN — CONNECT THEIR ACCOUNTS
 
-Run `/mwk-onboard`. It walks them through the three accounts everything else leans on — GitHub, Cloudflare and Replicate — puts each key in their store from a second tab, and proves each one answers. Do not skip it and do not do it from memory; the skill has the checks.
+Run `/mwk-onboard`. It walks them through the three accounts everything else leans on — GitHub first, because that is where their work gets saved and it has to exist before the first project; then Cloudflare and Replicate — puts each key in their store from a second tab, and proves each one answers. Do not do any of it from memory and do not do the GitHub sign-in yourself beforehand: the skill has the device-code flow, the warning that goes before it, and the checks. If they do not have a GitHub account, it walks them through making one — it is free, and without it nothing they build can be saved anywhere but this computer.
 
-Point out two small things while they are looking at it. Their prompt now shows the folder they are in, and a `*` when there is work here they have not saved — `/mwk-save` clears it. And all of this comes back off the computer whenever they want by asking you, which is worth knowing before they wonder.
+THEN — THREE SMALL THINGS BEFORE THEY GO ANYWHERE
+
+Tell them the one thing they type: `claude` starts you, from any folder. Everything else they ask you for.
+
+Put a shortcut to `~/projects` and to `~/mwk-work` on their Desktop — on Windows those folders are inside Ubuntu, so the shortcut points at the `\\wsl$` address — and say that is how they reach their files without a terminal.
+
+Point out that their prompt now shows the folder they are in, and a `*` when there is work they have not saved — `/mwk-save` clears it. And that all of this comes back off the computer whenever they want by asking you, which is worth knowing before they wonder.
+
+THEN — GIVE THEM SOMEWHERE TO WORK, AND STOP
+
+Run `/mwk-new`. It asks them the one question — what do they want their computer to do — and makes the folder the right shape, turns on save points, puts a private copy on GitHub, and moves them into it in a NEW window. Do not build the folder by hand: the shape is the skill's job, and it has to match every project they will ever have. When that skill says it is finished in this window, so are you.
 
 HOW TO WORK, ALL THE WAY THROUGH
 

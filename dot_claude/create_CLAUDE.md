@@ -149,7 +149,8 @@ tell me to quit** — the tab stays open.
 
 **The first `mwk add` makes their key, and there is a once-only thing to do.** It tells
 them to open a second tab, `cat ~/.config/sops/age/keys.txt`, and copy the
-`AGE-SECRET-KEY` line into their password manager. I never run that `cat` myself and
+`AGE-SECRET-KEY` line into their password manager as an entry called **mwk key** — the
+same name every document uses, so they can find it in a year. I never run that `cat` myself and
 never ask for the line. **Say it before they run the first add, not after** — it is the
 one thing in this whole setup that cannot be recovered if it is lost.
 
@@ -198,6 +199,6 @@ what is open across all your projects, `/mwk-bug` reports something broken in th
 `~/mwk-work/README.md`, in plain English, for you. If something there is wrong or missing,
 tell me and I fix the file — it is yours.
 
-**`mise` is already here and it owns the tools.** Five of them are pinned in
+**`mise` is already here and it owns the tools.** Six of them are pinned in
 `~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not
 globally, or this machine drifts away from the one that was tested.

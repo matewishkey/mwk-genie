@@ -72,6 +72,19 @@ for t in chezmoi sops age miniserve jq cli; do
   if [ -z "$v" ]; then no "$t is pinned in mise.toml" "not found"; continue; fi
   grep -qF "\"$v\"" mise.lock && ok "$t $v is in mise.lock" || no "$t $v is in mise.lock" "absent"
 done
+# The COUNT is written as a word in three documents, and it drifted twice in one day when a
+# tool left and came back (an external sweep caught "five" against six). Derive it from
+# mise.toml and assert every prose copy — the number is not a fact any document may hold alone.
+ntools=$(grep -cE '^"aqua:' mise.toml)
+case "$ntools" in 4) w=four;; 5) w=five;; 6) w=six;; 7) w=seven;; 8) w=eight;; *) w="$ntools";; esac
+grep -qi "\b$w pinned tools" prompts/setup.md && ok "setup.md says '$w pinned tools' ($ntools in mise.toml)" \
+  || no "setup.md says '$w pinned tools'" "mise.toml has $ntools; the prompt says something else"
+grep -qi "^\*\*\`mise\` is already here and it owns the tools.\*\* ${w^} of them" dot_claude/create_CLAUDE.md \
+  || grep -qi "${w^} of them are pinned" dot_claude/create_CLAUDE.md \
+  && ok "create_CLAUDE.md says '${w^} of them' ($ntools)" \
+  || no "create_CLAUDE.md says '${w^} of them'" "mise.toml has $ntools; the agent's rules say something else"
+grep -qE "→ $ntools pinned tools" CLAUDE.md && ok "CLAUDE.md's one-pass says '$ntools pinned tools'" \
+  || no "CLAUDE.md's one-pass says '$ntools pinned tools'" "it says something else"
 
 head_ "The shell file, both shells — and no ccc anywhere"
 rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/null)
@@ -178,7 +191,19 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
   # `env` execs BINARIES — a shell function after it is "No such file", silently, which is
   # exactly how this block's first run reported "no store was made" against a store that was.
   # So the pty (script) is inside the env, not a function around it.
-  clean() { env -i HOME="$T" PATH="$PATH" TERM=dumb MWK_STORE="$T/keys" MWK_KEY="$T/key.txt" \
+  #
+  # And the tools must be REAL binaries, not mise shims: a shim looks up trust and versions
+  # under $HOME, and $HOME here is a scratch dir where nothing is trusted and nothing is
+  # installed — so every shim exits 1 with a mise error, and this block went red on code
+  # that was fine. `mise which` gives the installed binary; the fallback is PATH with the
+  # shims stripped (this box's fleet install). Neither touches the real home.
+  tooldirs=""
+  for t in sops age-keygen; do
+    b=$(mise which "$t" 2>/dev/null || true)
+    [ -n "$b" ] && tooldirs="$tooldirs$(dirname "$b"):"
+  done
+  noshim=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v 'mise/shims' | paste -sd:)
+  clean() { env -i HOME="$T" PATH="$tooldirs$noshim" TERM=dumb MWK_STORE="$T/keys" MWK_KEY="$T/key.txt" \
                    GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t "$@"; }
   cadd()  { clean script -qec "$T/mwk add $*" /dev/null; }
   names() { clean env SOPS_AGE_KEY_FILE="$T/key.txt" sops -d --input-type dotenv --output-type dotenv "$T/keys/keys.enc.env" 2>/dev/null \
