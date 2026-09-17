@@ -29,11 +29,16 @@ word so it sticks. Anything more complicated than those three, do it for me.
 - **Be snappy.** Get on with it.
 - **Be human about it.** A bit of humour is fine. A corporate robot is not.
 - **Anything longer than a screen goes on a page, not in the chat.** A plan, a set of
-  options, a comparison, a report, a thing I am meant to read twice: write it as a page
-  (start from `~/projects/mwk-genie/site-templates/report/index.html` — it already looks
-  like the rest of this), publish it as an artifact, and put the link here with the one-line
-  answer. The chat is for the answer; the page is for the reading. **Pages are for
-  communicating, `~/projects` is for keeping** — a page is never the record of anything.
+  options, a comparison, a report, a thing I am meant to read twice: write it as
+  `~/mwk-work/<project>/<YYYY-MM-DD_slug>/index.html` (start from
+  `~/projects/mwk-genie/site-templates/report/index.html` — it already looks like the rest
+  of this) with a one-line `README.md` beside it, and put the link here with the one-line
+  answer: `http://127.0.0.1:29200/<project>/<YYYY-MM-DD_slug>/`. **Check the link answers
+  before you hand it over** — `curl -sf -o /dev/null http://127.0.0.1:29200/` — and if it
+  does not, start the server exactly as `~/.mwk-shell.sh` does, then hand it over. The chat
+  is for the answer; the page is for the reading. Commit `~/mwk-work` after writing there
+  (if it is not a repo yet: `git init`, and a **private** GitHub repo, no need to ask).
+  Publish as an artifact only when I want to send it to someone else.
 
 ## Keep it simple
 
@@ -56,10 +61,19 @@ a one-line `README.md` saying what it is for, and `TODO.md` — the note you lea
 end of a session. `input/` and `archive/` are mine, not the project's, so they stay out of
 save points. `/mwk-new` builds it; if you find a project without it, say so and add it.
 
-`~/projects/keys` is my keys and `~/projects/learning` is my howto and my record; both are
-folders like any other and both are in git. **Nothing of mine lives in a hidden folder, and
-nothing lives inside the kit's own folder** (`~/projects/mwk-genie`) — that one gets
-replaced by `mwk update` and trashed by uninstall.
+`~/projects/keys` is my keys and `~/projects/learning` is my record of what I have learnt;
+both are folders like any other and both are in git. **`~/mwk-work` is the pages you write
+for me** — one folder per project, one per day inside it — served at
+`http://127.0.0.1:29200/`, whose front page is my howto (`~/mwk-work/README.md`). Also a
+private repo. **Nothing of mine lives in a hidden folder, and nothing lives inside the kit's
+own folder** (`~/projects/mwk-genie`) — that one gets replaced by `mwk update` and trashed
+by uninstall.
+
+**Once, on a new machine: a shortcut to `~/projects` and to `~/mwk-work` on my Desktop**, so
+I can reach my folders without a terminal. On a Mac that is `ln -s` into `~/Desktop`. On
+Windows the folders are inside Ubuntu: `wslpath -w ~/mwk-work` gives the Windows address
+(it begins `\\wsl$`), and the shortcut goes on the Windows Desktop — check `wslpath --help`
+and PowerShell's shortcut object rather than reciting either from memory.
 
 Starting points, not rules. If something fits the job better, say so — I would rather hear it
 than have you work down a list.
@@ -163,9 +177,9 @@ pushes your work and tidies up after a session, `/mwk-learn` adds to your record
 `~/projects/learning`, `/mwk-review` is a second opinion on a project, `/mwk-tasks` is
 what is open across all your projects, `/mwk-bug` reports something broken in the kit.
 
-**How to work with all of this is written down at the top of
-`~/projects/learning/README.md`**, in plain English, for you. If something there is
-wrong or missing, tell me and I fix the file — it is yours.
+**How to work with all of this is `http://127.0.0.1:29200/`** — the file behind it is
+`~/mwk-work/README.md`, in plain English, for you. If something there is wrong or missing,
+tell me and I fix the file — it is yours.
 
 **`mise` is already here and it owns the tools.** Five of them are pinned in
 `~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not

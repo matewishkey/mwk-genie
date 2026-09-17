@@ -78,6 +78,13 @@ anything. (And miniserve is leaving anyway — below.)
 
 ## The page is going
 
+**⤳ Partly reversed the same day (third round with mate).** What went, stayed gone: the
+dashboard, the queue, `projects.json`, the port scheme, `password.html`. What came back is a
+different thing: a **generic file server over `~/mwk-work`** — `work.l`'s layout for one person,
+root README rendered as the howto, started by the shell file, loopback, no auth. miniserve is
+back in `mise.toml` for that. `CLAUDE.md` → *v3.1* has the reasoning and the Microsoft quotes on
+WSL file placement.
+
 `mwk/site/` (375 lines), `queue.json`, `projects.json`, `ports.tsv`, the 292xx scheme, `password.html`,
 and **miniserve out of `mise.toml`** (six tools → five).
 

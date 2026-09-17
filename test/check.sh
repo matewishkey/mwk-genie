@@ -67,13 +67,11 @@ head_ "Tools are pinned, and the lock matches"
 # A check that can never go green is how people learn to ignore the suite.
 latest=$(grep -cE '^"aqua:[^"]+" *= *"latest"' mise.toml)
 is "no tool floats on \"latest\"" "$latest" "0"
-for t in chezmoi sops age jq cli; do
+for t in chezmoi sops age miniserve jq cli; do
   v=$(grep -oE "aqua:[^\"]*/$t\" *= *\"[^\"]+\"" mise.toml | grep -oE '"[0-9][^"]*"' | tr -d '"')
   if [ -z "$v" ]; then no "$t is pinned in mise.toml" "not found"; continue; fi
   grep -qF "\"$v\"" mise.lock && ok "$t $v is in mise.lock" || no "$t $v is in mise.lock" "absent"
 done
-grep -q miniserve mise.toml && no "miniserve is gone from mise.toml" "still pinned — nothing serves any more" \
-  || ok "miniserve is gone from mise.toml"
 
 head_ "The shell file, both shells — and no ccc anywhere"
 rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/null)
@@ -81,9 +79,22 @@ rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/nu
 # ccc is gone (2026-09-17): how Claude asks is permissions.defaultMode in settings, one
 # home. An alias would be a second home, and two homes is how v1 got two definitions.
 is "no ccc alias in the shell file" "$(printf '%s\n' "$rendered" | grep -c '^alias ccc')" "0"
-ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md prompts/ dot_claude/ site-templates/ projects/ install.sh uninstall.sh 2>/dev/null \
+ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md prompts/ dot_claude/ site-templates/ mwk-work/ install.sh uninstall.sh 2>/dev/null \
            | grep -vE ':[0-9]+:[[:space:]]*#' | wc -l)
 is "no document still tells them to type ccc" "$ccc_docs" "0"
+
+head_ "Their page — the server over ~/mwk-work"
+serve=$(printf '%s\n' "$rendered" | grep -E '^\s*\( nohup miniserve ' )
+[ -n "$serve" ] && ok "the shell file starts miniserve" || no "the shell file starts miniserve" "no start line — the bookmark answers nothing"
+for flag in '-i 127.0.0.1' '-p 29200' ' -P ' '--readme' '"$HOME/mwk-work"'; do
+  printf '%s' "$serve" | grep -qF -- "$flag" && ok "…with $flag" \
+    || no "…with $flag" "miniserve binds 0.0.0.0 and follows symlinks by default"
+done
+printf '%s\n' "$rendered" | grep -q 'pgrep -x miniserve' && ok "…guarded by pgrep -x (never -f)" \
+  || no "the start is guarded by pgrep -x" "-f matches its own command line and starts one per shell"
+printf '%s\n' "$rendered" | grep -qE 'miniserve .* -q ' && no "no -q on miniserve" "-q is a QR code in 0.35.0, not quiet" \
+  || ok "no -q (it means QR code, not quiet — checked --help)"
+grep -q 'pkill -x miniserve' uninstall.sh && ok "uninstall stops it" || no "uninstall stops it" "a server would outlive the kit"
 
 head_ "settings.json — opus, auto mode, the bar — merged, never replaced"
 sh -n dot_claude/modify_settings.json && ok "modify_settings.json is valid sh" || no "modify_settings.json is valid sh" "syntax error"
@@ -206,21 +217,21 @@ head_ "Only the right things reach a stranger's home directory"
 managed=$(chezmoi managed --source . 2>/dev/null)
 for want in .claude/CLAUDE.md .claude/settings.json .claude/statusline.sh .claude/skills/mwk-save/SKILL.md \
             .claude/skills/mwk-tasks/SKILL.md .claude/skills/mwk-onboard/SKILL.md .mwk-shell.sh bin/mwk \
-            projects/learning/README.md; do
+            mwk-work/README.md; do
   printf '%s\n' "$managed" | grep -qx "$want" && ok "placed: $want" || no "placed: $want" "MISSING"
 done
 # The howto is placed ONCE and never overwritten — ours on day one, theirs after. That is
 # the create_ prefix, and nothing else: a plain file would revert their edits every apply.
-[ -f projects/learning/create_README.md ] && ok "the howto is a create_ (write-once) file" \
+[ -f mwk-work/create_README.md ] && ok "the howto is a create_ (write-once) file" \
   || no "the howto is a create_ file" "a managed file would overwrite what they changed"
-grep -q '^## What I have learnt' projects/learning/create_README.md \
-  && ok "…and carries the heading mwk-learn writes under" || no "the howto has the mwk-learn heading" "entries would have nowhere to go"
-grep -q 'What I have learnt' dot_claude/skills/mwk-learn/SKILL.md \
-  && ok "…and mwk-learn knows that heading by name" || no "mwk-learn names the heading" "it would write over the howto"
-n=$(grep -c 'matewishkey.com/show' projects/learning/create_README.md README.md | awk -F: '{s+=$2} END{print s}')
+grep -q 'bookmark' mwk-work/create_README.md && ok "…and it knows it is the page they bookmark" \
+  || no "the howto knows it is the served front page" "it reads as a file, not as http://127.0.0.1:29200/"
+grep -q 'mwk-work' dot_claude/skills/mwk-learn/SKILL.md && ! grep -q 'What I have learnt' dot_claude/skills/mwk-learn/SKILL.md \
+  && ok "mwk-learn writes its log elsewhere and never into the howto" || no "mwk-learn stays out of mwk-work" "it would write over the front page"
+n=$(grep -c 'matewishkey.com/show' mwk-work/create_README.md README.md | awk -F: '{s+=$2} END{print s}')
 is "the show is mentioned exactly twice across what a person reads (howto + README)" "$n" "2"
 for never in uninstall.sh README.md CLAUDE.md install.sh mise.toml mise.lock \
-             test prompts docs site-templates mwk bin/mwk-debug; do
+             test prompts docs site-templates mwk/ bin/mwk-debug projects; do
   printf '%s\n' "$managed" | grep -q "^$never" \
     && no "never placed: $never" "it is being copied into their home" || ok "never placed: $never"
 done
@@ -278,6 +289,10 @@ for want in 'input/' 'archive/' '.gitignore'; do
 done
 grep -q 'site-templates/report/index.html' dot_claude/create_CLAUDE.md \
   && ok "the page rule points at the report template" || no "the page rule points at the report template" "the agent would write pages from nothing"
+grep -q 'mwk-work/<project>/<YYYY-MM-DD_slug>' dot_claude/create_CLAUDE.md \
+  && ok "…and at ~/mwk-work/<project>/<date_slug>/ — work.l's layout" || no "the page rule names the layout" "pages would land anywhere"
+grep -q 'curl -sf -o /dev/null http://127.0.0.1:29200/' dot_claude/create_CLAUDE.md \
+  && ok "…and checks the link answers before handing it over" || no "the agent checks the link first" "a dead link is the page's whole failure mode"
 grep -q '<link' site-templates/report/index.html \
   && no "the report template is self-contained" "it loads an external file — an artifact cannot" \
   || ok "the report template is self-contained (no <link>)"

@@ -33,6 +33,21 @@ export PATH
 # to change. An alias that carried a flag was one more thing to explain, and one more place
 # for two definitions to disagree.
 
+# ── their page: http://127.0.0.1:29200/ ───────────────────────────────────────────────
+# A file server over ~/mwk-work — the pages the agent writes for them, one folder per
+# project, README.md rendered at every folder (the root one is the howto). Started here,
+# from the first interactive shell after a boot, so it needs no launchd, no systemd, and
+# behaves identically on macOS and WSL. A Windows browser reaches it on localhost by
+# default (WSL2 NAT mode, documented). Loopback only and symlinks off: the served root is
+# only what was written to be read, so it carries no password — anything else of theirs
+# stays outside it. `pgrep -x`, never `-f`: -f matches its own command line.
+# Flags are from `miniserve 0.35.0 --help`, not memory (-q there is a QR code, not quiet).
+if [ -d "$HOME/mwk-work" ] && command -v miniserve >/dev/null 2>&1 \
+   && ! pgrep -x miniserve >/dev/null 2>&1; then
+  ( nohup miniserve -i 127.0.0.1 -p 29200 -P --readme -t "Your page" "$HOME/mwk-work" \
+      >/dev/null 2>&1 & )
+fi
+
 
 if [ -n "${ZSH_VERSION:-}" ]; then
   autoload -Uz compinit 2>/dev/null && compinit -u 2>/dev/null

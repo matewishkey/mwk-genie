@@ -93,6 +93,8 @@ done
 wipe "$HOME/.mwk-shell.sh"
 wipe "$HOME/bin/mwk"
 wipe "$HOME/.claude/statusline.sh"
+# The server over ~/mwk-work is ours to stop; the folder and everything in it is theirs.
+pkill -x miniserve 2>/dev/null && item "stopped" "the page on 127.0.0.1:29200" || true
 for s in "$HOME"/.claude/skills/mwk-*; do [ -e "$s" ] && wipe "$s"; done
 wipe "$HOME/.config/chezmoi"
 wipe "$HOME/.local/share/chezmoi"

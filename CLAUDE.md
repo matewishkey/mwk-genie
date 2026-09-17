@@ -225,12 +225,30 @@ What v1 had that v2/v3 had lost, brought back without a page or a new command:
   `workspace.current_dir`, `context_window.used_percentage`, null before the first reply).
   Cost: a custom status line hides most of the footer hints (`esc to interrupt`, `?`); the
   howto teaches the two that matter.
-- **The howto is the top half of `~/projects/learning/README.md`**, placed by chezmoi as a
-  `create_` file — **write-once, ours on day one, theirs after** — and `mwk-learn` writes
-  under its `## What I have learnt` heading and never above it. `rehearse.sh` appends a
-  line to it and asserts the line survives an apply. v1's `howto.html` sections, in
-  markdown, with `claude` and the store as they are now. **It is the second of the two show
-  mentions**, and `check.sh` counts exactly two across it and `README.md`.
+- **Their page is back — as a folder server, not a dashboard** (mate, 2026-09-17, third
+  round). `~/mwk-work/<project>/<YYYY-MM-DD_slug>/` is `work.l`'s layout for one person; miniserve
+  (`0.35.0`, back in `mise.toml`) serves it at `http://127.0.0.1:29200/` with `--readme`, so
+  **the root `README.md` is the howto and the bookmark is the howto.** Placed by chezmoi as
+  `mwk-work/create_README.md` — **write-once, ours on day one, theirs after**; `rehearse.sh`
+  appends a line and asserts it survives an apply. What I got wrong the first time: the
+  objection to the v2 page was the *bespoke dashboard and queue*, not serving a folder;
+  reading what the agent writes is a frequent need, and the rule forbids commands for rare
+  things, not infrastructure for frequent ones. **Started by `~/.mwk-shell.sh`** on the first
+  interactive shell (`pgrep -x`, never `-f`) — no launchd, no systemd, identical on both
+  platforms, self-heals after a reboot. Loopback only, symlinks off, **no password**: the
+  served root is only what was written to be read. Flags from `--help`, not memory — `-q`
+  is a QR code in 0.35.0. `~/projects` stays `~/projects` (his clients use it); only the
+  new folder carries the `mwk-` prefix, hard-coded.
+- **WSL: files stay in the Linux home, and that is Microsoft's own instruction**, quoted:
+  *"store your files in the WSL file system if you are working in a Linux command line…
+  `/home/<user name>/Project`, not `/mnt/c/Users/<user name>/Project`."* And the browser
+  reaches the server without anything: *"you can access it from a Windows app (like your
+  Edge or Chrome internet browser) using `localhost` (just like you normally would)"* —
+  WSL2 default (NAT) mode, documented, **not yet measured on a real Windows box**. Explorer
+  reaches the folder via `explorer.exe .` or `\\wsl$`; the agent puts a Desktop shortcut
+  there once (`wslpath -w` gives the Windows address — a documented tool, unverified here).
+  `mwk-learn` goes back to being only the log, at `~/projects/learning/README.md`.
+  **The howto is the second of the two show mentions**; `check.sh` counts exactly two.
 - **`/mwk-onboard`** — GitHub, Cloudflare, Replicate; keys in via `mwk add … global` from a
   second tab; each proved with a real call. Endpoints measured 2026-09-17:
   `api.cloudflare.com/client/v4/user/tokens/verify` 200 good / 400 bad,

@@ -28,7 +28,7 @@ THEN — RUN IT
 
 Tell them first: this takes about two to five minutes, it downloads a fair amount, most of it will look like nothing is happening, and it will not ask them for anything. Tell them to leave it alone and go and make a coffee.
 
-Then run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, five pinned tools, Claude Code if it is missing, and their settings.
+Then run install.sh and let it finish. It asks nothing and needs no password. It installs a tool manager, six pinned tools, Claude Code if it is missing, and their settings.
 
 THEN — FIX YOUR OWN PATH BEFORE YOU CHECK ANYTHING
 
@@ -38,6 +38,7 @@ THEN — PROVE IT WORKED, IN THEIR WORDS
 
   - `mwk` answers with its three commands
   - the bar at the bottom of this window shows the model, the folder and a percentage — if it does not, say so; it is the thing that will tell them when to start a fresh conversation
+  - http://127.0.0.1:29200/ answers, and it is their howto — open it for them and tell them to bookmark it. A new terminal window starts it if it is not running
   - a NEW terminal window knows `mwk` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
 
 THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
@@ -67,7 +68,7 @@ THEN — GIVE THEM SOMEWHERE TO WORK
 
 Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
 
-Then tell them the one thing they type: `claude` starts you, from any folder. Everything else they ask you for.
+Then tell them the one thing they type: `claude` starts you, from any folder. Everything else they ask you for. Put a shortcut to `~/projects` and to `~/mwk-work` on their Desktop — on Windows those folders are inside Ubuntu, so the shortcut points at the `\\wsl$` address — and say that is how they reach their files without a terminal.
 
 THEN — CONNECT THEIR ACCOUNTS
 

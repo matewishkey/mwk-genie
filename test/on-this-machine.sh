@@ -56,7 +56,14 @@ try "the rules file landed"         "test -f \$HOME/.claude/CLAUDE.md"
 try "settings say opus"             "grep -q opus \$HOME/.claude/settings.json"
 try "settings say auto mode"        "grep -q '\"defaultMode\": *\"auto\"' \$HOME/.claude/settings.json"
 try "the status bar script runs"    "printf '{}' | sh \$HOME/.claude/statusline.sh | grep -q '% full'"
-try "the howto is in ~/projects/learning" "grep -q 'How to work with your genie' \$HOME/projects/learning/README.md"
+try "the howto is at ~/mwk-work/README.md" "grep -q 'How to work with your genie' \$HOME/mwk-work/README.md"
+try "miniserve"                     "command -v miniserve"
+# The server is started by the first interactive shell. This script is not one, so do what
+# that shell does and then ask the port — the same mechanism a person meets, not a hand start.
+bash -ic true >/dev/null 2>&1; sleep 2
+try "their page answers on 29200"   "curl -sf -m 5 http://127.0.0.1:29200/ -o /dev/null"
+try "…and it is the howto"          "curl -sf -m 5 http://127.0.0.1:29200/ | grep -q 'How to work with your genie'"
+try "…and it is NOT on the network" "! curl -sf -m 4 http://\$(hostname):29200/ -o /dev/null"
 try "all seven skills"              "test \$(ls -d \$HOME/.claude/skills/mwk-* | wc -l) -eq 7"
 # The one thing only a real account can answer: does auto mode actually engage here?
 # `claude --permission-mode auto` on an account without it is the unmeasured case.

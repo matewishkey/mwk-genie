@@ -22,7 +22,8 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 | `mwk add NAME` | puts a key in your store — you type it, so it never goes through the chat |
 | `~/projects/<your thing>/` | your work: `input/` for things you drop in, `archive/` for what has been dealt with, a one-line `README.md` |
 | `~/projects/keys/` | your keys, encrypted, in a private repo of their own — so they come with you to a new computer |
-| `~/projects/learning/README.md` | how to work with all of this, at the top; what you have learnt, added underneath each time you ask |
+| `~/projects/learning/` | what you have learnt, added to each time you ask |
+| `http://127.0.0.1:29200/` | your page: how to work with all of this, and under it every page the agent writes for you. The files are in `~/mwk-work`, one folder per project |
 
 Plus seven things you can ask for by name: `/mwk-onboard` connects your accounts and proves they work, `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
 

@@ -39,6 +39,7 @@ docker run --rm ubuntu:24.04 bash -euc "
   chk 'mise installed'                          'test -x ~/.local/bin/mise'
   chk 'sops on PATH'                            '. ~/.mwk-shell.sh; command -v sops'
   chk 'age AND age-keygen on PATH'              '. ~/.mwk-shell.sh; command -v age && command -v age-keygen'
+  chk 'miniserve on PATH'                       '. ~/.mwk-shell.sh; command -v miniserve'
   chk 'chezmoi on PATH'                         '. ~/.mwk-shell.sh; command -v chezmoi'
   chk 'jq on PATH (settings merge)'             '. ~/.mwk-shell.sh; command -v jq'
   chk 'gh on PATH (/mwk-save, /mwk-bug, /mwk-tasks)' '. ~/.mwk-shell.sh; command -v gh'
@@ -50,7 +51,16 @@ docker run --rm ubuntu:24.04 bash -euc "
   chk 'settings.json wires the status bar'      'grep -q statusline.sh ~/.claude/settings.json'
   chk '~/.claude/statusline.sh placed + runs'   'printf \"{}\" | sh ~/.claude/statusline.sh | grep -q \"% full\"'
   chk 'skills placed'                           'test -f ~/.claude/skills/mwk-save/SKILL.md'
-  chk 'the howto placed at ~/projects/learning' 'grep -q \"How to work with your genie\" ~/projects/learning/README.md'
+  chk 'the howto placed at ~/mwk-work/README.md' 'grep -q \"How to work with your genie\" ~/mwk-work/README.md'
+  echo '  --- their page: started by the first interactive shell, loopback only ---'
+  # bash -ic reads .bashrc → ~/.mwk-shell.sh → the start block. That IS the mechanism, so
+  # it is what gets exercised, not a hand-started server.
+  su - guest -c 'bash -ic true >/dev/null 2>&1; sleep 2' || true
+  chk 'miniserve is running after one interactive shell' 'pgrep -x miniserve'
+  chk '…and only ONE, after a second shell'    'bash -ic true >/dev/null 2>&1; sleep 1; [ \$(pgrep -x miniserve | wc -l) = 1 ]'
+  chk 'http://127.0.0.1:29200/ answers'         'curl -sf -m 5 http://127.0.0.1:29200/ -o /dev/null'
+  chk '…and its front page is the howto'        'curl -sf -m 5 http://127.0.0.1:29200/ | grep -q \"How to work with your genie\"'
+  chk '…and it is NOT on the network'           '! curl -sf -m 4 http://\$(hostname -I | cut -d\" \" -f1):29200/ -o /dev/null'
 
   # Existing is not the same as usable. v2 shipped a green 'test -x ~/bin/mwk' for a day
   # while ~/bin was on nobody's PATH and the first command a person is told to run did not
@@ -102,9 +112,9 @@ PY'
   echo '  --- the howto is theirs after day one ---'
   # create_ = write once. Their edit to the top of the file must survive an apply; a managed
   # file would put our copy back and silently delete what they changed.
-  su - guest -c 'printf \"\\nTHEIR EDIT SURVIVES\\n\" >> ~/projects/learning/README.md'
+  su - guest -c 'printf \"\\nTHEIR EDIT SURVIVES\\n\" >> ~/mwk-work/README.md'
   su - guest -c '. ~/.mwk-shell.sh; chezmoi apply --source ~/projects/mwk-genie' >/dev/null 2>&1 || true
-  chk 'their edit to the howto survives an apply' 'grep -q \"THEIR EDIT SURVIVES\" ~/projects/learning/README.md'
+  chk 'their edit to the howto survives an apply' 'grep -q \"THEIR EDIT SURVIVES\" ~/mwk-work/README.md'
 
   echo '  --- take it all off, then put it back on ---'
   # This is the cycle the kit has to survive, because it is the one used to test it. A
@@ -120,7 +130,8 @@ PY'
   ok 'the source line is out of ~/.bashrc' \"\$([ \"\$n3\" = 0 ] && echo PASS || echo \"FAIL (n=\$n3)\")\"
   [ \"\$n3\" = 0 ] || FAILED=1
   chk 'the status bar script is gone'           '! test -f ~/.claude/statusline.sh'
-  chk '…but their howto and learning are NOT touched' 'test -f ~/projects/learning/README.md'
+  chk 'the server is stopped'                   '! pgrep -x miniserve'
+  chk '…but ~/mwk-work and the howto are NOT touched' 'test -f ~/mwk-work/README.md'
 
   # Their keys were moved, not erased. Deleting a password store on a typo would be the
   # worst thing this kit could do, so the trash is load-bearing rather than politeness.

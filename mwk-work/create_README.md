@@ -1,8 +1,9 @@
 # How to work with your genie
 
-This file is yours. The top half is how everything works; underneath, your genie adds what
-you learnt each time you ask. It is in a private repo of your own, so it comes with you to
-a new computer. **If anything here is wrong, tell the genie and it fixes the file.**
+**This is your page — bookmark it.** Underneath this text is every page your genie writes for
+you, one folder per project, newest at the bottom of each. The words you are reading are a
+file, `~/mwk-work/README.md`, and it is yours: if anything here is wrong, tell the genie and it
+fixes the file.
 
 ## Starting it
 
@@ -44,9 +45,18 @@ cd ~/projects/holiday-photos
 claude
 ```
 
-**Windows: seeing those folders in a normal window.** Your projects live inside Ubuntu, so
-File Explorer will not find them by looking. From the folder you are in, type `explorer.exe .`
-and it opens as a normal Windows window you can drag files into. On a Mac it is `open .`
+## Finding your folders in a normal window
+
+Two folders are yours: `~/projects` (your projects) and `~/mwk-work` (the pages behind this
+one). Ask the genie to **put a shortcut to each on your Desktop** — once — and you never need
+the terminal to reach them again.
+
+- **Mac:** `open ~/projects` opens it in Finder.
+- **Windows:** your folders live inside Ubuntu, so File Explorer will not find them by
+  looking. From the folder you are in, `explorer.exe .` opens it as a normal Windows
+  window you can drag files into; `\\wsl$` typed into Explorer's address bar shows all of
+  it. Keep your work there rather than moving it onto `C:` — it is much slower from
+  Ubuntu's side, and it is not where the genie will look for it.
 
 ## Every project has the same shape
 
@@ -67,10 +77,18 @@ You can type these, or just say them in normal words. Both work.
 | "connect my accounts" | `/mwk-onboard` | GitHub, Cloudflare and Replicate — set up, keys stored, each one proved to answer |
 | "start me a new project" | `/mwk-new` | a folder with the shape above, saving turned on, a private copy on GitHub |
 | "save my work" | `/mwk-save` | says what changed, writes the note for next time, saves, pushes, tidies up |
-| "what did I learn today" | `/mwk-learn` | adds today to the bottom half of this file |
+| "what did I learn today" | `/mwk-learn` | adds today to `~/projects/learning` — your running record |
 | "how are we doing" | `/mwk-review` | steps back and says whether this has wandered off, or got too complicated |
 | "what's outstanding" | `/mwk-tasks` | everything open across all your projects, with a suggested next step each |
 | "report this bug" | `/mwk-bug` | writes a report about the genie itself, shows you, files it only if you say yes |
+
+## The pages under this one
+
+When the genie has something longer than a screen to tell you — a plan, a choice between
+options, a comparison, a report — it writes a page rather than filling the chat, and gives you
+the link. They all land here, under the project they belong to, under the day they were
+written. They are files in `~/mwk-work`, saved and pushed like your projects, so they are still
+here in a year.
 
 ## Your keys
 
@@ -141,6 +159,8 @@ rule to my CLAUDE.md that…"* and it does it for you.
   it out. This is the single most useful habit you can have.
 - **Take a screenshot and paste that in.** It can see pictures.
 - **Ask what a command does before you say yes.** That question is never annoying.
+- **If this page will not open**, open a new terminal window — that starts it — and try
+  again. If it still will not, tell the genie.
 - **If the genie itself is broken**, say "report this bug".
 
 ## Where this came from
@@ -150,10 +170,3 @@ stranger for a few hours and building the thing they wished their computer did. 
 you just set up is the box; the point is doing it together. Want to come on
 [the show](https://matewishkey.com/show/)? You do not need to be any good at this — that is
 the whole premise.
-
----
-
-## What I have learnt
-
-*Nothing yet — say "what did I learn today" at the end of a day and it appears here,
-newest first.*
