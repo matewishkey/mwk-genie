@@ -93,7 +93,7 @@ lists what it could not test; those are the boxes above.
 
 ## Only worth doing before a release
 
-- [ ] **The live site still matches.** `prompts/install.md` and `prompts/setup.md` are fetched and
-      published by `matewishkey.com` at build time. After a deploy, open
-      `matewishkey.com/wishes/put-the-genie-in-the-box/` and check the two boxes show what this
-      repo now says — and that `matewishkey-web#77` landed first, or their build is red.
+- [ ] **The live site still matches.** Open `matewishkey.com/topics/put-the-genie-in-the-box/`
+      and check it says what `HOW-TO.md` says — and if it shows the two prompt boxes, that they
+      are the ones in `prompts/`. As of 2026-09-17 it showed neither (`CLAUDE.md` → *The
+      cross-repo coupling*); the issue asking for `HOW-TO.md` there is filed in their repo.

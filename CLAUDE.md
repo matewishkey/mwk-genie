@@ -15,7 +15,7 @@ instructions meant for you.
 
 ```
 prompt one  (browser)  → Mac or Windows? → WSL / Xcode CLT → Claude Code → start it with
-                         --dangerously-skip-permissions
+                         --permission-mode auto
 prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder to work in
 install.sh             → kit → mise → 6 pinned tools → Claude Code → mise use -g → chezmoi apply
 chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/.claude/{CLAUDE.md,settings.json,skills/},
@@ -58,9 +58,10 @@ has to appear inside a prompt file.
   removing the question once removed the setting with it — Claude Code's own default is not opus.
 - **Admin** — deleted, not answered. iTerm2 goes to `~/Applications`, which needs no password, so
   nothing in the flow uses `sudo` at all.
-- **`ccc_mode`** — decided for them, in `.chezmoidata.yaml`, as `fast`. Mate's call, 2026-08-30.
-  The escape hatch is one character: `~/.mwk-shell.sh` ships both alias lines with one commented
-  out. **If that escape hatch ever stops shipping, the argument has to reopen.**
+- **`ccc_mode`** — gone with `ccc` itself, 2026-09-17 (v3.1 below). How Claude asks is
+  `permissions.defaultMode` in their `settings.json`, written as `auto` by
+  `dot_claude/modify_settings.json` **only when absent** — that is the escape hatch now: a value
+  they change stays changed. `.chezmoidata.yaml` holds only `iterm_dest`.
 
 ## The read-before-you-run guardrail
 
@@ -152,25 +153,33 @@ list by name in both directions, the promised skill names against the shipped on
 directions, the dispatcher's arms against the usage text, and every cut command against every
 document that ships.
 
-## The cross-repo coupling — editing a prompt here changes the live website
+## The cross-repo coupling — the website, and what it actually reads from here
 
-**`mergodon/matewishkey-web` FETCHES `prompts/install.md` and `prompts/setup.md` AT BUILD TIME**
-(`src/data/genie-prompts.ts`) and renders them at **`matewishkey.com/wishes/put-the-genie-in-the-box/`**.
-The `/how-to/` path 301s **to** `/wishes/`, not the reverse.
+**The live page is `matewishkey.com/topics/put-the-genie-in-the-box/`** (source
+`src/content/topics/put-the-genie-in-the-box.mdx` in `mergodon/matewishkey-web`); `/wishes/…`,
+`/how-to/…` and `/projects/…` all 301 to it. It has moved three times; curl it, don't quote it.
 
-- It reads the **first** fenced block. A second fence above it publishes the wrong thing.
-- It **caps `prompts/setup.md` at 60 columns and throws.** v2 unwrapped them (longest line 445), so
-  **matewishkey-web#77 must land before merging** or their build goes red. Still open, 2026-09-17.
-- A missing prompt file does **not** fail — it serves a stale cached copy with a warning. Green and
-  wrong is worse than red.
+**As of 2026-09-17 the site renders NEITHER prompt.** `src/data/genie-prompts.ts` — the fetcher
+that read `prompts/*.md` from `main` at build time and capped `setup.md` at 60 columns — is
+imported by nothing since their `5dcaaa4` ("the wishes become six topics"). Measured, not read:
+its fetch cache is dated 2026-09-06 while `dist/` was built 2026-09-17, so it has not run in a
+build since. That is why `v2` could merge with a 631-character line and their build stayed
+green, and why **matewishkey-web#77 stopped being a blocker** — the assertion it asks them to
+drop is dead code. The topic page today is prose about the show's first session plus a "tool"
+card linking this repo; it says the kit installs Homebrew and "turns off the are-you-sure prompt",
+both from v1.
 
-**The third coupling is hand-typed and nothing checks it.** `src/content/wishes/put-the-genie-in-the-box.mdx`
-quotes the opening of what is now `dot_claude/create_CLAUDE.md`, and the prose around it says "two
-prompts", "three stages", "it asks you three things" and "an `mwk` plugin" — all false. Filed in #77.
-**`HOW-TO.md` is the replacement for that prose** (2026-09-17): the person's walk-through, with two
-marked slots (`<!-- PROMPT ONE goes here -->`, `<!-- PROMPT TWO goes here -->`) where the site drops
-in the prompts it already fetches — so the prompts stay single-sourced and the prose around them
-stops being hand-typed. `check.sh` holds it to the same names and counts as `README.md`.
+**What the site should carry instead is `HOW-TO.md`** (2026-09-17): the person's walk-through,
+with two marked slots (`<!-- PROMPT ONE goes here -->`, `<!-- PROMPT TWO goes here -->`) where a
+build drops in the first fenced block of each prompt file — the fetcher they already have does
+exactly that, minus `assertNarrow`. Filed as an issue into their repo when `v2` was promoted;
+the prompts and the prose then stay single-sourced here. `check.sh` holds `HOW-TO.md` to the same
+names and counts as `README.md`.
+
+**If they wire the fetcher back in, three things from the old coupling return:** it reads the
+**first** fenced block (a second fence above it publishes the wrong thing); a missing prompt file
+does **not** fail their build but serves a stale cached copy with a warning; and any width cap
+has to go, because `setup.md` is prose now. Never delete either prompt file in a cleanup.
 
 ## Rules that survived and still apply
 
@@ -183,7 +192,7 @@ what would have to be true for it to go red.
 **Existing is not running.** `test -x ~/bin/mwk` passed for a day while `~/bin` was on nobody's
 PATH and the first command a person is told to type did not exist.
 
-**The show is mentioned twice, and no more** — it currently has **one** home, `README.md:7`.
+**The show is mentioned twice, and no more** — `README.md:7` and the howto (`mwk-work/create_README.md`); `check.sh` counts exactly two.
 Unresolved, and mate's to decide (#14).
 
 **No disclaimer link.** Settled 2026-08-09 and still settled.
@@ -327,7 +336,4 @@ directory rather than checking its symlink exists.
 
 | # | |
 |---|---|
-| **#13** | `mwk` menu option 1 was a stub. **The menu is gone — close it** |
-| **#14** | The show is mentioned once and the rule is exactly two. A decision about tone |
-| **#15** | Caddy as the shared front for project sites. **Nothing serves any more — close it** |
-| **#16** | The v2 → main merge blockers, in order. `matewishkey-web#77` first, or their build goes red |
+| **#14** | The show is mentioned exactly twice now (`README.md`, the howto) and `check.sh` counts it. Whether that tone is right is mate's — open until he says |
