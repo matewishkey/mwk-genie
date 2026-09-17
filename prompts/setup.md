@@ -37,7 +37,8 @@ Your shell was started before any of this existed, so `mwk` is not on your PATH 
 THEN — PROVE IT WORKED, IN THEIR WORDS
 
   - `mwk` answers with its three commands
-  - a NEW terminal window knows `ccc` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
+  - the bar at the bottom of this window shows the model, the folder and a percentage — if it does not, say so; it is the thing that will tell them when to start a fresh conversation
+  - a NEW terminal window knows `mwk` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
 
 THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
 
@@ -66,7 +67,11 @@ THEN — GIVE THEM SOMEWHERE TO WORK
 
 Ask them what they actually want their computer to do. Make one folder for it inside ~/projects, named after their answer, with an `input` folder inside it for things they drop in.
 
-Then tell them the one thing they type: `ccc` starts you, from any folder. Everything else they ask you for.
+Then tell them the one thing they type: `claude` starts you, from any folder. Everything else they ask you for.
+
+THEN — CONNECT THEIR ACCOUNTS
+
+Run `/mwk-onboard`. It walks them through the three accounts everything else leans on — GitHub, Cloudflare and Replicate — puts each key in their store from a second tab, and proves each one answers. Do not skip it and do not do it from memory; the skill has the checks.
 
 Point out two small things while they are looking at it. Their prompt now shows the folder they are in, and a `*` when there is work here they have not saved — `/mwk-save` clears it. And all of this comes back off the computer whenever they want by asking you, which is worth knowing before they wonder.
 

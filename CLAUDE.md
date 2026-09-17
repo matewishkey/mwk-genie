@@ -207,6 +207,47 @@ The container run before it, against `f3c6400`, found one real bug — a tool pr
 macOS has still never had the kit installed on it — everything macOS in the table above was
 measured by probing a real Mac. A red result on the first real run is information, not a defect.
 
+## v3.1 — the warm environment (mate, 2026-09-17, second round)
+
+What v1 had that v2/v3 had lost, brought back without a page or a new command:
+
+- **No `ccc`. They type `claude`; auto mode is `permissions.defaultMode: "auto"` in
+  `settings.json`**, set by `modify_settings.json` only if absent — so a value they change
+  stays changed, and that is the escape hatch. `claude 2.1.274` has `--permission-mode auto`
+  (measured); the docs describe it as a classifier approving each action in the background,
+  versus `bypassPermissions` skipping every check including protected paths. **The one
+  unmeasured thing: the docs say "when auto mode is available to your session".** What
+  `--permission-mode auto` does on an account that lacks it is unknown from this box;
+  `on-this-machine.sh` asks it on a real account. Mate uses auto himself and prefers it.
+- **The status bar** — `~/.claude/statusline.sh`, wired by the same merge. Model, folder,
+  `% full`, red past 70. Fields verified against the docs (`model.display_name`,
+  `workspace.current_dir`, `context_window.used_percentage`, null before the first reply).
+  Cost: a custom status line hides most of the footer hints (`esc to interrupt`, `?`); the
+  howto teaches the two that matter.
+- **The howto is the top half of `~/projects/learning/README.md`**, placed by chezmoi as a
+  `create_` file — **write-once, ours on day one, theirs after** — and `mwk-learn` writes
+  under its `## What I have learnt` heading and never above it. `rehearse.sh` appends a
+  line to it and asserts the line survives an apply. v1's `howto.html` sections, in
+  markdown, with `claude` and the store as they are now. **It is the second of the two show
+  mentions**, and `check.sh` counts exactly two across it and `README.md`.
+- **`/mwk-onboard`** — GitHub, Cloudflare, Replicate; keys in via `mwk add … global` from a
+  second tab; each proved with a real call. Endpoints measured 2026-09-17:
+  `api.cloudflare.com/client/v4/user/tokens/verify` 200 good / 400 bad,
+  `api.replicate.com/v1/account` 200 / 401. `setup.md` hands to it. Dashboard click-paths
+  are deliberately NOT in the skill — it points at each vendor's current docs.
+- **The page rule + `site-templates/report/index.html`.** Anything longer than a screen
+  is a page (artifact), the chat keeps the one-line answer; **pages communicate,
+  `~/projects` keeps** — the distinction that made `mwk-learn` drop artifacts as a *record*
+  still holds. Everything is inline in the template because an artifact cannot load a
+  file beside it. Unverified: artifact publishing on a stranger's claude.ai tier.
+- **The house rule** — `input/`, `archive/<date>/`, one-line `README.md`, `TODO.md`,
+  `input/`+`archive/` gitignored — built by `/mwk-new` (it made only a `README.md` before;
+  that was #13's unbuilt half) and stated in `create_CLAUDE.md`.
+- **Rejected: keeping learnings inside `~/projects/mwk-genie` gitignored, or in a
+  dotfolder.** Gitignored = no backup, which is the whole point; inside the kit = `mwk
+  update` pulls over it and uninstall trashes the folder with it; a dotfolder breaks
+  "everything visible in `~/projects`". A repo of their own is the only shape that survives.
+
 ## Still open
 
 | # | |

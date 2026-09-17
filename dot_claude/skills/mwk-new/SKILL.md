@@ -29,10 +29,16 @@ writing into it.
 
 ## 3. Make it
 
-- `mkdir -p ~/projects/<name>` and work there from now on.
-- Write a `README.md` in it: a title and the one sentence they gave you. That
-  is all it needs today. It gives them something to open and something for the
-  first save point to hold.
+- `mkdir -p ~/projects/<name>/input ~/projects/<name>/archive` and work there from
+  now on. **Every project has the same three things, so nobody has to remember where
+  anything goes:**
+  - `input/` — where they drop things for you: a PDF, a photo, a spreadsheet. Say that
+    sentence out loud; it is the folder they will actually use.
+  - `archive/<date>/` — where something from `input/` goes once it has been dealt with,
+    under the day it was dealt with. Move, never delete.
+  - `README.md` — a title and the one sentence they gave you. That is all it needs today.
+- Write a `.gitignore` with `input/` and `archive/` in it. Those are **their material**,
+  not the project's — a save point should hold the work, not the 40 MB PDF it came from.
 
 ## 4. Turn on save points
 
@@ -74,10 +80,10 @@ So walk them through it, and wait:
    above and below:
 
         cd ~/projects/<name>
-        ccc
+        claude
 
 3. **Wait for them to say it started.** Do not carry on in this window. This is
-   the same shape as the `ccc` step in setup: a thing that only exists once a
+   the same shape as the last step of setup: a thing that only exists once a
    new window has read it.
 
 Say what the two lines do, once: the first walks into the folder, the second

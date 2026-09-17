@@ -28,17 +28,10 @@ case ":$PATH:" in
 esac
 export PATH
 
-{{ if eq .ccc_mode "fast" -}}
-# They chose FAST at setup: agree to the work in conversation, then get on with it.
-# To change your mind, swap which of these two lines is commented out.
-alias ccc='claude --dangerously-skip-permissions'
-# alias ccc='claude'
-{{- else -}}
-# They chose CAREFUL at setup: Claude asks before every command.
-# To change your mind, swap which of these two lines is commented out.
-alias ccc='claude'
-# alias ccc='claude --dangerously-skip-permissions'
-{{- end }}
+# There is no `ccc` any more (2026-09-17). They type `claude`. How it asks — or does not — is
+# `permissions.defaultMode` in ~/.claude/settings.json, set to "auto" by the kit and theirs
+# to change. An alias that carried a flag was one more thing to explain, and one more place
+# for two definitions to disagree.
 
 
 if [ -n "${ZSH_VERSION:-}" ]; then

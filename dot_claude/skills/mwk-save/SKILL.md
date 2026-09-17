@@ -75,7 +75,7 @@ issues here; things worth tracking go in `TODO.md`, where they will actually be 
 Print these on their own lines, with a blank line above and below:
 
     cd ~/projects/<folder name>
-    ccc
+    claude
 
 ...opens this project again, from any terminal window. You will read `TODO.md` when
 you get there, so they can start the next session by saying "carry on".

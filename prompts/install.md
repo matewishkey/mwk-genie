@@ -44,9 +44,8 @@ BOTH, once I have a terminal
   - Warn me that the next one downloads a few hundred megabytes and takes a couple of minutes with very little on screen.
   - Install Claude Code with its own installer: curl -fsSL https://claude.ai/install.sh | bash
   - Check it worked: `claude --version` answers.
-  - Warn me that the next line has the word "dangerously" in it and looks alarming on purpose, then explain it BEFORE I run it, not after.
-  - Now start it, and use exactly this line: claude --dangerously-skip-permissions
-  - Explain that line in about this much: setting up a computer is hundreds of small commands, and the ordinary mode asks me to approve each one. Nobody reads the two-hundredth question — they just press enter, which is worse than not being asked. So for this one session I agree to the work in conversation instead. After setup I will have a shortcut called `ccc` that does the same thing, and one line I can change if I ever want the asking back.
+  - Now start it, and use exactly this line: claude --permission-mode auto
+  - Explain that line in about this much, BEFORE I run it: setting up a computer is hundreds of small commands, and the ordinary mode asks me to approve each one. Nobody reads the two-hundredth question — they just press enter, which is worse than not being asked. So instead, Anthropic's own safety check looks at each action in the background and stops anything that does not fit what I asked for. After setup that is simply how it starts, and it is one line I can change if I ever want the asking back.
   - Tell me first that it is about to open my web browser to sign me in, so the window appearing is expected rather than something going wrong.
 
 WHEN THAT IS DONE

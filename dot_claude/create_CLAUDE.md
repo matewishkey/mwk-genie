@@ -28,6 +28,12 @@ word so it sticks. Anything more complicated than those three, do it for me.
   sentence, once. Do not stop and give me a lesson.
 - **Be snappy.** Get on with it.
 - **Be human about it.** A bit of humour is fine. A corporate robot is not.
+- **Anything longer than a screen goes on a page, not in the chat.** A plan, a set of
+  options, a comparison, a report, a thing I am meant to read twice: write it as a page
+  (start from `~/projects/mwk-genie/site-templates/report/index.html` — it already looks
+  like the rest of this), publish it as an artifact, and put the link here with the one-line
+  answer. The chat is for the answer; the page is for the reading. **Pages are for
+  communicating, `~/projects` is for keeping** — a page is never the record of anything.
 
 ## Keep it simple
 
@@ -43,6 +49,17 @@ word so it sticks. Anything more complicated than those three, do it for me.
   would rather know at the beginning than find a bill.
 
 ## Where things should live
+
+**Every project is one folder in `~/projects`, and every one has the same shape:** `input/`
+for what I drop in, `archive/<date>/` for what has been dealt with (moved, never deleted),
+a one-line `README.md` saying what it is for, and `TODO.md` — the note you leave me at the
+end of a session. `input/` and `archive/` are mine, not the project's, so they stay out of
+save points. `/mwk-new` builds it; if you find a project without it, say so and add it.
+
+`~/projects/keys` is my keys and `~/projects/learning` is my howto and my record; both are
+folders like any other and both are in git. **Nothing of mine lives in a hidden folder, and
+nothing lives inside the kit's own folder** (`~/projects/mwk-genie`) — that one gets
+replaced by `mwk update` and trashed by uninstall.
 
 Starting points, not rules. If something fits the job better, say so — I would rather hear it
 than have you work down a list.
@@ -128,10 +145,27 @@ step; the colours are named at the top of `mwk.css` and changing one changes the
 actually happened and carry on. A command in the chat is the whole mechanism — there is
 no page, no button, nothing that could be out of date.
 
-**Things I can do for you by name:** `/mwk-new` starts a project, `/mwk-save` saves
-and pushes your work and tidies up after a session, `/mwk-learn` adds to your record
-in `~/projects/learning`, `/mwk-review` is a second opinion on a project, `/mwk-tasks`
-is what is open across all your projects, `/mwk-bug` reports something broken in the kit.
+**The bar at the bottom of the window is yours to read, and mine to explain once.** It
+shows which model, which folder, and how full my memory is. I can only hold so much of a
+conversation; when that fills up the older parts get squeezed out and I get slower and
+forget things. When it is past about 70% it turns red, and that is the moment to `/clear`
+— which forgets the conversation, not your work. `/model sonnet` is the faster, cheaper
+model for straightforward things and stretches your plan further; `/model opus` puts it
+back. Both last for one conversation.
+
+**I do not ask you before each command.** Anthropic's own check looks at each action in
+the background instead. If you would rather I asked, say so: it is one line in
+`~/.claude/settings.json` (`permissions.defaultMode`) and I will change it.
+
+**Things I can do for you by name:** `/mwk-onboard` connects GitHub, Cloudflare and
+Replicate and proves each answers, `/mwk-new` starts a project, `/mwk-save` saves and
+pushes your work and tidies up after a session, `/mwk-learn` adds to your record in
+`~/projects/learning`, `/mwk-review` is a second opinion on a project, `/mwk-tasks` is
+what is open across all your projects, `/mwk-bug` reports something broken in the kit.
+
+**How to work with all of this is written down at the top of
+`~/projects/learning/README.md`**, in plain English, for you. If something there is
+wrong or missing, tell me and I fix the file — it is yours.
 
 **`mise` is already here and it owns the tools.** Five of them are pinned in
 `~/projects/mwk-genie/mise.toml`. Add what a project needs to that project, not

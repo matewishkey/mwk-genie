@@ -16,7 +16,7 @@ What they said, if anything: `$ARGUMENTS`
 **Do this before writing anything.** Three different things get called "a bug"
 and only one of them belongs here:
 
-- **This kit** — `ccc`, the prompt, `CLAUDE.md`, one of the `/mwk-`
+- **This kit** — `mwk`, the prompt, the bar at the bottom, `CLAUDE.md`, one of the `/mwk-`
   commands, or a step in the setup. **That is a bug report. Carry on.**
 - **Claude Code itself**, or a plugin somebody else wrote. Say so plainly, say
   where it actually goes, and offer to help them get there. Filing it with us

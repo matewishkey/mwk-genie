@@ -75,18 +75,41 @@ done
 grep -q miniserve mise.toml && no "miniserve is gone from mise.toml" "still pinned — nothing serves any more" \
   || ok "miniserve is gone from mise.toml"
 
-head_ "The shell file — both branches, both shells"
-for mode in fast careful; do
-  r=$(sed "s/^ccc_mode:.*/ccc_mode: $mode/" .chezmoidata.yaml > /tmp/cd.$$.yaml; \
-      chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/null)
-  [ -n "$r" ] || { no "renders for ccc_mode=$mode" "empty"; continue; }
-done
-rm -f /tmp/cd.$$.yaml
+head_ "The shell file, both shells — and no ccc anywhere"
 rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/null)
-live=$(printf '%s\n' "$rendered" | grep -c '^alias ccc=')
-is "exactly one LIVE ccc alias (the other is commented)" "$live" "1"
-commented=$(printf '%s\n' "$rendered" | grep -c '^# alias ccc=')
-is "the other alias is present, commented — the escape hatch" "$commented" "1"
+[ -n "$rendered" ] && ok "the shell file renders" || no "the shell file renders" "empty"
+# ccc is gone (2026-09-17): how Claude asks is permissions.defaultMode in settings, one
+# home. An alias would be a second home, and two homes is how v1 got two definitions.
+is "no ccc alias in the shell file" "$(printf '%s\n' "$rendered" | grep -c '^alias ccc')" "0"
+ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md prompts/ dot_claude/ site-templates/ projects/ install.sh uninstall.sh 2>/dev/null \
+           | grep -vE ':[0-9]+:[[:space:]]*#' | wc -l)
+is "no document still tells them to type ccc" "$ccc_docs" "0"
+
+head_ "settings.json — opus, auto mode, the bar — merged, never replaced"
+sh -n dot_claude/modify_settings.json && ok "modify_settings.json is valid sh" || no "modify_settings.json is valid sh" "syntax error"
+if command -v jq >/dev/null 2>&1; then
+  out=$(printf '{"enabledPlugins":{"x":true}}' | sh dot_claude/modify_settings.json)
+  is "theirs survives: enabledPlugins"     "$(printf '%s' "$out" | jq -r '.enabledPlugins.x')" "true"
+  is "ours lands: model opus"              "$(printf '%s' "$out" | jq -r '.model')" "opus"
+  is "ours lands: permissions.defaultMode auto" "$(printf '%s' "$out" | jq -r '.permissions.defaultMode')" "auto"
+  is "ours lands: statusLine → ~/.claude/statusline.sh" "$(printf '%s' "$out" | jq -r '.statusLine.command')" "~/.claude/statusline.sh"
+  # The escape hatch: a value THEY set is never overwritten. This is what makes auto survivable.
+  out2=$(printf '{"permissions":{"defaultMode":"default"},"model":"sonnet"}' | sh dot_claude/modify_settings.json)
+  is "their defaultMode wins over ours"    "$(printf '%s' "$out2" | jq -r '.permissions.defaultMode')" "default"
+  is "their model wins over ours"          "$(printf '%s' "$out2" | jq -r '.model')" "sonnet"
+else
+  no "settings merge was exercised (SKIPPED)" "no jq — this did not run, it is not a pass"
+fi
+sh -n dot_claude/executable_statusline.sh && ok "statusline.sh is valid sh" || no "statusline.sh is valid sh" "syntax error"
+if command -v jq >/dev/null 2>&1; then
+  bar=$(printf '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"%s/projects/x"},"context_window":{"used_percentage":34.6}}' "$HOME" \
+        | HOME="$HOME" sh dot_claude/executable_statusline.sh)
+  is "the bar reads model · folder · %% full" "$bar" "Opus · ~/projects/x · 34% full"
+  bar0=$(printf '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"/a"},"context_window":{}}' | sh dot_claude/executable_statusline.sh)
+  is "…and a null percentage (before the first reply) is 0, not an error" "$bar0" "Opus · /a · 0% full"
+  printf '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"/a"},"context_window":{"used_percentage":81}}' \
+    | sh dot_claude/executable_statusline.sh | grep -q $'\033\[38;5;203m' && ok "…and goes red past 70%" || no "the bar goes red past 70%" "no red escape at 81%"
+fi
 for sh in bash zsh; do
   if command -v $sh >/dev/null 2>&1; then
     printf '%s\n' "$rendered" | $sh -n - 2>/dev/null \
@@ -181,10 +204,21 @@ head_ "Only the right things reach a stranger's home directory"
 # .chezmoiignore is an ALLOW-list and its patterns match TARGET names, not source names —
 # get that wrong and it places NOTHING while looking correct. Assert both directions.
 managed=$(chezmoi managed --source . 2>/dev/null)
-for want in .claude/CLAUDE.md .claude/settings.json .claude/skills/mwk-save/SKILL.md \
-            .claude/skills/mwk-tasks/SKILL.md .mwk-shell.sh bin/mwk; do
+for want in .claude/CLAUDE.md .claude/settings.json .claude/statusline.sh .claude/skills/mwk-save/SKILL.md \
+            .claude/skills/mwk-tasks/SKILL.md .claude/skills/mwk-onboard/SKILL.md .mwk-shell.sh bin/mwk \
+            projects/learning/README.md; do
   printf '%s\n' "$managed" | grep -qx "$want" && ok "placed: $want" || no "placed: $want" "MISSING"
 done
+# The howto is placed ONCE and never overwritten — ours on day one, theirs after. That is
+# the create_ prefix, and nothing else: a plain file would revert their edits every apply.
+[ -f projects/learning/create_README.md ] && ok "the howto is a create_ (write-once) file" \
+  || no "the howto is a create_ file" "a managed file would overwrite what they changed"
+grep -q '^## What I have learnt' projects/learning/create_README.md \
+  && ok "…and carries the heading mwk-learn writes under" || no "the howto has the mwk-learn heading" "entries would have nowhere to go"
+grep -q 'What I have learnt' dot_claude/skills/mwk-learn/SKILL.md \
+  && ok "…and mwk-learn knows that heading by name" || no "mwk-learn names the heading" "it would write over the howto"
+n=$(grep -c 'matewishkey.com/show' projects/learning/create_README.md README.md | awk -F: '{s+=$2} END{print s}')
+is "the show is mentioned exactly twice across what a person reads (howto + README)" "$n" "2"
 for never in uninstall.sh README.md CLAUDE.md install.sh mise.toml mise.lock \
              test prompts docs site-templates mwk bin/mwk-debug; do
   printf '%s\n' "$managed" | grep -q "^$never" \
@@ -238,6 +272,15 @@ for d in one-page pages; do
 done
 grep -q 'site-templates' dot_claude/skills/mwk-new/SKILL.md \
   && ok "/mwk-new knows the templates exist" || no "/mwk-new knows the templates exist" "nothing would ever reach for them"
+for want in 'input/' 'archive/' '.gitignore'; do
+  grep -q -- "$want" dot_claude/skills/mwk-new/SKILL.md && ok "/mwk-new builds $want" \
+    || no "/mwk-new builds $want" "the house rule in create_CLAUDE.md promises it"
+done
+grep -q 'site-templates/report/index.html' dot_claude/create_CLAUDE.md \
+  && ok "the page rule points at the report template" || no "the page rule points at the report template" "the agent would write pages from nothing"
+grep -q '<link' site-templates/report/index.html \
+  && no "the report template is self-contained" "it loads an external file — an artifact cannot" \
+  || ok "the report template is self-contained (no <link>)"
 
 head_ "Skills"
 for d in dot_claude/skills/*/; do
@@ -259,6 +302,7 @@ for d in dot_claude/skills/*/; do
   [ -n "$req" ] || { no "$name declares what it requires" "no <!-- requires: … --> line"; continue; }
   for b in $req; do
     case "$b" in git|curl|sh|bash|python3) ok "$name requires $b (system)";;
+      mwk) ok "$name requires mwk (the kit's own)";;
       gh)  grep -q 'cli/cli' mise.toml && ok "$name requires gh — pinned" || no "$name requires gh" "not in mise.toml";;
       *)   grep -q "/$b\"" mise.toml && ok "$name requires $b — pinned" || no "$name requires $b" "not in mise.toml";;
     esac
@@ -294,6 +338,11 @@ if command -v curl >/dev/null 2>&1; then
     case "$code" in
       200|204) ok "$code  $u" ;;
       405)     ok "405  $u (POST-only endpoint — reachable)" ;;
+      # An API a skill calls WITH a key answers 400/401 to a bare curl — that is the endpoint
+      # existing and refusing, which is what /mwk-onboard relies on. Only for api.* hosts;
+      # a page a person opens still has to be a 200.
+      400|401|403) case "$u" in https://api.*) ok "$code  $u (needs a key — reachable)" ;;
+                                 *) no "$code  $u" "not a 200" ;; esac ;;
       000)     no "unreachable  $u" "no response — a 404 here is a beginner's first five minutes" ;;
       *)       no "$code  $u" "not a 200" ;;
     esac

@@ -49,11 +49,16 @@ Plain markdown. It renders on GitHub, it prints from there, and it lives in
 `~/projects` with everything else of theirs — one folder per thing they are
 doing, and this is one of the things.
 
-**Read it first if it exists.** Today goes in as a new dated entry at the
-**top**, under the title, above everything already there. **Never rewrite, tidy
-or re-summarise a past entry** — old entries are the record, and a record you
-edit is not one. If the folder does not exist yet, make it, `git init`, and
-create the file with a one-line title and today as the only entry.
+**The top half of that file is their howto — placed by the kit, and never yours to
+touch here.** Everything above the line `## What I have learnt` stays exactly as it
+is. Today goes in as a new dated entry **directly under that heading**, above every
+entry already there (and replacing the *"Nothing yet"* placeholder the first time).
+**Never rewrite, tidy or re-summarise a past entry** — old entries are the record,
+and a record you edit is not one.
+
+If the file is missing, the kit's copy is at
+`~/projects/mwk-genie/projects/learning/create_README.md` — copy it into place
+first. If the folder is not a git repo yet, `git init` it now.
 
 Each entry is a `## <date>` heading with these sections, in this order, dropping
 any that would be empty:

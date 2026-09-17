@@ -118,7 +118,7 @@ mise exec -C "$KIT" -- chezmoi init --apply --source "$KIT" "$@"
 printf '\n  %s────────────────────────────────────────────────────────────%s\n' "$DIM" "$R"
 printf '   %s%sDone.%s One thing left, and it has to be you:\n\n' "$B" "$GRN" "$R"
 printf '     Close this window and open a new one.\n'
-printf '     Then type:   %s%sccc%s\n\n' "$B" "$RED" "$R"
+printf '     Then type:   %s%sclaude%s\n\n' "$B" "$RED" "$R"
 printf '   %sA terminal only reads its settings when it starts, so your\n' "$DIM"
 printf '   new shortcut does not exist in this window yet.%s\n' "$R"
 printf '  %s────────────────────────────────────────────────────────────%s\n\n' "$DIM" "$R"

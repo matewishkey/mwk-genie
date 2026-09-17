@@ -17,19 +17,20 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 
 | | |
 |---|---|
-| `ccc` | starts the agent, from anywhere |
+| `claude` | starts the agent, from anywhere. It gets on with the work without asking you about every command — Anthropic's own safety check runs in the background instead |
+| the bar at the bottom | which model, which folder, and how full its memory is — so a slow, forgetful agent is a number you can see, not a mystery |
 | `mwk add NAME` | puts a key in your store — you type it, so it never goes through the chat |
-| `~/projects/<your thing>/` | your work, with an `input` folder to drop things into |
+| `~/projects/<your thing>/` | your work: `input/` for things you drop in, `archive/` for what has been dealt with, a one-line `README.md` |
 | `~/projects/keys/` | your keys, encrypted, in a private repo of their own — so they come with you to a new computer |
-| `~/projects/learning/` | what you have learnt, added to each time you ask |
+| `~/projects/learning/README.md` | how to work with all of this, at the top; what you have learnt, added underneath each time you ask |
 
-Plus six things you can ask for by name: `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
+Plus seven things you can ask for by name: `/mwk-onboard` connects your accounts and proves they work, `/mwk-new` starts a project, `/mwk-save` saves and pushes it and tidies up, `/mwk-learn` adds to your record of what you have learnt, `/mwk-review` is a second opinion, `/mwk-tasks` is what is open across your projects, `/mwk-bug` reports anything in here that is broken.
 
 Everything else — seeing which keys you have, a new computer, changing a key — you ask the agent. **There is no menu and no long list of commands on purpose:** a thing you do once a year is a thing the agent does for you, not a thing you learn.
 
 ## The two things that will scare you
 
-**It runs commands without asking.** That is deliberate — setting up a computer is hundreds of small commands, and approving them one at a time means you stop reading and start pressing enter, which is worse than not being asked. **This is why it does not belong on a work computer.** To turn the asking back on, move one `#` in `~/.mwk-shell.sh`; the setup shows you the line.
+**It does not ask you before each command.** Setting up a computer is hundreds of small commands, and approving them one at a time means you stop reading and start pressing enter, which is worse than not being asked. So instead, Anthropic's own check looks at each action in the background and stops the ones that do not fit what you asked for. **This is still why it does not belong on a work computer.** To turn the asking back on, say so — it is one line in `~/.claude/settings.json`, and the agent will change it for you.
 
 **It can see and change things in your home folder.** Not just one project. That is what makes it useful and it is worth knowing.
 

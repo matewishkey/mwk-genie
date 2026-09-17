@@ -19,3 +19,8 @@
 !bin/mwk
 !.chezmoiscripts
 !.chezmoiscripts/**
+# The howto, placed ONCE (create_) at the top of their learning file and never overwritten —
+# ours on day one, theirs after. The rest of ~/projects is theirs and chezmoi never sees it.
+!projects
+!projects/learning
+!projects/learning/README.md

@@ -92,6 +92,7 @@ for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
 done
 wipe "$HOME/.mwk-shell.sh"
 wipe "$HOME/bin/mwk"
+wipe "$HOME/.claude/statusline.sh"
 for s in "$HOME"/.claude/skills/mwk-*; do [ -e "$s" ] && wipe "$s"; done
 wipe "$HOME/.config/chezmoi"
 wipe "$HOME/.local/share/chezmoi"
@@ -133,6 +134,6 @@ trash_it "$HOME/projects/mwk-genie"
 
 printf '\n%s%sDone.%s\n' "$B" "$GRN" "$R"
 say "${DIM}Claude Code itself was left alone — you are still signed in.$R"
-say "${DIM}Open a NEW terminal window: 'ccc' and 'mwk' should both be gone from it.$R"
+say "${DIM}Open a NEW terminal window: 'mwk' should be gone from it. 'claude' is still yours.$R"
 say "${DIM}Anything moved to the trash is in $TRASH$R"
 printf '\n'

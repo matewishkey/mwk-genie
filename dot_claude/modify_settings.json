@@ -37,7 +37,19 @@ if ! printf '%s' "$current" | jq -e . >/dev/null 2>&1; then
   exit 0
 fi
 
-# Opus, because the question was removed on the grounds it was already decided — and
-# removing the question had removed the setting with it. Claude Code's own default is not
-# opus. `/model sonnet` still switches it for one conversation, which is worth knowing.
-printf '%s' "$current" | jq '. + {model: (.model // "opus")}'
+# Three things, each set ONLY IF ABSENT (`//`), so a value they changed stays changed —
+# that is the escape hatch for all three, and it is one line in this file:
+#
+#   model            opus. The question was removed on the grounds it was already decided,
+#                    and removing the question had removed the setting with it. Claude
+#                    Code's own default is not opus. `/model sonnet` switches for one chat.
+#   defaultMode      auto (mate, 2026-09-17). Anthropic's own classifier approves each
+#                    action in the background instead of asking the person — the middle
+#                    between asking two hundred times and skipping every check. It
+#                    replaces the `ccc` alias and `--dangerously-skip-permissions`.
+#                    To get the asking back: set this to "default", or ask the agent.
+#   statusLine       ~/.claude/statusline.sh — model, folder, how full its memory is.
+printf '%s' "$current" | jq '
+  . + {model: (.model // "opus")}
+  | .permissions = ((.permissions // {}) | . + {defaultMode: (.defaultMode // "auto")})
+  | .statusLine  = (.statusLine // {type: "command", command: "~/.claude/statusline.sh"})'

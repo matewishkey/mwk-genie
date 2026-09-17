@@ -52,10 +52,15 @@ try "mwk runs"                      "command -v mwk"
 try "sops, age, age-keygen"         "command -v sops && command -v age && command -v age-keygen"
 try "jq, gh"                        "command -v jq && command -v gh"
 try "claude"                        "command -v claude"
-try "ccc in a fresh login shell"    "\$SHELL -lic 'alias ccc' 2>/dev/null | grep -q claude"
 try "the rules file landed"         "test -f \$HOME/.claude/CLAUDE.md"
 try "settings say opus"             "grep -q opus \$HOME/.claude/settings.json"
-try "all six skills"                "test \$(ls -d \$HOME/.claude/skills/mwk-* | wc -l) -eq 6"
+try "settings say auto mode"        "grep -q '\"defaultMode\": *\"auto\"' \$HOME/.claude/settings.json"
+try "the status bar script runs"    "printf '{}' | sh \$HOME/.claude/statusline.sh | grep -q '% full'"
+try "the howto is in ~/projects/learning" "grep -q 'How to work with your genie' \$HOME/projects/learning/README.md"
+try "all seven skills"              "test \$(ls -d \$HOME/.claude/skills/mwk-* | wc -l) -eq 7"
+# The one thing only a real account can answer: does auto mode actually engage here?
+# `claude --permission-mode auto` on an account without it is the unmeasured case.
+try "claude accepts --permission-mode auto" "claude --permission-mode auto --print 'say ok' 2>&1 | grep -qi ok"
 try "the starter websites"          "test -f \$KIT/site-templates/one-page/index.html"
 try "nothing of ours in their home" "! test -e \$HOME/uninstall.sh && ! test -e \$HOME/mwk"
 
@@ -84,6 +89,9 @@ cat <<EOF
   ${Y}Not tested here, because it needs your hands:${R}
     mwk add       making the key and storing a value — it refuses without a keyboard, on purpose
     GitHub login  the device-code flow, in a real session
+    the bar       open claude and look at the bottom: model · folder · % full
+    auto mode     whether the first session really runs without asking — the line above only
+                  proves the flag is accepted
     iTerm2        only installs on a Mac, and only if it was not there already
     the prompts   whether they read well to somebody who has never done this
 
