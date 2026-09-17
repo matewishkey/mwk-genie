@@ -6,6 +6,8 @@ An AI agent, running on your own computer, set up for someone who has never open
 
 > This is homework for [the show](https://matewishkey.com/show/). You do it once, on your own machine, and then we build the thing you actually wanted — together, on air.
 
+**Never opened a terminal? Start with [HOW-TO.md](HOW-TO.md)** — what you need, what happens, and what you end up with, in plain English. This file is the repo's front door; that one is yours.
+
 ## How it goes
 
 1. **[Paste prompt one](prompts/install.md)** into any chat you already have open. It asks whether you are on a Mac or on Windows — the only question in the whole process — and gets Claude Code onto your computer and signed in.

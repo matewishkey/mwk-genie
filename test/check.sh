@@ -35,7 +35,7 @@ is "no /mwk-genie: command names survive" "$stale" "0"
 # these is a beginner's first "command not found" — count live mentions in what ships.
 for gone in 'mwk init' 'mwk list' 'mwk needs' 'mwk lock' 'mwk rekey' 'mwk site' 'mwk serve' \
             'mwk port' 'mwk queue' 'mwk files' 'mwk uninstall' 'mwk-debug'; do
-  hits=$(grep -rn --exclude-dir=.git -F "$gone" README.md prompts/ dot_claude/ site-templates/ \
+  hits=$(grep -rn --exclude-dir=.git -F "$gone" README.md HOW-TO.md prompts/ dot_claude/ site-templates/ \
                   bin/ install.sh uninstall.sh dot_mwk-shell.sh.tmpl 2>/dev/null \
          | grep -vE ':[0-9]+:[[:space:]]*#' | wc -l)
   is "nothing still offers '$gone'" "$hits" "0"
@@ -92,7 +92,7 @@ rendered=$(chezmoi execute-template --source . < dot_mwk-shell.sh.tmpl 2>/dev/nu
 # ccc is gone (2026-09-17): how Claude asks is permissions.defaultMode in settings, one
 # home. An alias would be a second home, and two homes is how v1 got two definitions.
 is "no ccc alias in the shell file" "$(printf '%s\n' "$rendered" | grep -c '^alias ccc')" "0"
-ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md prompts/ dot_claude/ site-templates/ mwk-work/ install.sh uninstall.sh 2>/dev/null \
+ccc_docs=$(grep -rn --exclude-dir=.git -w 'ccc' README.md HOW-TO.md prompts/ dot_claude/ site-templates/ mwk-work/ install.sh uninstall.sh 2>/dev/null \
            | grep -vE ':[0-9]+:[[:space:]]*#' | wc -l)
 is "no document still tells them to type ccc" "$ccc_docs" "0"
 
@@ -435,8 +435,17 @@ done
 # dangerous form: the skill still loads under its old directory name, so nothing fails —
 # the documents just promise a name that no longer answers. Backticks are required: a bare
 # /mwk-… also matches the repo path in github.com/matewishkey/mwk-genie.
-offered=$(grep -ohE '`/mwk-[a-z]+`' README.md dot_claude/create_CLAUDE.md | tr -d '`/' | sort -u)
+offered=$(grep -ohE '`/mwk-[a-z]+`' README.md HOW-TO.md dot_claude/create_CLAUDE.md | tr -d '`/' | sort -u)
 ondisk=$(for d in dot_claude/skills/*/; do basename "$d"; done | sort -u)
+# Every skill must be in EACH person-facing document, not just somewhere — HOW-TO.md is the
+# website's page and README.md the repo's; a skill named in one and not the other is a
+# promise made to one reader and not the next. (This block once sat above the line that
+# defines $ondisk, and `set -u` killed the whole suite at it — mid-run, with no total.)
+for doc in README.md HOW-TO.md; do
+  missing=""
+  for s in $ondisk; do grep -q "\`/$s\`" "$doc" || missing="$missing $s"; done
+  [ -z "$missing" ] && ok "$doc names every skill on disk" || no "$doc names every skill on disk" "missing:$missing"
+done
 for s in $offered; do
   [ -f "dot_claude/skills/$s/SKILL.md" ] \
     && ok "the documents offer /$s, and it exists" \
@@ -451,8 +460,8 @@ done
 head_ "Every URL handed to a stranger"
 if command -v curl >/dev/null 2>&1; then
   urls=$(grep -rhoE 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' \
-          README.md prompts/ dot_claude/ install.sh mise.toml 2>/dev/null \
-        | sed 's/[.,)]*$//' | sort -u \
+          README.md HOW-TO.md mwk-work/ prompts/ dot_claude/ install.sh mise.toml 2>/dev/null \
+        | sed -E 's/[.,)?]+$//' | sort -u \
         | grep -vE 'localhost|127\.0\.0\.1|example\.' \
         | grep -v 'mwk-genie/main/install.sh')   # 404 until v2 merges; tracked in #16
   for u in $urls; do
@@ -464,6 +473,10 @@ if command -v curl >/dev/null 2>&1; then
       # existing and refusing, which is what /mwk-onboard relies on. Only for api.* hosts;
       # a page a person opens still has to be a 200.
       400|401|403) case "$u" in https://api.*) ok "$code  $u (needs a key — reachable)" ;;
+                                 # claude.ai sits behind Cloudflare's browser challenge: 403 to curl with ANY
+                                 # user-agent (measured 2026-09-17), 200 to a person. Only for that host and
+                                 # only 403 — a 404 there still reads 404, and everything else stays strict.
+                                 https://claude.ai|https://claude.ai/*) [ "$code" = 403 ] && ok "403  $u (browser challenge — a person gets through)" || no "$code  $u" "not a 200" ;;
                                  *) no "$code  $u" "not a 200" ;; esac ;;
       000)     no "unreachable  $u" "no response — a 404 here is a beginner's first five minutes" ;;
       *)       no "$code  $u" "not a 200" ;;

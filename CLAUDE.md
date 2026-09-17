@@ -167,6 +167,10 @@ The `/how-to/` path 301s **to** `/wishes/`, not the reverse.
 **The third coupling is hand-typed and nothing checks it.** `src/content/wishes/put-the-genie-in-the-box.mdx`
 quotes the opening of what is now `dot_claude/create_CLAUDE.md`, and the prose around it says "two
 prompts", "three stages", "it asks you three things" and "an `mwk` plugin" — all false. Filed in #77.
+**`HOW-TO.md` is the replacement for that prose** (2026-09-17): the person's walk-through, with two
+marked slots (`<!-- PROMPT ONE goes here -->`, `<!-- PROMPT TWO goes here -->`) where the site drops
+in the prompts it already fetches — so the prompts stay single-sourced and the prose around them
+stops being hand-typed. `check.sh` holds it to the same names and counts as `README.md`.
 
 ## Rules that survived and still apply
 
