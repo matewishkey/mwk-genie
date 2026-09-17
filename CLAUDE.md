@@ -172,7 +172,7 @@ both from v1.
 **What the site should carry instead is `HOW-TO.md`** (2026-09-17): the person's walk-through,
 with two marked slots (`<!-- PROMPT ONE goes here -->`, `<!-- PROMPT TWO goes here -->`) where a
 build drops in the first fenced block of each prompt file — the fetcher they already have does
-exactly that, minus `assertNarrow`. Filed as an issue into their repo when `v2` was promoted;
+exactly that, minus `assertNarrow`. Filed as **matewishkey-web#82** when `v2` was promoted, 2026-09-17;
 the prompts and the prose then stay single-sourced here. `check.sh` holds `HOW-TO.md` to the same
 names and counts as `README.md`.
 
