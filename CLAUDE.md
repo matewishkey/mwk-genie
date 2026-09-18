@@ -223,9 +223,12 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-17 (late), against `e8a5d27`: `check.sh` 234/234, `rehearse.sh` ALL GREEN (50
-assertions) — the first run in which "Claude Code installed" is one of them.** Earlier that day,
-against `895fb31`: 200/200 and 48.
+**Run, 2026-09-18, against `f0faebf`: `check.sh` 255/255, `rehearse.sh` ALL GREEN (50
+assertions).** Every one of the 16 assertions added that day was confirmed RED against the
+file it replaced before being believed — including the seven in the store, which only
+became testable once `check.sh` stopped handing itself a git identity. Earlier: `e8a5d27`
+234/234 and 50, the first run in which "Claude Code installed" was one of them; `895fb31`
+200/200 and 48.
 Three container runs earlier the same day each went red on one line. Two were real bugs of the
 same class — a tool preflight at the top of `mwk`, then a status line that printed nothing — both
 under a login shell with no mise shims on PATH (the table has the row). The third was the test:
