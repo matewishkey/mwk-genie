@@ -100,9 +100,13 @@ file and never goes in the chat. In a **second** terminal tab:
 mwk add OPENAI_API_KEY
 ```
 
-It asks you to paste the value and shows nothing while you do. The key is stored encrypted
-in `~/projects/keys`, and `mwk run -- <something>` hands it to that one program for that
-one run.
+It asks you to paste the value and shows nothing while you do. Because nothing appears,
+people press Enter to check — that is fine, it does not break anything.
+
+The key is stored encrypted in `~/projects/keys`, and `mwk run -- <something>` hands it to
+that one program for that one run. After it saves, it tells you in one line where the copy
+went: on this computer only, or to your private repo on GitHub as well. If it says this
+computer only, say *"put my keys on GitHub"* and it is done in a minute.
 
 **The first time you do this it makes you a key of your own** and tells you to copy one
 line — it starts `AGE-SECRET-KEY` — into your password manager, as an entry called **mwk

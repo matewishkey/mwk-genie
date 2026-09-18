@@ -84,7 +84,7 @@ In the window step 1 left open, paste this:
 | the bar at the bottom | which model, which folder, and how full its memory is — so a slow, forgetful agent is a number you can see |
 | `http://127.0.0.1:29200/` | **your page — bookmark it.** How all of this works, in plain English, and under it every page the agent writes for you |
 | `~/projects/<your thing>/` | your work: `input/` for things you drop in, `archive/` for what has been dealt with |
-| `~/projects/keys/` | your keys, encrypted, in a private repo of their own |
+| `~/projects/keys/` | your keys, encrypted, in a repo of their own, pushed to a private copy on GitHub |
 | `mwk add NAME` | puts a key in that store — you type it, so it never goes through the chat |
 
 And eight things you can ask for by name, or just say in normal words: `/mwk-wish` turns

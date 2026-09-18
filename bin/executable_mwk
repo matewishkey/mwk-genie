@@ -124,6 +124,55 @@ have_git() {
 # `--filename-override` because the input is stdin, and the creation rule matches on the
 # file's NAME — without it there is "no matching creation rules found" (measured), which
 # is the no-catch-all rule doing its job on the wrong file.
+# The store is a git repo so a key is in HISTORY, not just on a disk, and so that a new
+# computer is a clone. Two things used to break that silently, both reproduced 2026-09-18:
+#
+#   * git REFUSES to commit with no user.email, and on a machine whose hostname has no
+#     domain it cannot invent one ("Author identity unknown"). That refusal went to
+#     /dev/null behind `|| true`, so the store had zero commits under a green "Stored".
+#   * `git init` ran only on the first add (see ensure_store).
+#
+# The identity is set on the STORE REPO ONLY, never globally. Their own git config is
+# theirs; /mwk-onboard sets that from their GitHub account.
+store_git() {
+  have_git || return 1
+  [ -d "$STORE/.git" ] || git -C "$STORE" init -q >/dev/null 2>&1 || return 1
+  if [ -z "$(git -C "$STORE" config user.email 2>/dev/null)" ]; then
+    git -C "$STORE" config user.email "mwk@localhost" >/dev/null 2>&1 || true
+    git -C "$STORE" config user.name  "mwk"           >/dev/null 2>&1 || true
+  fi
+  return 0
+}
+
+# Commit, and push if there is anywhere to push to. `backup` carries the plain-English
+# truth back to the message: "Stored" printed over a store that committed nothing is
+# precisely the failure this file exists to prevent, and for three documents to promise a
+# backup that no code performs is the same lie with a longer fuse.
+store_save() {
+  backup="on this computer only. Ask me to put your keys on GitHub, so they outlive it"
+  store_git || return 0
+  git -C "$STORE" add -A >/dev/null 2>&1 || true
+  if [ -n "$(git -C "$STORE" status --porcelain 2>/dev/null)" ]; then
+    if git -C "$STORE" commit -qm "add $1" >/dev/null 2>&1; then
+      backup="in the history here, on this computer only. Ask me to put your keys on GitHub"
+    else
+      note "mwk: the value is saved, but it did not go into the history in $STORE. Ask me to look."
+      return 0
+    fi
+  else
+    backup="in the history here, on this computer only. Ask me to put your keys on GitHub"
+  fi
+  git -C "$STORE" remote get-url origin >/dev/null 2>&1 || return 0
+  # The second arm is the FIRST push, where there is no upstream yet and a bare `push`
+  # exits 128 with "no upstream branch". Without it the very push that creates the backup
+  # is the one that reports failure.
+  if git -C "$STORE" push -q >/dev/null 2>&1 || git -C "$STORE" push -q -u origin HEAD >/dev/null 2>&1; then
+    backup="here and in your private repo on GitHub, so a new computer is one clone away"
+  else
+    backup="here, but the copy on GitHub did not go through. Say 'push my keys' when you are back online"
+  fi
+}
+
 sops_d() { [ -f "$1" ] || return 0; sops -d --input-type dotenv --output-type dotenv "$1"; }
 sops_e() {
   # `sops -e ... > "$f"` truncates $f before sops runs, so a failed encrypt would DELETE
@@ -174,8 +223,14 @@ EOF
     # One rule and no catch-all: a file matching nothing fails loudly instead of being
     # encrypted to the wrong set. This file holds the PUBLIC key and is safe to commit.
     printf 'creation_rules:\n  - path_regex: \\.enc\\.env$\n    age: %s\n' "$pub" > "$STORE/.sops.yaml"
-    have_git && git -C "$STORE" init -q 2>/dev/null || true
   fi
+  # NOT inside the branch above, and that is the whole point. `git init` used to run only
+  # on the add that CREATED the store, so a machine whose git was not ready at that one
+  # moment — a Mac still downloading Apple's Command Line Tools, which prompt one warns
+  # "looks finished when it is not" — never got a repo at all, and every later add
+  # committed nothing while printing a green "Stored". Reproduced 2026-09-18. Trying on
+  # every add costs nothing: it is a no-op once it has worked.
+  store_git || true
   if [ -n "${made_key:-}" ]; then
     cat >&2 <<EOF
 
@@ -219,10 +274,26 @@ cmd_add() {
   # of the paste sitting in the terminal — to be run as commands, and written to history,
   # by the shell this returns to, under a green "not in your history". Drain whatever is
   # still pending (it is never echoed), and if there was anything, store nothing.
+  # An EMPTY leftover line is them pressing Enter to see whether anything happened — the
+  # prompt says nothing will appear on screen, which is exactly what makes a person check.
+  # That used to be refused as "more than one line" while the SAME key pasted a second
+  # slower was accepted: one input, two outcomes, decided by reaction time. Reproduced in
+  # both directions 2026-09-18. Only a leftover with something in it is a real paste.
   extra=0
-  while IFS= read -rs -t 1 _more; do extra=1; done
+  while IFS= read -rs -t 1 _more; do
+    case "$_more" in "") ;; *) extra=1 ;; esac
+  done
   [ "$extra" = 0 ] || die "that was more than one line. A key here is one line — nothing was stored. For something with several lines (a certificate, a private key file), ask me in the chat"
   [ -n "$value" ] || die "nothing pasted — no change made"
+  # A timer cannot be the only guard. A second line that arrives after the drain window —
+  # a chunked Windows Terminal paste into WSL, a laggy SSH session, someone typing the
+  # rest — is invisible to it, and the value is then stored TRUNCATED under a green
+  # "Stored". Reproduced 2026-09-18 with a 1.6s gap. The multi-line secrets people
+  # actually try to paste here announce themselves in their first line, so refuse on the
+  # VALUE, which no timing can change.
+  case "$value" in
+    "-----BEGIN"*) die "that is the first line of a certificate or a private key file, and only the first line arrived — nothing was stored. Ask me in the chat and I will take the whole file" ;;
+  esac
 
   # Keep the old ciphertext until the new one is PROVED good. This is a key store: the
   # failure that matters is not "the write failed", it is "the write succeeded and took
@@ -241,7 +312,13 @@ cmd_add() {
   for n in $(printf '%s\n' "$old" | grep -oE '^[A-Za-z_][A-Za-z_0-9]*' || true); do
     printf '%s\n' "$now" | grep -qE "^$n=" || lost="$lost $n"
   done
-  if [ -n "$lost" ] || ! printf '%s\n' "$now" | grep -qF "$name=$value"; then
+  # Compare IN THE SHELL. `grep -qF "$name=$value"` put the plaintext in argv, where
+  # /proc/<pid>/cmdline is world-readable on Linux and WSL — the exact class this file
+  # deleted the --value flag to remove, reintroduced by the fix for a different bug. It
+  # was also unanchored, so MY_API_KEY=<the same value> would have satisfied the check
+  # for API_KEY. `name` is validated as [A-Za-z_][A-Za-z_0-9]* above, so it is safe in sed.
+  back=$(printf '%s\n' "$now" | sed -n "s/^$name=//p" | head -1)
+  if [ -n "$lost" ] || [ "$back" != "$value" ]; then
     [ -f "$f.prev" ] && mv "$f.prev" "$f"
     [ -n "$lost" ] && die "your store did not come back right, so I put it back as it was. Nothing changed. Missing:$lost"
     die "your store did not come back right, so I put it back as it was. Nothing changed."
@@ -250,10 +327,9 @@ cmd_add() {
 
   # A commit is local and free, and it is the difference between "on this disk" and "in
   # the history". Pushing is /mwk-save's job — that needs GitHub, this needs nothing.
-  if [ -d "$STORE/.git" ]; then
-    git -C "$STORE" add -A >/dev/null 2>&1 && git -C "$STORE" commit -qm "add $name" >/dev/null 2>&1 || true
-  fi
+  store_save "$name"
   good "Stored $name. It is not on screen and not in your history."
+  note "Kept $backup"
 }
 
 cmd_run() {

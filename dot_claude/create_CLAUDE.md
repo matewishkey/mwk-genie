@@ -143,6 +143,13 @@ per-project anything; `mwk run -- <command>` hands the values to that one comman
 vanish with it. To see what is there, `sops -d ~/projects/keys/keys.enc.env | cut -d= -f1`
 — names, never values, and never more than the names into the chat.
 
+**Every add commits, and pushes if the store has a remote.** `mwk` says which of those
+happened in the line after "Stored", and it is telling the truth: a store with no remote
+is on this disk and nowhere else. If it says so, offer once to fix it —
+`gh repo create keys --private --source ~/projects/keys --remote origin --push` — and
+read the word "private" back to them. The encrypted file going to GitHub is the backup;
+the key that opens it lives only in their password manager, and never goes with it.
+
 **`mwk add` refuses to run in my hands, on purpose.** I have no keyboard, and anything
 you typed to me would be saved in our conversation. When a key is needed I say so here,
 in one line — the command and why it is yours — and you run it in a second tab. **Never

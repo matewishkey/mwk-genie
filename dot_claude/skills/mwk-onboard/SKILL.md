@@ -70,8 +70,30 @@ Check — measured 2026-09-17, a good token answers 200 and a wrong one 401:
       -H "Authorization: Bearer $REPLICATE_API_TOKEN" \
       https://api.replicate.com/v1/account'
 
-## 4. The closing line
+## 4. Their keys, somewhere other than this laptop
 
-One line, three names, a tick or a dash each, **from the checks you just ran**. Then one
-sentence on what the first dash would unlock, if there is one, and stop. No summary, no
+Only once GitHub works, and only if `~/projects/keys` exists — it appears at their first
+`mwk add`, which may not have happened yet. A repo on one disk is not a backup, and what
+they read promises them one.
+
+- **Give git their name**, if it has none: `user.name` and `user.email` from `gh api user`,
+  using `<id>+<login>@users.noreply.github.com` so their real address is not in every
+  commit they ever make. Without an identity git REFUSES to commit on any machine whose
+  hostname has no domain, and `mwk` can only tell them after the fact.
+- **If the store has no `origin`, give it one and push:**
+  `gh repo create keys --private --source ~/projects/keys --remote origin --push`.
+  Then confirm with `gh repo view --json visibility` and say the word back to them. Every
+  value in there is encrypted, so this is not a disaster waiting to happen, but it is the
+  one repo where "private" is worth reading with your own eyes.
+- **Say what it does and does not cover.** GitHub now holds the locked file. The key that
+  opens it is the line in their password manager, it is not in there, and it never will be.
+
+If GitHub is not connected, skip this and say it in one line: their keys live on this
+computer only until it is.
+
+## 5. The closing line
+
+One line, three names, a tick or a dash each, **from the checks you just ran** — and, if
+step 4 put their store on GitHub, four words saying so. Then one sentence on what the
+first dash would unlock, if there is one, and stop. No summary, no
 next steps — `/mwk-new` is the next thing and they will get there.

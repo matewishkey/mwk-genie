@@ -238,8 +238,13 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
     [ -n "$b" ] && tooldirs="$tooldirs$(dirname "$b"):"
   done
   noshim=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v 'mise/shims' | paste -sd:)
-  clean() { env -i HOME="$T" PATH="$tooldirs$noshim" TERM=dumb MWK_STORE="$T/keys" MWK_KEY="$T/key.txt" \
-                   GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t "$@"; }
+  # NO GIT_AUTHOR_*/GIT_COMMITTER_* here, deliberately. Injecting an identity is the suite
+  # arranging the precondition its own "each add is a commit" assertion depends on: git
+  # refuses to commit without one, `mwk` swallowed that refusal behind `|| true`, and a
+  # beginner's store had zero commits under a green "Stored" (reproduced 2026-09-18).
+  # `mwk` now sets a LOCAL identity on the store repo, so this runs clean for a real
+  # reason. Put these four variables back and the assertion below stops testing anything.
+  clean() { env -i HOME="$T" PATH="$tooldirs$noshim" TERM=dumb MWK_STORE="$T/keys" MWK_KEY="$T/key.txt" "$@"; }
   cadd()  { clean script -qec "$T/mwk add $*" /dev/null; }
   names() { clean env SOPS_AGE_KEY_FILE="$T/key.txt" sops -d --input-type dotenv --output-type dotenv "$T/keys/keys.enc.env" 2>/dev/null \
             | grep -oE '^[A-Z]+' | sort -u | tr '\n' ' '; }
@@ -298,6 +303,31 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
     is "…and the store is exactly as it was" "$(names)" "ALPHA BETA RESTORED TRICKY "
     [ -s "$T/key.txt" ] && ok "…and no new key was minted over the missing one" \
       || no "no new key minted" "a fresh key here locks them out of their own repo"
+    # ── what the 2026-09-18 review reproduced, each red on the old mwk ────────────────
+    # The store is a git repo even when git was not usable on the add that CREATED it —
+    # a Mac still downloading Command Line Tools. `git init` used to sit in the once-only
+    # branch, so that store was never a repo again and every add committed nothing.
+    rm -rf "$T/keys/.git"
+    printf 'value-i\n' | cadd LATEINIT >/dev/null 2>&1
+    [ -d "$T/keys/.git" ] && ok "a store that is not a repo becomes one on the next add" \
+      || no "a store that is not a repo becomes one" "git init only ever ran at creation"
+    c2=$(clean git -C "$T/keys" log --oneline 2>/dev/null | wc -l)
+    [ "$c2" -ge 1 ] && ok "…and that add is a commit ($c2)" || no "a late-init add commits" "$c2 commits"
+    # Pressing Enter after pasting — which the prompt invites, by saying nothing will
+    # appear — used to be refused as "more than one line" if it landed inside one second.
+    printf 'value-p\n\n' | cadd PRESSED >/dev/null 2>&1
+    printf '%s' "$(names)" | grep -q PRESSED && ok "a trailing Enter after the paste is not a second line" \
+      || no "a trailing Enter is accepted" "the same key stored or refused depending on reaction time"
+    got=$(clean "$T/mwk" run -- sh -c 'printf %s "$PRESSED"' 2>/dev/null || true)
+    is "…and the value is whole" "$got" "value-p"
+    # A timing window cannot guard a multi-line secret: a second line that arrives after
+    # the drain is invisible, and line one was stored under a green "Stored". Refuse on
+    # the VALUE, which no latency can change.
+    printf -- '-----BEGIN PRIVATE KEY-----\n' | cadd PEMKEY >/dev/null 2>&1; rc=$?
+    [ "$rc" != 0 ] && ok "the first line of a private key file is refused (exit $rc)" \
+      || no "a lone -----BEGIN line is refused" "it stored a truncated certificate"
+    printf '%s' "$(names)" | grep -q PEMKEY && no "…and nothing of it was stored" "PEMKEY is in the store" \
+      || ok "…and nothing of it was stored"
   else
     no "the first add makes the store (nothing below it ran)" "no key or no .sops.yaml was written"
   fi

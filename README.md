@@ -23,7 +23,7 @@ That is the whole thing. It does not ask which model, whether it may use admin, 
 | the bar at the bottom | which model, which folder, and how full its memory is — so a slow, forgetful agent is a number you can see, not a mystery |
 | `mwk add NAME` | puts a key in your store — you type it, so it never goes through the chat |
 | `~/projects/<your thing>/` | your work: `input/` for things you drop in, `archive/` for what has been dealt with, a one-line `README.md` |
-| `~/projects/keys/` | your keys, encrypted, in a private repo of their own — so they come with you to a new computer |
+| `~/projects/keys/` | your keys, encrypted, in a repo of their own. Once GitHub is connected it is pushed there, private, so they come with you to a new computer |
 | `~/projects/learning/` | what you have learnt, added to each time you ask |
 | `http://127.0.0.1:29200/` | your page: how to work with all of this, and under it every page the agent writes for you. The files are in `~/mwk-work`, one folder per project |
 
@@ -43,7 +43,7 @@ Ask the agent to remove it, or run `sh ~/projects/mwk-genie/uninstall.sh` yourse
 
 ## Keys
 
-Never put an API key in a file or in the chat. `mwk add NAME` stores one, encrypted, in `~/projects/keys` — a private repo of its own, so it is backed up like the rest of your work. `mwk run -- <command>` hands the values to that one command and they vanish with it.
+Never put an API key in a file or in the chat. `mwk add NAME` stores one, encrypted, in `~/projects/keys`, a repo of its own. Each one is committed, and pushed to your private copy on GitHub once `/mwk-onboard` has made you one, so the store outlives the laptop. `mwk run -- <command>` hands the values to that one command and they vanish with it.
 
 The first time you add a key, one is made for you at `~/.config/sops/age/keys.txt`. **Copy the line that starts `AGE-SECRET-KEY` into your password manager, once.** It is the only way into `~/projects/keys` — on this computer, and on the next one.
 
