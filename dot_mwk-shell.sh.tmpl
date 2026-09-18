@@ -40,14 +40,22 @@ export PATH
 # behaves identically on macOS and WSL. A Windows browser reaches it on localhost by
 # default (WSL2 NAT mode, documented). Loopback only and symlinks off: the served root is
 # only what was written to be read, so it carries no password — anything else of theirs
-# stays outside it. `pgrep -x`, never `-f`: -f matches its own command line.
+# stays outside it.
+#
+# The guard asks whether THEIR PAGE is answering, not whether a process called miniserve
+# exists. `pgrep -x miniserve` matched any miniserve at all — and miniserve is a globally
+# installed tool on their machine now, which the agent is told to use for showing folders.
+# One unrelated server on another port silently suppressed their page in every new shell,
+# with nothing on screen and nothing in the log (reproduced 2026-09-18). curl is a hard
+# dependency of the whole kit (install.sh is fetched with it), so this costs nothing new;
+# exit 0 means something answered on 29200, and connection-refused means start it.
 # Flags are from `miniserve 0.35.0 --help`, not memory (-q there is a QR code, not quiet).
 # `! -L`: miniserve with -P refuses a symlinked ROOT and exits at once (measured), so a
 # symlinked ~/mwk-work would have respawned a doomed process from every new shell, with
 # every message going to /dev/null. Its output goes to a log now, so "the page will not
 # open" has somewhere to look: ~/.mwk-server.log.
 if [ -d "$HOME/mwk-work" ] && [ ! -L "$HOME/mwk-work" ] && command -v miniserve >/dev/null 2>&1 \
-   && ! pgrep -x miniserve >/dev/null 2>&1; then
+   && ! curl -s -o /dev/null --max-time 1 http://127.0.0.1:29200/ 2>/dev/null; then
   ( nohup miniserve -i 127.0.0.1 -p 29200 -P --readme -t "Your page" "$HOME/mwk-work" \
       >>"$HOME/.mwk-server.log" 2>&1 & )
 fi

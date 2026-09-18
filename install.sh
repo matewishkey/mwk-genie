@@ -70,9 +70,16 @@ if [ -d "$KIT/.git" ] && have_git; then
     step "already here — could not update, so keeping the copy you have ($before)"
     step "nothing is broken. If this keeps happening, ask me about it"
   fi
-elif have_git; then
+elif have_git && [ ! -e "$KIT" ]; then
   step "cloning"; git clone --quiet --branch "$REF" "$REPO.git" "$KIT"
 else
+  # This arm is also the RECOVERY path, and that is why the clone above insists the
+  # directory is absent. A kit that arrived as a tarball (a Mac whose Command Line Tools
+  # were not ready, the container) is a directory with no .git. Once git appeared, the old
+  # `elif have_git` sent it to `git clone` into a non-empty directory: fatal, exit 128,
+  # under `set -eu`, at step 1 of 6. `mwk update` is `exec` of this script, so the one
+  # command written for when things are broken was the one thing that could not run.
+  # Untarring over the existing directory just replaces the files. Reproduced 2026-09-18.
   # A Mac with no developer tools has a /usr/bin/git that only offers to install Xcode.
   # curl is always real there, so the tarball is the kinder path. Safe to re-run.
   step "downloading (no git needed)"

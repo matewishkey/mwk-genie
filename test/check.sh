@@ -202,6 +202,37 @@ grep -q 'mwk-server.log' dot_mwk-shell.sh.tmpl && grep -q 'mwk-server.log' dot_c
   && ok "the server logs somewhere, and the agent is told where" || no "the server logs somewhere the agent knows" "every failure went to /dev/null"
 grep -q 'mise/shims' dot_claude/modify_settings.json && ok "the settings merge names the shim path for jq" \
   || no "the settings merge names the shim path" "no jq → the merge silently no-ops and chezmoi reports clean"
+# The guard must ask about the PAGE, not about a process name: miniserve is a global tool
+# on their machine and the agent is told to serve folders with it, so one unrelated server
+# suppressed their page from every new shell (reproduced 2026-09-18).
+# Comment lines excluded: the comment there explains what the old guard got wrong, and a
+# check that cannot tell code from the history written above it forces you to delete the
+# history to stay green.
+grep -v '^[[:space:]]*#' dot_mwk-shell.sh.tmpl | grep -q 'pgrep -x miniserve' \
+  && no "the server guard is port-specific" "pgrep -x matches ANY miniserve, whatever it serves" \
+  || ok "the server guard is port-specific, not by process name"
+grep -q '127.0.0.1:29200/ 2>/dev/null; then' dot_mwk-shell.sh.tmpl \
+  && ok "…it probes 29200 itself" || no "the guard probes 29200" "nothing asks whether their page answers"
+grep -q "pkill -f 'miniserve .\*-p 29200'" uninstall.sh \
+  && ok "uninstall stops OUR server, not every miniserve" \
+  || no "uninstall stops only our server" "pkill -x killed one the agent had started for them"
+grep -q 'claude/statusline.sh' uninstall.sh && grep -q 'del(.statusLine)' uninstall.sh \
+  && ok "uninstall takes the statusLine pointer out of settings.json" \
+  || no "uninstall unsets statusLine" "the file is deleted and every session still asks for it"
+
+head_ "install.sh can recover, and mwk update with it"
+grep -q 'elif have_git && \[ ! -e "\$KIT" \]; then' install.sh \
+  && ok "a kit that arrived as a tarball is not cloned over" \
+  || no "clone insists the directory is absent" "git clone into a non-empty dir is fatal — and mwk update is this script"
+
+head_ "The plugin step works on a machine that has never had one"
+mk=$(grep -n 'claude plugin marketplace add' prompts/setup.md | head -1 | cut -d: -f1)
+pi=$(grep -n 'claude plugin install' prompts/setup.md | head -1 | cut -d: -f1)
+if [ -n "$mk" ] && [ -n "$pi" ] && [ "$mk" -le "$pi" ]; then
+  ok "setup.md registers the marketplace before installing from it"
+else
+  no "setup.md registers the marketplace first" "reproduced on a clean HOME: the install alone fails with 'not found in marketplace'"
+fi
 
 # ── the add-eats-the-store class ──────────────────────────────────────────────────────
 # Three separate mistakes had to line up for `mwk add` to replace the whole store with one

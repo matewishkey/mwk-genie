@@ -101,8 +101,27 @@ done
 wipe "$HOME/.mwk-shell.sh"
 wipe "$HOME/bin/mwk"
 wipe "$HOME/.claude/statusline.sh"
+# ...and take the POINTER to it out of their settings, or Claude Code keeps running a
+# status line command that no longer exists. Removing the file while leaving the setting
+# behind was the residue an external review found on 2026-09-18: the kit is gone, and
+# every session still asks for a deleted script. Only the statusLine we wrote goes; model
+# and permission mode are their settings now, and the closing banner says so.
+SET="$HOME/.claude/settings.json"
+if [ -f "$SET" ] && grep -q 'claude/statusline.sh' "$SET" 2>/dev/null; then
+  if [ "$DRY" = 1 ]; then item "would unset" "statusLine in $SET"
+  elif command -v jq >/dev/null 2>&1 \
+       && jq 'if (.statusLine.command // "") | test("claude/statusline.sh") then del(.statusLine) else . end' \
+            "$SET" > "$SET.mwk.$$" 2>/dev/null && [ -s "$SET.mwk.$$" ]; then
+    cat "$SET.mwk.$$" > "$SET"; rm -f "$SET.mwk.$$"; item "unset" "statusLine in $SET"
+  else
+    rm -f "$SET.mwk.$$"
+    item "could NOT unset — take the statusLine line out by hand" "$SET"
+  fi
+fi
 # The server over ~/mwk-work is ours to stop; the folder and everything in it is theirs.
-pkill -x miniserve 2>/dev/null && item "stopped" "the page on 127.0.0.1:29200" || true
+# Matched by PORT, not by name: `pkill -x miniserve` killed every miniserve on the machine,
+# including one the agent had started for them on another port minutes earlier.
+pkill -f 'miniserve .*-p 29200' 2>/dev/null && item "stopped" "the page on 127.0.0.1:29200" || true
 for s in "$HOME"/.claude/skills/mwk-*; do [ -e "$s" ] && wipe "$s"; done
 wipe "$HOME/.config/chezmoi"
 wipe "$HOME/.local/share/chezmoi"
@@ -144,6 +163,8 @@ trash_it "$HOME/projects/mwk-genie"
 
 printf '\n%s%sDone.%s\n' "$B" "$GRN" "$R"
 say "${DIM}Claude Code itself was left alone — you are still signed in.$R"
+say "${DIM}It still works without asking before each command, because that is a setting in$R"
+say "${DIM}~/.claude/settings.json and it is yours now. Ask it to turn the asking back on.$R"
 say "${DIM}Open a NEW terminal window: 'mwk' should be gone from it. 'claude' is still yours.$R"
 say "${DIM}Anything moved to the trash is in $TRASH$R"
 printf '\n'

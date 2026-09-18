@@ -45,7 +45,7 @@ THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
 
 Install one plugin and one documentation source, and nothing else. Every extra thing you add costs tokens in every session forever, so this list is short on purpose.
 
-  - claude plugin install frontend-design@claude-code-plugins — so the first thing they build with a screen does not look like a template.
+  - claude plugin marketplace add anthropics/claude-code — then: claude plugin install frontend-design@claude-code-plugins — so the first thing they build with a screen does not look like a template. Both lines, in that order: on a machine that has never had a plugin, no marketplace is registered, and the install alone fails with "not found in marketplace".
   - claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp — up-to-date documentation for whatever library they end up using. The --scope user matters: without it, it is registered only for the folder you are standing in, and the next thing you do is move them to a different one.
 
 Check each worked before saying it did. If either fails, say so and carry on — neither is load-bearing.
