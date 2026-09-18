@@ -223,8 +223,8 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-18, against `f0faebf`: `check.sh` 255/255, `rehearse.sh` ALL GREEN (50
-assertions).** Every one of the 16 assertions added that day was confirmed RED against the
+**Run, 2026-09-18, against `161d5fd`: `check.sh` 256/256, `rehearse.sh` ALL GREEN (50
+assertions).** Every one of the 18 assertions added that day was confirmed RED against the
 file it replaced before being believed — including the seven in the store, which only
 became testable once `check.sh` stopped handing itself a git identity. Earlier: `e8a5d27`
 234/234 and 50, the first run in which "Claude Code installed" was one of them; `895fb31`
