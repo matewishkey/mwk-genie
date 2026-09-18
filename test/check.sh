@@ -381,6 +381,13 @@ if command -v sops >/dev/null 2>&1 && command -v age-keygen >/dev/null 2>&1 \
     # A timing window cannot guard a multi-line secret: a second line that arrives after
     # the drain is invisible, and line one was stored under a green "Stored". Refuse on
     # the VALUE, which no latency can change.
+    # Nothing pasted at all must SAY so. This file is `set -euo pipefail` and `read`
+    # returns non-zero at EOF, so the script used to die on that line — before its own
+    # message — and a person saw a prompt followed by nothing.
+    eof_out=$(printf '' | cadd EOFTEST 2>&1 || true)
+    printf '%s' "$eof_out" | grep -q 'nothing pasted' \
+      && ok "pasting nothing says so, rather than dying in silence" \
+      || no "pasting nothing says so" "set -e killed it at the read, before the message"
     printf -- '-----BEGIN PRIVATE KEY-----\n' | cadd PEMKEY >/dev/null 2>&1; rc=$?
     [ "$rc" != 0 ] && ok "the first line of a private key file is refused (exit $rc)" \
       || no "a lone -----BEGIN line is refused" "it stored a truncated certificate"

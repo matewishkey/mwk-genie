@@ -269,7 +269,13 @@ cmd_add() {
   old=$(sops_d "$f") || die "could not read what is already in your store — nothing was changed"
 
   printf 'Paste the value for %s (it will not appear on screen): ' "$name" >&2
-  IFS= read -rs value; printf '\n' >&2
+  # `|| true` because this file is `set -euo pipefail` and `read` returns non-zero at EOF.
+  # Without it the script died THERE, before its own "nothing pasted" message: a person, or
+  # an agent, saw a prompt and then nothing at all. It also keeps a value typed without a
+  # closing newline, which read assigns before returning 1 — losing that silently would be
+  # the same class of bug one line further on.
+  IFS= read -rs value || true
+  printf '\n' >&2
   # ONE LINE. `read` takes one line and a pasted multi-line secret used to leave the rest
   # of the paste sitting in the terminal — to be run as commands, and written to history,
   # by the shell this returns to, under a green "not in your history". Drain whatever is
