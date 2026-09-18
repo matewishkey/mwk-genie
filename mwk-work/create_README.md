@@ -168,6 +168,11 @@ rule to my CLAUDE.md that…"* and it does it for you.
 - **Ask what a command does before you say yes.** That question is never annoying.
 - **If this page will not open**, open a new terminal window — that starts it — and try
   again. If it still will not, tell the genie.
+- **If it says you have reached your limit, nothing is broken and nothing is lost.** Every
+  plan has a ceiling on how much you can use in a stretch, and a long build can reach it.
+  It tells you when it comes back — usually a few hours. Your work is on your disk; type
+  `claude` again after that and carry on where you were. This is the one message that
+  looks like a fault and is not.
 - **If the genie itself is broken**, say "report this bug".
 
 ## Where this came from

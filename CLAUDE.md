@@ -271,7 +271,7 @@ What v1 had that v2/v3 had lost, brought back without a page or a new command:
   there once (`wslpath -w` gives the Windows address — a documented tool, unverified here).
   `mwk-learn` goes back to being only the log, at `~/projects/learning/README.md`.
   **The howto is the second of the two show mentions**; `check.sh` counts exactly two.
-- **`/mwk-onboard`** — GitHub, Cloudflare, Replicate; keys in via `mwk add … global` from a
+- **`/mwk-onboard`** — GitHub, Cloudflare, Replicate; keys in via `mwk add NAME` from a
   second tab; each proved with a real call. Endpoints measured 2026-09-17:
   `api.cloudflare.com/client/v4/user/tokens/verify` 200 good / 400 bad,
   `api.replicate.com/v1/account` 200 / 401. `setup.md` hands to it. Dashboard click-paths

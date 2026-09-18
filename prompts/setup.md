@@ -40,6 +40,7 @@ THEN — PROVE IT WORKED, IN THEIR WORDS
   - the bar at the bottom of this window shows the model, the folder and a percentage — if it does not, say so; it is the thing that will tell them when to start a fresh conversation
   - http://127.0.0.1:29200/ answers, and it is their howto — open it for them and tell them to bookmark it. A new terminal window starts it if it is not running
   - a NEW terminal window knows `mwk` — this one matters most, because a shell only reads its settings when it starts, so the shortcut does not exist in the window you are sitting in
+  - ~/.claude/CLAUDE.md starts with the line "# How we work". That file is written once and never overwritten, so if they had one already, theirs was kept and none of the rules you are about to follow are in force. If the first line is anything else, say so plainly, show them both, and ask whether to merge — do not overwrite it yourself.
 
 THEN — TWO THINGS THAT MAKE YOU BETTER AT THIS
 

@@ -6,15 +6,19 @@ tested by anyone (#9), and three of the kit's claims are documented-not-measured
 
 Every ✗ here is information, not a defect. Write down what actually happened.
 
-## Before you start — the two things that make a pre-merge test possible
+## Before you start
 
-- **Paste the prompts from this branch, not from matewishkey.com.** The website renders
-  `main`, which is v1. Open the raw file at the SHA you are testing:
-  `https://raw.githubusercontent.com/matewishkey/mwk-genie/<sha>/prompts/install.md`
-  and the same for `prompts/setup.md`.
-- **Tell prompt two which commit.** It says "its main branch, unless I tell you a different
-  branch or commit" — so the first thing you type after pasting it is: *"use commit `<sha>`"*.
-  On `main` there is no `install.sh` until v2 merges, and the agent would stop there.
+**Take the default path, because that is the one being tested.** v3 has been on `main`
+since 2026-09-17, so the prompts a guest would use are the ones to use:
+`https://raw.githubusercontent.com/matewishkey/mwk-genie/main/prompts/install.md`, and the
+same for `setup.md`. Paste the fenced block. Say nothing to prompt two about branches — it
+takes `main` on its own, and watching it do that unaided is part of the test.
+
+Two things that used to be here and are not any more. The website does **not** show the
+prompts today (it renders neither; `CLAUDE.md` → *The cross-repo coupling*), so GitHub is
+the only source. And there is no reason to pin a commit: pinning was for testing a branch
+`main` did not have. Only go back to `<sha>` and *"use commit `<sha>`"* if you are
+deliberately testing something unmerged.
 
 ## Prompt one — in a browser chat, Windows
 

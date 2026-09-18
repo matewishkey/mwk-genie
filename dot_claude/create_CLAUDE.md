@@ -168,8 +168,10 @@ one thing in this whole setup that cannot be recovered if it is lost.
   restore.
 - **A new key:** `age-keygen` into that path, its public half into `.sops.yaml`, then
   `sops updatekeys -y` on every `.enc.env`. Then the same once-only save as above.
-- **Showing a folder in a browser:** a small local server on it (`python3 -m http.server`
-  or whatever is to hand), bound to `127.0.0.1`, and hand them the address.
+- **Showing a folder in a browser:** if it is under `~/mwk-work`, it is already served —
+  hand them the address under `http://127.0.0.1:29200/` and stop. Anywhere else,
+  `miniserve -i 127.0.0.1 -p <a free port> <dir>`, which is installed and pinned here; do
+  not reach for python3, which is not guaranteed to exist on a Mac.
 - **Finding a file:** `open .` on a Mac, `explorer.exe .` in WSL, and they are looking at
   it. Not a listing pasted into the chat.
 - **Taking the kit off:** `sh ~/projects/mwk-genie/uninstall.sh`. It asks before touching

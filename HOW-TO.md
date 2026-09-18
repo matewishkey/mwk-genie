@@ -103,6 +103,9 @@ off again — you ask the agent. There is no menu and no long list of commands o
   it out. This is the single most useful habit you can have.
 - **Take a screenshot and paste that in.** It can see pictures.
 - **Ask what a command does before you say yes.** That question is never annoying.
+- **"You have reached your limit" is not a fault.** Every plan has a ceiling on how much
+  you can use in a stretch, and a long session can reach it. It says when it is back.
+  Nothing is lost, and you carry on then.
 - **If the genie itself is broken**, say *"report this bug"* — it writes the report, shows
   you, and files it only if you say yes.
 

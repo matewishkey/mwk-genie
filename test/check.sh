@@ -220,6 +220,15 @@ grep -q 'claude/statusline.sh' uninstall.sh && grep -q 'del(.statusLine)' uninst
   && ok "uninstall takes the statusLine pointer out of settings.json" \
   || no "uninstall unsets statusLine" "the file is deleted and every session still asks for it"
 
+# create_ means write-once: an existing ~/.claude/CLAUDE.md is KEPT, chezmoi says nothing,
+# the installer still says Done, and the person's agent has none of these rules. The only
+# cheap defence is for setup to look. The marker has to be the file's real first line.
+head_ "The agent's rules are checked for, not assumed"
+first=$(head -1 dot_claude/create_CLAUDE.md)
+grep -qF "$first" prompts/setup.md \
+  && ok "setup.md proves ~/.claude/CLAUDE.md is ours, by its first line ($first)" \
+  || no "setup.md checks the rules landed" "create_ keeps an existing file silently and nothing looks"
+
 head_ "install.sh can recover, and mwk update with it"
 grep -q 'elif have_git && \[ ! -e "\$KIT" \]; then' install.sh \
   && ok "a kit that arrived as a tarball is not cloned over" \
