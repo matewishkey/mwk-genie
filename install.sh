@@ -119,7 +119,11 @@ for t in $(grep -oE '^"aqua:[^"]+"' "$KIT/mise.toml" | tr -d '"'); do
   # trailing `# comment` after the pin made the old `$`-anchored regex return nothing for
   # three of six tools, `mise use -g tool@` then meant `@latest`, and the global config
   # said "latest" for the three tools the pin exists for. Found by an external review.
-  v=$(grep -E "^\"$t\"" "$KIT/mise.toml" | grep -oE '= *"[0-9][^"]*"' | grep -oE '[0-9][^"]*')
+  # `|| true` so the guard below can RUN. Under `set -eu` a command substitution that
+  # exits non-zero takes the whole script with it, so the "NOT making it global" message
+  # was unreachable: a pin this regex could not read aborted the install at 4/6 with no
+  # word of explanation, which is the opposite of what the comment promises.
+  v=$(grep -E "^\"$t\"" "$KIT/mise.toml" | grep -oE '= *"[0-9][^"]*"' | grep -oE '[0-9][^"]*' || true)
   if [ -z "$v" ]; then
     printf '  could not read the pinned version of %s from mise.toml — NOT making it global\n' "$t" >&2
     continue

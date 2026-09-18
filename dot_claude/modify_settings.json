@@ -57,5 +57,7 @@ fi
 #   statusLine       ~/.claude/statusline.sh — model, folder, how full its memory is.
 printf '%s' "$current" | jq '
   . + {model: (.model // "opus")}
-  | .permissions = ((.permissions // {}) | . + {defaultMode: (.defaultMode // "auto")})
+  | (if (.permissions | type) == "object" or .permissions == null
+     then .permissions = ((.permissions // {}) | . + {defaultMode: (.defaultMode // "auto")})
+     else . end)
   | .statusLine  = (.statusLine // {type: "command", command: "~/.claude/statusline.sh"})'

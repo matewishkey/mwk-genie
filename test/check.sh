@@ -187,6 +187,19 @@ for t in $(grep -oE '^"aqua:[^"]+"' mise.toml | tr -d '"'); do
 done
 grep -q 'NOT making it global' install.sh && ok "…and an unreadable pin is said out loud, not defaulted" \
   || no "an unreadable pin is said out loud" "silence here means @latest"
+# …and that message has to be REACHABLE. Under set -eu a failed command substitution takes
+# the script with it, so the guard below it never ran: the install aborted at 4/6 in silence.
+grep -q "grep -oE '\[0-9\]\[^\"\]\*' || true" install.sh \
+  && ok "…and the guard can actually run (the substitution cannot abort first)" \
+  || no "the unreadable-pin guard is reachable" "set -eu kills the script before the if, so the message is dead code"
+# A settings.json whose permissions is not an object must not abort the whole apply —
+# chezmoi stops, and mwk update is a chezmoi apply.
+out=$(printf '{"permissions":"auto","enabledPlugins":{"p":true}}' | sh dot_claude/modify_settings.json 2>/dev/null); rc=$?
+if [ "$rc" = 0 ] && printf '%s' "$out" | grep -q enabledPlugins; then
+  ok "a malformed permissions value does not break the merge"
+else
+  no "a malformed permissions value does not break the merge" "jq exited $rc — chezmoi aborts and mwk update dies with it"
+fi
 grep -qE '^(el)?if have claude; then' install.sh && ok "the closing banner checks claude actually installed" \
   || no "the banner checks claude installed" "a failed install would still say 'type claude'"
 # And it must not tell a beginner to close the window when the reader is an agent running
