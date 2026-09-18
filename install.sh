@@ -141,7 +141,25 @@ printf '\n  %s──────────────────────
 # Say which thing actually happened. Step 4 swallows a failed Claude Code install on
 # purpose (the rest of the kit is still worth having), but a green "type claude" over a
 # missing claude is a beginner's first "command not found" — an external review's finding.
-if have claude; then
+if [ ! -t 1 ]; then
+  # Nobody is reading this at a terminal: an agent ran it through a tool, or it is going
+  # to a log. The message below is written for `curl … | sh` typed by hand, and in the
+  # DOCUMENTED flow that reader does not exist — Claude Code runs this mid-conversation
+  # and then keeps working in the same window, fixing its own PATH, proving the install,
+  # connecting accounts. Relayed verbatim, "close this window and open a new one" reads
+  # as "quit me", right before the half of setup that needs the session alive. Found by a
+  # beginner-angle review, 2026-09-18. `[ -t 1 ]` is the same test the colours use.
+  printf '   Done. You are reading this from a tool, not a terminal, so do NOT tell them
+'
+  printf '   to close anything. Run  . ~/.mwk-shell.sh  in this session to pick up the
+'
+  printf '   new tools, then carry on. A window THEY open later gets it on its own.
+'
+  if ! have claude; then
+    printf '   Claude Code itself did not install. Retry: curl -fsSL https://claude.ai/install.sh | bash
+'
+  fi
+elif have claude; then
   printf '   %s%sDone.%s One thing left, and it has to be you:\n\n' "$B" "$GRN" "$R"
   printf '     Close this window and open a new one.\n'
   printf '     Then type:   %s%sclaude%s\n\n' "$B" "$RED" "$R"

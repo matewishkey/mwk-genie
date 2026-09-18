@@ -187,8 +187,13 @@ for t in $(grep -oE '^"aqua:[^"]+"' mise.toml | tr -d '"'); do
 done
 grep -q 'NOT making it global' install.sh && ok "…and an unreadable pin is said out loud, not defaulted" \
   || no "an unreadable pin is said out loud" "silence here means @latest"
-grep -q 'if have claude; then' install.sh && ok "the closing banner checks claude actually installed" \
+grep -qE '^(el)?if have claude; then' install.sh && ok "the closing banner checks claude actually installed" \
   || no "the banner checks claude installed" "a failed install would still say 'type claude'"
+# And it must not tell a beginner to close the window when the reader is an agent running
+# it mid-session — the documented flow keeps working in that same window.
+grep -q 'if \[ ! -t 1 \]; then' install.sh && grep -q 'do NOT tell them' install.sh \
+  && ok "…and says something different when a tool is reading, not a person" \
+  || no "the banner knows a tool from a person" "'close this window' reaches the agent mid-setup and reads as 'quit me'"
 
 head_ "uninstall.sh — unhooking is honest"
 grep -q 'rc_grep' uninstall.sh && grep -q 'cat "\$tmp" > "\$rc"' uninstall.sh \

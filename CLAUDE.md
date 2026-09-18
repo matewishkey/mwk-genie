@@ -99,6 +99,9 @@ from and asserts `setup.md` names each one.
 | **A mise shim with no global version exits 1 — and Claude Code's installer uses `jq`** | `install.sh` had Claude Code at step 4, after the shims went first on PATH (step 2) and a project `jq` shim existed (step 3), but before `mise use -g` (step 5). The installer died on `No version is set for shim: jq`, into `/dev/null`, and the banner said "type claude". Never seen on a real machine because prompt one installs Claude first. Reordered; the container asserts `~/.local/bin/claude` exists now |
 | **The container script in `rehearse.sh` is ONE double-quoted string** | A bare `"` on a comment line inside it ENDS the script; the rest becomes arguments to `docker`, the truncated script runs to its end, exit 0. Measured: two assertions, no verdict, `EXIT=0`, `bash -n` green. The script ends with `REHEARSAL-COMPLETE` and the outer script demands it; `check.sh` refuses a bare quote on a comment line in there |
 | This box's fleet shell exports `SOPS_AGE_KEY_FILE` | It contaminated the first round of store research with an unexplained recipient mismatch. `mwk` sets it explicitly; `check.sh` runs the store under `env -i`. **Do store research in a clean env** |
+| **The WSL image is NOT the container image.** Canonical's own manifest for the image `wsl --install` gives you (`cloud-images.ubuntu.com/wsl/noble/current/*.manifest`, 529 packages) lists `curl`, `git`, `python3`, `wget`, `ca-certificates`, `tar` and `sudo`. `ubuntu:24.04` in Docker has **none** of the first five | Measured 2026-09-18. So the rehearsal runs in a HARSHER world than any real machine, which is what makes it a good test bed and a bad model. Do not reason from the container to WSL: a 2026-09-18 review called the WSL kit-fetch unsafe because "WSL has no git", which the manifest disproves |
+| **git REFUSES to commit with no `user.email`**, and cannot invent one when the hostname has no domain (`cicmorgi@dev-cicmorgi.(none)`) | Reproduced under `env -i` 2026-09-18: `mwk add` printed a green `Stored` over a store with zero commits, because the refusal went to `/dev/null` behind `\|\| true`. A store repo now gets a LOCAL identity; `/mwk-onboard` sets their real one from `gh api user` |
+| **`claude plugin install <x>@<marketplace>` fails on a machine that has never had a plugin** — no marketplace is registered, and the error names the marketplace as if it were stale | Reproduced on a clean `$HOME` 2026-09-18, both directions: `claude plugin marketplace add anthropics/claude-code` first, then the identical install succeeds. Never visible on a dev box, which already has one |
 | `api.github.com` sends `access-control-allow-origin: *`, but a **private** repo 404s unauthenticated | Measured with a positive control (`td-sops` private → 404, `mwk-genie` public → 200). It decided that no page would ever read their issues — and then the page went anyway |
 
 ## The store — `~/projects/keys`
@@ -136,7 +139,13 @@ password managers are for, and a repo is what backups are for.
   2026-08-30 bug's fix, carried over. `check.sh` runs it against a real scratch store through a
   pty, and was confirmed red with the merge sabotaged before being trusted green.
 
-Each `add` commits in the store. Pushing is `/mwk-save`'s — that needs GitHub, a commit needs nothing.
+**Each `add` commits, and pushes if the store has a remote** — and says which of those
+actually happened, in the line after `Stored`. `/mwk-onboard` is what creates the remote
+(`gh repo create keys --private --source … --push`), because that needs GitHub and a
+commit needs nothing. Before 2026-09-18 none of this was true: nothing anywhere created a
+remote or pushed, while `README.md`, `HOW-TO.md` and `create_CLAUDE.md` all promised a
+backup and a one-clone restore. The learning log had the whole lifecycle and the key store
+had none of it, which is the tell — the same grep finds one and not the other.
 
 ## The failure this repo keeps having
 
@@ -224,6 +233,10 @@ under a login shell with no mise shims on PATH (the table has the row). The thir
 reproduction that passed had a second's sleep the check did not. It has one now, and prints the
 process table if it ever fails again — a red line with no `ps` is a guess. None of the three would
 have been found by `check.sh`.
+
+**The container has no git at all**, so it never exercises the store's git paths — not the
+commit, not the late `init`, not the push. `check.sh`'s pty store test is the only place
+those are covered, which is exactly why it must not hand itself an identity.
 
 `check.sh` needs `sops`, `age-keygen` and a working `script(1)` for the store test, and says
 **SKIPPED — not a pass** when it cannot run it. `on-this-machine.sh` has still never been run, and
@@ -331,6 +344,31 @@ guarded.
 shim had appeared on the dev box's PATH and a scratch `$HOME` trusts nothing. The lesson is
 general — `command -v` is not "runs" — and the container now executes every tool from the kit
 directory rather than checking its symlink exists.
+
+## v3.4 — the second external review round (2026-09-18, after the merge to main)
+
+Same shape as v3.3, three fresh agents on different angles, and it paid for itself again.
+**The angle matters more than the model**: the two that were given a job ("be the beginner",
+"reproduce the executable surface") found everything; the one asked to sweep for
+inconsistency reported a clean repo while two proven findings sat in files it had read.
+**A reviewer that returns nothing has not established anything** — check it against a
+finding you already hold before believing it.
+
+| angle | what it found |
+|---|---|
+| a beginner following the published path | the plugin step fails on every fresh machine (no marketplace registered); `install.sh`'s closing banner tells a beginner to close the window in the middle of the agent's own run |
+| the executable surface, reproduced | the store's whole backup story: a commit that git refuses and `\|\| true` swallows, a `git init` that only ever ran at creation, and nothing that pushes; the one-second paste drain failing in BOTH directions; the plaintext value back in `grep`'s argv; uninstall leaving a dangling `statusLine`; any unrelated `miniserve` suppressing their page; a tarball kit that `mwk update` could never repair |
+| a consistency sweep | nothing. It missed the two above that live in prose |
+
+**And the same trap as last time, one layer up.** The reviewer reasoned from the container
+to WSL and called the kit-fetch unsafe because "WSL ships no git". The container is
+harsher than any real machine; Canonical's manifest says otherwise (table above). The
+lesson is not "that reviewer was wrong", it is that **our own test bed is the least
+representative environment we own**, and it is easy to quote it as evidence about a
+person's laptop.
+
+**What I got wrong, in my own first pass:** I repeated the python3-is-absent fact from the
+container as though it applied to WSL. Measure the platform you are claiming about.
 
 ## Still open
 
