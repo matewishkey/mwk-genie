@@ -552,13 +552,29 @@ for s in $ondisk; do
     || no "$s is offered to them" "installed but named in neither README.md nor create_CLAUDE.md"
 done
 
+# The website FETCHES these three from main at build time and fails on a 404
+# (matewishkey-web#82, their 108b448). So a rename or a cleanup here breaks somebody else's deploy, and every
+# other check in this file stays green while it does — the failure lands in their CI, not ours.
+# Their GenieHowTo.astro also fails the build when either slot marker is missing, and it fills
+# each slot with the FIRST fenced block of the prompt file — that fence is already held to
+# being the first and non-empty, above. Go red here instead of in their CI.
+head_ "What the website builds from, and cannot build without"
+for f in HOW-TO.md prompts/install.md prompts/setup.md; do
+  [ -f "$f" ] && ok "$f is here (their build 404s without it)" \
+               || no "$f is missing" "matewishkey-web fetches it from main — their build fails, ours does not"
+done
+for slot in 'PROMPT ONE goes here' 'PROMPT TWO goes here'; do
+  grep -qF "<!-- $slot" HOW-TO.md \
+    && ok "HOW-TO.md still carries the <!-- $slot --> marker" \
+    || no "HOW-TO.md lost the <!-- $slot --> marker" "GenieHowTo.astro fails their build on a missing slot"
+done
+
 head_ "Every URL handed to a stranger"
 if command -v curl >/dev/null 2>&1; then
   urls=$(grep -rhoE 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' \
-          README.md HOW-TO.md mwk-work/ prompts/ dot_claude/ install.sh mise.toml 2>/dev/null \
+          README.md HOW-TO.md mwk-work/ prompts/ dot_claude/ .github/ install.sh mise.toml 2>/dev/null \
         | sed -E 's/[.,)?]+$//' | sort -u \
-        | grep -vE 'localhost|127\.0\.0\.1|example\.' \
-        | grep -v 'mwk-genie/main/install.sh')   # 404 until v2 merges; tracked in #16
+        | grep -vE 'localhost|127\.0\.0\.1|example\.')
   for u in $urls; do
     code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' -L "$u" 2>/dev/null)
     case "$code" in

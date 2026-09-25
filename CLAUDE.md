@@ -168,27 +168,31 @@ document that ships.
 `src/content/topics/put-the-genie-in-the-box.mdx` in `mergodon/matewishkey-web`); `/wishes/…`,
 `/how-to/…` and `/projects/…` all 301 to it. It has moved three times; curl it, don't quote it.
 
-**As of 2026-09-17 the site renders NEITHER prompt.** `src/data/genie-prompts.ts` — the fetcher
-that read `prompts/*.md` from `main` at build time and capped `setup.md` at 60 columns — is
-imported by nothing since their `5dcaaa4` ("the wishes become six topics"). Measured, not read:
-its fetch cache is dated 2026-09-06 while `dist/` was built 2026-09-17, so it has not run in a
-build since. That is why `v2` could merge with a 631-character line and their build stayed
-green, and why **matewishkey-web#77 stopped being a blocker** — the assertion it asks them to
-drop is dead code. The topic page today is prose about the show's first session plus a "tool"
-card linking this repo; it says the kit installs Homebrew and "turns off the are-you-sure prompt",
-both from v1.
+**The coupling is LIVE again — their `108b448`, matewishkey-web#82, and it makes three of our
+files load-bearing in somebody else's build.** At build time they fetch `HOW-TO.md`,
+`prompts/install.md` and `prompts/setup.md` from `main`: `HOW-TO.md` is the page body with its
+H1 dropped, and the first fenced block of each prompt fills the matching slot. **A 404 on any of
+the three FAILS their build** (the disk cache opens only for a network error, a 429 or a 5xx),
+and `GenieHowTo.astro` fails it too if both slot comments are not present. So renaming or
+deleting a prompt file, `HOW-TO.md`, or either
+`<!-- PROMPT ONE goes here -->` / `<!-- PROMPT TWO goes here -->` marker **breaks a third
+party's deploy, and our own `check.sh` stays green while it does.** Never do it in a cleanup.
 
-**What the site should carry instead is `HOW-TO.md`** (2026-09-17): the person's walk-through,
-with two marked slots (`<!-- PROMPT ONE goes here -->`, `<!-- PROMPT TWO goes here -->`) where a
-build drops in the first fenced block of each prompt file — the fetcher they already have does
-exactly that, minus `assertNarrow`. Filed as **matewishkey-web#82** when `v2` was promoted, 2026-09-17;
-the prompts and the prose then stay single-sourced here. `check.sh` holds `HOW-TO.md` to the same
-names and counts as `README.md`.
+**Verified against the served HTML, 2026-09-19** — not read, and not taken from their issue
+comment: both `<pre>` blocks are byte-for-byte the first fence of `install.md` (5588 chars) and
+`setup.md` (7346 chars) on `main`; all 52 prose fragments of `HOW-TO.md` appear in the page
+(0 missing, once smart quotes and em dashes are normalised — the raw compare showed 9 false
+misses on `'` vs `’` alone); the slot comments and the two `— copy the grey box.` GitHub
+fallback lines are dropped in their render; relative links are repointed at `blob/main`. **They
+rebuild on our commits**: the paragraph added by `88be94a` (2026-09-18) was live the next day.
+The v1 prose is gone — the only "Homebrew" left is the kit's own *"Do not install Homebrew"*
+inside prompt one. `assertNarrow` and their `scripts/check-prompts.mjs` are gone with #77.
 
-**If they wire the fetcher back in, three things from the old coupling return:** it reads the
-**first** fenced block (a second fence above it publishes the wrong thing); a missing prompt file
-does **not** fail their build but serves a stale cached copy with a warning; and any width cap
-has to go, because `setup.md` is prose now. Never delete either prompt file in a cleanup.
+**Two things from the old coupling still bite:** it reads the **first** fenced block, so a second
+fence above it publishes the wrong thing; and any width cap has to stay gone, because both
+prompts are prose now (longest lines 505 and 631). **One thing is theirs, not ours:** the page's
+JSON-LD `dateModified` is hand-written frontmatter and understates the body it renders
+(`2026-09-17` against a 2026-09-18 commit), so it drifts every time this kit changes.
 
 ## Rules that survived and still apply
 
