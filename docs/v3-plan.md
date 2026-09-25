@@ -63,7 +63,7 @@ anything. (And miniserve is leaving anyway — below.)
 | keep | why it survives the rule |
 |---|---|
 | `mwk add NAME [project]` | **The one thing that structurally needs a human at a keyboard.** The value is read at a hidden prompt so it never passes through chat, argv, `ps` or history. Self-initialising: no store → keygen, `.sops.yaml`, `git init`, then "now save your key". `init` disappears into it |
-| `mwk run -- cmd` | Frequent, and used by the agent every time a project runs with keys. Decrypts global then project into a 600 mktemp, sources it, deletes it, `exec`s — `sops exec-env` takes one file and the merge of two is the whole job. Thin, but typed constantly |
+| `mwk run -- cmd` | Frequent, and used by the agent every time a project runs with keys. Decrypts global then project into a 600 mktemp, sources it, deletes it, `exec`s — `sops exec-env` takes one file and the merge of two is the whole job. Thin, but typed constantly — ⤳ **it no longer SOURCES it** (2026-09-17, the Opus review): sourcing a decrypted dotenv runs a backtick in a value as code. It parses instead, and `run` with the store missing now refuses rather than running the command with no keys. Do not put the `source` back. `[project]` scope went with the one-file store, above |
 | `mwk update` | The one that must work when the agent's own instructions are stale. Six lines delegating to `install.sh` |
 
 | cut | the agent does it instead |
@@ -87,7 +87,9 @@ back in `mise.toml` for that. `CLAUDE.md` → *v3.1* has the reasoning and the M
 WSL file placement.
 
 `mwk/site/` (375 lines), `queue.json`, `projects.json`, `ports.tsv`, the 292xx scheme, `password.html`,
-and **miniserve out of `mise.toml`** (six tools → five).
+and **miniserve out of `mise.toml`** (six tools → five) — ⤳ **reversed the same day**: the page
+came back as a folder server and miniserve with it, so the count is six. The objection was the
+bespoke dashboard and queue, not serving a folder (`CLAUDE.md` → *v3.1*).
 
 The page had one job: show the person a command they must run themselves. Its customers after
 the cut are `mwk add` and the once-only `cat keys.txt`. Both are a sentence in chat — and

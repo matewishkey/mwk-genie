@@ -103,11 +103,13 @@ for flag in '-i 127.0.0.1' '-p 29200' ' -P ' '--readme' '"$HOME/mwk-work"'; do
   printf '%s' "$serve" | grep -qF -- "$flag" && ok "…with $flag" \
     || no "…with $flag" "miniserve binds 0.0.0.0 and follows symlinks by default"
 done
-printf '%s\n' "$rendered" | grep -q 'pgrep -x miniserve' && ok "…guarded by pgrep -x (never -f)" \
-  || no "the start is guarded by pgrep -x" "-f matches its own command line and starts one per shell"
 printf '%s\n' "$rendered" | grep -qE 'miniserve .* -q ' && no "no -q on miniserve" "-q is a QR code in 0.35.0, not quiet" \
   || ok "no -q (it means QR code, not quiet — checked --help)"
-grep -q 'pkill -x miniserve' uninstall.sh && ok "uninstall stops it" || no "uninstall stops it" "a server would outlive the kit"
+# The guard and the stop are asserted further down, against the CODE and not the comments that
+# explain the old design: `pgrep -x miniserve` / `pkill -x miniserve` were retired on 2026-09-18
+# because they matched any miniserve on the machine. The pair that used to live here outlasted
+# them, matched only the comment saying so, and sat green while asserting the reverse of what
+# the file now says a few hundred lines down. Do not re-add a name-based check here.
 
 head_ "settings.json — opus, auto mode, the bar — merged, never replaced"
 sh -n dot_claude/modify_settings.json && ok "modify_settings.json is valid sh" || no "modify_settings.json is valid sh" "syntax error"

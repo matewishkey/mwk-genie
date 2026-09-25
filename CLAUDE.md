@@ -18,7 +18,8 @@ prompt one  (browser)  → Mac or Windows? → WSL / Xcode CLT → Claude Code �
                          --permission-mode auto
 prompt two  (Claude)   → read install.sh and report → run it → prove it → a folder to work in
 install.sh             → kit → mise → 6 pinned tools → Claude Code → mise use -g → chezmoi apply
-chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/.claude/{CLAUDE.md,settings.json,skills/},
+chezmoi                → ~/.mwk-shell.sh, ~/bin/mwk, ~/mwk-work/README.md,
+                         ~/.claude/{CLAUDE.md,settings.json,statusline.sh,skills/},
                          and on macOS iTerm2
 mwk                    → add · run · update. That is all of it.
 ```
@@ -284,7 +285,10 @@ What v1 had that v2/v3 had lost, brought back without a page or a new command:
   objection to the v2 page was the *bespoke dashboard and queue*, not serving a folder;
   reading what the agent writes is a frequent need, and the rule forbids commands for rare
   things, not infrastructure for frequent ones. **Started by `~/.mwk-shell.sh`** on the first
-  interactive shell (`pgrep -x`, never `-f`) — no launchd, no systemd, identical on both
+  interactive shell — **the guard is a port probe** (`curl` against `127.0.0.1:29200`), not a
+  process-name check: `pgrep -x miniserve` matched any miniserve on the machine, so an
+  unrelated one suppressed their page (2026-09-18). `check.sh` goes red if a name-based
+  guard comes back. No launchd, no systemd, identical on both
   platforms, self-heals after a reboot. Loopback only, symlinks off, **no password**: the
   served root is only what was written to be read. Flags from `--help`, not memory — `-q`
   is a QR code in 0.35.0. `~/projects` stays `~/projects` (his clients use it); only the

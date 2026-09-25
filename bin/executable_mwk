@@ -332,7 +332,9 @@ cmd_add() {
   rm -f "$f.prev"
 
   # A commit is local and free, and it is the difference between "on this disk" and "in
-  # the history". Pushing is /mwk-save's job — that needs GitHub, this needs nothing.
+  # the history". store_save ALSO pushes when the store has a remote (2026-09-18) — before
+  # that, every document promised a backup and nothing performed one. It reports which of
+  # the two actually happened; it never claims the push when there is no remote.
   store_save "$name"
   good "Stored $name. It is not on screen and not in your history."
   note "Kept $backup"
