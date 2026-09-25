@@ -228,13 +228,16 @@ curl … test/on-this-machine.sh | sh   # a REAL machine. See test/README.md
 Pass a **commit SHA**, not a branch — `raw.githubusercontent.com` serves a stale branch for minutes
 after a push, and that has already cost two runs.
 
-**Run, 2026-09-25, against `b647004`: `check.sh` 264/264. `rehearse.sh` was NOT run** — that
-day's changes were the suite, a `.github/` link and these notes, nothing the container
-exercises; say which suite ran rather than letting a number stand for both. The five new
-assertions were confirmed RED in a scratch copy first (a deleted `prompts/setup.md`, a removed
-`PROMPT TWO` marker, an emptied first fence), and three of the fourteen URLs it checks had never been
-reached by any run before it: the kit's own `install.sh` raw URL (excluded since v2 as a 404,
-long since 200) and the two in `.github/`, which the sweep had never read.
+**Run, 2026-09-25, against `f75ab9d`: `check.sh` 262/262. `rehearse.sh` was NOT run** — the
+day's changes were the suite, a `.github/` link and prose, nothing the container exercises; say
+which suite ran rather than letting one number stand for both. The count went 256 → 264 → 262:
+five assertions added for what the website builds from, three URLs reached that no run had ever
+reached (the kit's own raw `install.sh`, excluded since v2 as a 404 and long since 200, plus the
+two in `.github/`, which the sweep had never read), then **two removed for being incapable of
+failing** — `pgrep -x miniserve` and `pkill -x miniserve` matched only the comments explaining
+why those guards were retired. Every added assertion was confirmed RED in a scratch copy first,
+and so were the two survivors that replaced the pair. **A number going down is the good outcome
+here**; the suite got smaller and can fail in two more places than it could that morning.
 
 **Run, 2026-09-18, against `161d5fd`: `check.sh` 256/256, `rehearse.sh` ALL GREEN (50
 assertions).** Every one of the 18 assertions added that day was confirmed RED against the
